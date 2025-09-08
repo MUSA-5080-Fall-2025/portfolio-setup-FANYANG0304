@@ -18,5 +18,5 @@ Advanced spatial analysis and data science for urban planning and public policy.
 [Students will customize this section]
 
 ## Contact
-- Email: [your.email@upenn.edu]
-- GitHub: [@your-username]
+- Email: [yangfann@upenn.edu]
+- GitHub: [FANYANG0304]

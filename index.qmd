@@ -15,8 +15,10 @@ Advanced spatial analysis and data science for urban planning and public policy.
 - **Final Project:** Capstone modeling challenge
 
 ## About Me
-[Students will customize this section]
+Hi I'm **Fan Yang**, a student in **MUSA program**. Welcome to my homepage! ๑>ᴗO๑   
+I am deeply interested in analysis and data science, and I aspire to pursue a career in data analytics.  
+So I will give my best effort to achieve this goal!
 
 ## Contact
 - Email: [yangfann@upenn.edu]
-- GitHub: [FANYANG0304]
+- GitHub: [@FANYANG0304]

@@ -1,0 +1,27 @@
+/* i like the black one for navbar styles */
+.navbar {
+  background-color: #000000 !important;
+}
+
+.navbar .navbar-brand,
+.navbar .navbar-title,
+.navbar .nav-link {
+  color: #ffffff !important;
+}
+
+.navbar .nav-link:hover {
+  color: #cccccc !important;
+}
+
+.navbar .dropdown-menu {
+  background-color: #333333 !important;
+}
+
+.navbar .dropdown-item {
+  color: #ffffff !important;
+}
+
+.navbar .dropdown-item:hover {
+  background-color: #555555 !important;
+  color: #ffffff !important;
+}

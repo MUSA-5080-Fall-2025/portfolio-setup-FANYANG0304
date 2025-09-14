@@ -3,7 +3,7 @@ project:
   output-dir: docs
 
 website:
-  title: "Fan Yang - MUSA 5080 Portfolio"
+  title: "Fan Yang - MUSA 5080"
   navbar:
     left:
       - href: index.qmd
@@ -21,6 +21,7 @@ format:
     toc: true
     code-fold: true
     css: styles.css
+    page-layout: full
 
 execute:
   freeze: auto

@@ -25,3 +25,92 @@
   background-color: #555555 !important;
   color: #ffffff !important;
 }
+
+.quarto-container {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.page-layout-article {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.page-columns {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+#quarto-content {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.page-columns .content {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Adjust main content area width */
+main {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Ensure content container uses full width */
+.container-fluid {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+/* Adjust table of contents size */
+#TOC {
+  font-size: 0.8em !important;
+  line-height: 1.4 !important;
+}
+
+#TOC h2 {
+  font-size: 1.3em !important;
+  font-weight: bold !important;
+  margin-bottom: 0.8em !important;
+}
+
+#TOC ul {
+  font-size: 1.05em !important;
+  line-height: 1.5 !important;
+}
+
+#TOC li {
+  margin-bottom: 0.4em !important;
+}
+
+#TOC a {
+  font-size: 1.05em !important;
+  padding: 0.3em 0.5em !important;
+  display: block !important;
+  border-radius: 4px !important;
+  transition: background-color 0.2s !important;
+}
+
+#TOC a:hover {
+  background-color: #f8f9fa !important;
+  color: #000 !important;
+}
+
+/* Adjust sidebar width */
+.sidebar {
+  width: 280px !important;
+  min-width: 280px !important;
+}
+
+/* Adjust table of contents title */
+#toc-title {
+  font-size: 1.3em !important;
+  font-weight: bold !important;
+  margin-bottom: 1em !important;
+  color: #333 !important;
+}

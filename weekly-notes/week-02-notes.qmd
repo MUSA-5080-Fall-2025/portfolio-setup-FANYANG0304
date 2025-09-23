@@ -1,0 +1,355 @@
+---
+title: "MUSA 5080 Notes #2"
+subtitle: "Week 2: Algorithmic Decision Making & Census Data"
+author: "Fan Yang"
+date: "September 15, 2025"
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-location: left
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+::: {.callout-note}
+**Week 2: Algorithmic Decision Making & Census Data**  
+**Date:** 09/15/2025
+:::
+
+---
+
+## Part 1: Algorithmic Decision Making
+
+### What Is An Algorithm?
+
+:::: {.columns}
+
+::: {.column width="40%"}
+**Definition:**
+A set of rules or instructions for solving a problem or completing a task
+:::
+
+::: {.column width="60%"}
+**Examples:**
+- Recipe for cooking
+- Directions to get somewhere
+- Decision tree for hiring
+- **Computer program that processes data to make predictions**
+:::
+
+::::
+
+### Algorithmic Decision Making in Government
+
+**Systems used to assist or replace human decision-makers**
+
+Based on predictions from models that process historical data containing:
+- **Inputs** ("features", "predictors", "independent variables", "x")
+- **Outputs** ("labels", "outcome", "dependent variable", "y")
+
+### Real-World Examples
+
+:::: {.columns}
+
+::: {.column width="33%"}
+**Criminal Justice**
+Recidivism risk scores for bail and sentencing decisions
+:::
+
+::: {.column width="33%"}
+**Housing & Finance**
+Mortgage lending and tenant screening algorithms
+:::
+
+::: {.column width="33%"}
+**Healthcare**
+Patient care prioritization and resource allocation
+:::
+
+::::
+
+### Why Government Uses Algorithms
+
+**Governments have limited budgets and need to serve everyone**
+
+Algorithmic decision making promises:
+- **Efficiency** - process more cases faster
+- **Consistency** - same rules applied to everyone
+- **Objectivity** - removes human bias
+- **Cost savings** - fewer staff needed
+
+
+---
+
+## When Algorithms Go Wrong
+
+### Remember: Data Analytics Is Subjective
+
+**Every step involves human choices:**
+- Data cleaning decisions
+- Data coding or classification
+- Data collection - use of imperfect proxies
+- How I interpret results
+- What variables I put in the model
+
+::: {.callout-important}
+**These choices embed human values and biases**
+:::
+
+### Case Study 1: Healthcare Algorithm Bias
+
+**The Problem:**
+Algorithm used to identify high-risk patients for additional care **systematically discriminated against Black patients**
+
+**What Went Wrong:**
+- Algorithm used **healthcare costs as a proxy for need**
+- Black patients typically incur lower costs due to **systemic inequities in access**
+- Result: Black patients under-prioritized despite **equivalent levels of illness**
+
+**Scale:** Used by hospitals and insurers for **over 200 million people** annually
+
+### Case Study 2: Criminal Justice Algorithm Bias
+
+**COMPAS Recidivism Prediction:**
+
+**The Problem:**
+- Algorithm **2x as likely** to falsely flag Black defendants as high risk
+- White defendants often rated low risk **even when they do reoffend**
+
+**Why This Happens:**
+- Historical arrest data reflects **biased policing patterns**
+- Socioeconomic proxies correlate with race
+- **"Objective" data contains subjective human decisions**
+
+### Case Study 3: Dutch Welfare Fraud Detection
+
+**The Problem:**
+- **"Black box" system** operated in secrecy
+- Impossible for individuals to understand or challenge decisions
+- **Disproportionately targeted** vulnerable populations
+
+**Court Ruling:**
+- Breached privacy rights under European Convention on Human Rights
+- Highlighted **unfair profiling and discrimination**
+- System eventually **shut down**
+
+---
+
+## Key Lesson: Designing Ethical Algorithms
+
+### Critical Questions to Ask
+
+When designing algorithmic systems, consider:
+
+1. **Proxy:** What would I *use* to stand in for what I *want*?
+2. **Blind spot:** What data gap or historical bias could skew results?
+3. **Harm + Guardrail:** Who could be harmed, and what's one simple safeguard?
+
+### Example: Emergency Response
+
+- **Proxy:** 911 call volume → stand-in for "need"
+- **Blind spot:** Under-calling where trust/connectivity is low
+- **Harm + Guardrail:** Wealthier areas over-prioritized → add a **vulnerability boost** (age/disability) and a **minimum-service floor** per zone
+
+### Potential Guardrails
+
+- Prioritize vulnerable groups
+- Cap disparities across areas (simple rule)
+- Human review + appeals for edge cases
+- Replace a bad proxy (collect the right thing)
+- Publish criteria & run a periodic bias check
+
+---
+
+## Part 2: Census Data Foundations
+
+### Why Census Data Matters
+
+**Census data is the foundation for:**
+- Understanding community demographics
+- Allocating government resources
+- Tracking neighborhood change
+- **Designing fair algorithms** (like those we just discussed)
+
+### Census vs. American Community Survey
+
+:::: {.columns}
+
+::: {.column width="50%"}
+**Decennial Census (2020)**
+- **Everyone** counted every 10 years
+- **9 basic questions:** age, race, sex, housing
+- **Constitutional requirement**
+- Determines political representation
+:::
+
+::: {.column width="50%"}
+**American Community Survey (ACS)**
+- **3% of households** surveyed annually
+- **Detailed questions:** income, education, employment, housing costs
+- **Replaced** the old "long form" in 2005
+- **A big source of data I'll use** this semester
+:::
+
+::::
+
+### ACS Estimates: What I Need to Know
+
+**1-Year Estimates** (areas > 65,000 people)
+- Most current data, smallest sample
+
+**5-Year Estimates** (all areas including census tracts)
+- Most reliable data, largest sample
+- **What I'll use most often**
+
+::: {.callout-tip}
+**Key Point:** All ACS data comes with **margins of error** - I need to learn to work with uncertainty
+:::
+
+### Census Geography Hierarchy
+
+```
+Nation
+├── Regions  
+├── States
+│   ├── Counties
+│   │   ├── Census Tracts (1,500-8,000 people)
+│   │   │   ├── Block Groups (600-3,000 people)  
+│   │   │   │   └── Blocks (≈85 people, Decennial only)
+```
+
+**Most policy analysis happens at:**
+- **County level** - state and regional planning
+- **Census tract level** - neighborhood analysis
+- **Block group level** - very local analysis (tempting, but big MOEs)
+
+---
+
+## Part 3: Working with Census Data in R
+
+### Basic get_acs() Function
+
+**Most important function I'll use:**
+
+```r
+library(tidycensus)
+
+# Get state population data
+get_acs(
+  geography = "state",
+  variables = "B01003_001",
+  year = 2022,
+  survey = "acs5"
+)
+```
+
+**Key parameters:** geography, variables, year, survey
+
+### Understanding the Output
+
+**Every ACS result includes:**
+- `GEOID` - Geographic identifier
+- `NAME` - Human-readable location name
+- `variable` - Census variable code
+- `estimate` - The actual value
+- `moe` - Margin of error
+
+### Working with Multiple Variables
+
+```r
+# Get county data with multiple variables
+county_data <- get_acs(
+  geography = "county",
+  variables = c(
+    total_pop = "B01003_001",
+    median_income = "B19013_001"
+  ),
+  state = "PA",
+  year = 2022,
+  survey = "acs5",
+  output = "wide"
+)
+```
+
+### Data Cleaning Essentials
+
+```r
+# Clean up messy geographic names
+county_data <- county_data %>%
+  mutate(
+    county_name = str_remove(NAME, ", Pennsylvania"),
+    county_name = str_remove(county_name, " County")
+  )
+```
+
+### Calculating Data Reliability
+
+```r
+# Calculate MOE percentage and reliability categories
+county_reliability <- county_data %>%
+  mutate(
+    moe_percentage = (median_incomeM / median_incomeE) * 100,
+    reliability = case_when(
+      moe_percentage < 5 ~ "High Confidence",
+      moe_percentage >= 5 & moe_percentage <= 10 ~ "Moderate",
+      moe_percentage > 10 ~ "Low Confidence"
+    )
+  )
+```
+
+### Working with Margins of Error
+
+**Every ACS estimate comes with uncertainty**
+
+**Rule of thumb:**
+- Large MOE relative to estimate = **less reliable**
+- Small MOE relative to estimate = **more reliable**
+
+**In my analysis:**
+- Always report MOE alongside estimates
+- Be cautious comparing estimates with overlapping error margins
+- Consider using 5-year estimates for greater reliability
+
+---
+
+## Connecting the Dots
+
+### From Algorithms to Analysis
+
+**Today's key connections:**
+
+- **Algorithmic Decision Making** → Understanding why my analysis matters for real policy decisions
+- **Data Subjectivity** → Why I need to emphasize **transparent, reproducible methods** in my work
+- **Census Data** → The foundation for most urban planning and policy analysis
+- **R Skills** → The tools I need to do this work professionally and ethically
+
+### Questions for Reflection
+
+**As I work with data this semester, I should ask:**
+
+1. **What assumptions am I making** in my data choices?
+2. **Who might be excluded** from my analysis?
+3. **How could my findings be misused** if taken out of context?
+4. **What would I want policymakers to understand** about my methods?
+
+::: {.callout-tip}
+These questions will make me a **more thoughtful analyst** and **better future policymaker**
+:::
+
+---
+
+## Summary
+
+This week I learned about the critical intersection between technical skills and ethical responsibility in data analysis. My key takeaways:
+
+1. **Algorithms are not neutral** - they embed human choices and biases at every step
+2. **Real-world consequences** - algorithmic bias can systematically harm vulnerable populations
+3. **Census data is foundational** but comes with inherent uncertainties that I must acknowledge
+4. **Technical competence must be paired with ethical awareness** to create fair and effective policy tools
+
+::: {.callout-important}
+**Remember:** Every data analysis decision I make has potential policy implications. I need to approach my work with both technical rigor and ethical consideration.
+:::

@@ -7,13 +7,27 @@ website:
   navbar:
     left:
       - href: index.qmd
-        text: Home
-      - text: Weekly Notes
+        text: "Home"
+      - text: "Weekly Notes"
         menu:
           - href: weekly-notes/week-01-notes.qmd
-            text: Week 1
+            text: "Week 1"
           - href: weekly-notes/week-02-notes.qmd
-            text: Week 2
+            text: "Week 2"
+          - href: weekly-notes/week-03-notes.qmd
+            text: "Week 3"
+      - text: "Labs"
+        menu:
+          - href: labs/lab_setup_instructions.qmd
+            text: "Lab Setup Instructions"
+          - href: labs/lab_0/lab0_index.qmd
+            text: "Lab 0: Getting Started with dplyr"
+          - href: labs/lab_3/week3_lab_exercise.qmd
+            text: "Lab 3: Data Visualization and EDA"
+      - text: "Assignments"
+        menu:
+          - href: assignments/assignment_1/assignment_1.qmd
+            text: "Assignment 1: Census Data Quality for Policy Decisions"
           
 format:
   html:

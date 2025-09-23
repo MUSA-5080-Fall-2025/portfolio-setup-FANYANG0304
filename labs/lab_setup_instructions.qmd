@@ -1,0 +1,204 @@
+# Lab Setup Instructions
+
+## Overview
+
+Each week, you'll complete lab assignments and add them to your portfolio website. This document explains the one-time setup process and the weekly workflow you'll follow all semester.
+
+## One-Time Setup (Week 1 Only)
+
+### Step 0: Clone the Course Repository
+
+**First, clone the course repository** (you only need to do this once):
+
+1. **Open Terminal/Command Prompt**
+2. **Navigate to where you want to store course materials:**
+   ```bash
+   cd ~/Desktop  # or wherever you keep school folders
+   ```
+3. **Clone the course repository:**
+   ```bash
+   git clone https://github.com/MUSA-5080-Fall-2025/MUSA-5080-Fall-2025.git
+   ```
+
+**Important:** This creates a **separate folder** from your portfolio repository.
+
+### Step 1: Create Labs Folder Structure
+
+In your portfolio repository, create this folder structure:
+
+```
+your-portfolio/
+├── _quarto.yml           # You'll edit this
+├── index.qmd            # Your home page  
+├── weekly-notes/        # Already exists
+├── labs/                # CREATE THIS FOLDER
+│   └── lab_0/           # CREATE THIS FOLDER
+│       ├── lab_0_template.qmd    # You'll copy this file here
+│       └── data/        # CREATE THIS FOLDER (copy data folder)
+└── ... (other files)
+```
+
+**In RStudio:**
+1. In the Files pane, click "New Folder"
+2. Name it `labs`
+3. Inside `labs`, create another folder called `lab_0`
+4. Inside `lab_0`, create a folder called `data`
+
+### Step 2: Edit Your Navigation Menu
+
+Open your `_quarto.yml` file and modify the navbar section to add a Labs menu:
+
+**Replace this section:**
+```yaml
+navbar:
+  left:
+    - href: index.qmd
+      text: Home
+    - href: weekly-notes/
+      text: Weekly Notes
+```
+
+**With this:**
+```yaml
+navbar:
+  left:
+    - href: index.qmd
+      text: Home
+    - href: weekly-notes/
+      text: Weekly Notes
+    - text: Labs
+      menu:
+        - href: labs/lab_0/
+          text: Lab 0: dplyr Basics
+```
+
+**Important:** Make sure the indentation matches exactly! YAML is sensitive to spacing.
+
+### Step 3: Test Your Setup
+
+1. Save your `_quarto.yml` file
+2. In RStudio, go to Build → Render Website
+3. Check that you now see a "Labs" dropdown in your navigation menu
+
+## Weekly Workflow (Every Lab)
+
+### Step 1: Get the Lab Template
+
+1. Go to the [course repository](https://github.com/MUSA-5080-Fall-2025/MUSA-5080-Fall-2025)
+2. Navigate to `labs/lab_X/` (where X is the lab number)
+3. Download or copy the lab template files
+
+### Step 2: Set Up Your Lab Folder
+
+1. In your portfolio, create a new folder: `labs/lab_X/`
+2. Copy the template `.qmd` file into this folder
+3. Copy any data files into `labs/lab_X/data/`
+
+### Step 3: Customize the Template
+
+1. Open the lab `.qmd` file
+2. Update the author field with your name
+3. Complete all the exercises
+4. Fill in all the "[YOUR ANSWER]" sections
+
+### Step 4: Update Your Navigation
+
+Add the new lab to your `_quarto.yml` file:
+
+```yaml
+navbar:
+  left:
+    - href: index.qmd
+      text: Home
+    - href: weekly-notes/
+      text: Weekly Notes
+    - text: Labs
+      menu:
+        - href: labs/lab_0/
+          text: Lab 0: dplyr Basics
+        - href: labs/lab_1/           # ADD NEW LABS HERE
+          text: Lab 1: [Lab Title]
+```
+
+### Step 5: Render and Deploy
+
+1. **Build your site:** Build → Render Website
+2. **Check locally:** Make sure everything looks good
+3. **Commit your changes:** 
+   ```bash
+   git add .
+   git commit -m "Complete Lab X: [brief description]"
+   ```
+4. **Push to GitHub:**
+   ```bash
+   git push origin main
+   ```
+5. **Check your live site:** Your portfolio should update automatically
+
+## Troubleshooting
+
+### "Website won't render"
+- Check your `_quarto.yml` indentation
+- Make sure all file paths are correct
+- Look for typos in file names
+
+### "New lab doesn't appear in menu"
+- Verify you added it to `_quarto.yml`
+- Check that the `href:` path matches your folder structure
+- Make sure you rendered the website after making changes
+
+### "Code doesn't work"
+- Check that data files are in the right location
+- Verify you're using relative paths: `"data/filename.csv"`
+- Make sure you're working within your R project
+
+### "GitHub Pages isn't updating"
+- Confirm you committed and pushed all changes
+- Check that GitHub Actions completed successfully (green checkmark)
+- Wait a few minutes - updates can take time
+
+## Tips for Success
+
+1. **Work incrementally:** Complete one exercise at a time, render frequently
+2. **Use descriptive commit messages:** "Complete filtering exercises for Lab 0"
+3. **Keep files organized:** Don't put data files in wrong folders
+4. **Test locally first:** Always render and check before pushing
+5. **Ask for help:** Use office hours or discussion board if stuck
+
+## Example Portfolio Structure (After Several Labs)
+
+```
+your-portfolio/
+├── _quarto.yml
+├── index.qmd
+├── weekly-notes/
+│   ├── index.qmd
+│   ├── week_01.qmd
+│   └── week_02.qmd
+├── labs/
+│   ├── lab_0/
+│   │   ├── index.qmd
+│   │   └── data/
+│   │       └── car_sales_data.csv
+│   ├── lab_1/
+│   │   ├── index.qmd
+│   │   └── data/
+│   │       └── census_data.csv
+│   └── lab_2/
+│       ├── index.qmd
+│       └── data/
+│           └── housing_data.csv
+└── docs/                    # Generated by Quarto
+    ├── index.html
+    ├── weekly-notes/
+    ├── labs/
+    └── ...
+```
+
+By the end of the semester, you'll have a professional portfolio showcasing all your data analysis work!
+
+## Questions?
+
+- **Technical issues:** Post on Canvas discussion board
+- **Conceptual questions:** Come to office hours
+- **GitHub problems:** Include error messages in your questions

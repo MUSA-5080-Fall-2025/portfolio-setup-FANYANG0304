@@ -1,0 +1,408 @@
+---
+title: "MUSA 5080 Notes #3"
+subtitle: "Week 3: Data Visualization & Exploratory Analysis"
+author: "Fan Yang"
+date: "September 22, 2025"
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-location: left
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+::: {.callout-note}
+**Week 3: Data Visualization & Exploratory Analysis**  
+**Date:** 09/22/2025
+:::
+
+---
+
+## Part 1: Why Visualization Matters
+
+### The Power of Visual Communication
+
+This week I learned about the critical importance of data visualization, especially in policy contexts. When I think about Assignment 1, I created tables showing income reliability patterns across counties, but I realized that visual presentation could dramatically change the impact of my analysis when presenting to:
+
+- The state legislature (2-minute briefing)
+- Community advocacy groups  
+- Local news reporters
+
+### Anscombe's Quartet: The Famous Lesson
+
+**Four datasets with identical summary statistics:**
+- Same means (x̄ = 9, ȳ = 7.5)
+- Same variances
+- Same correlation (r = 0.816)
+- Same regression line
+
+::: {.callout-important}
+**But completely different patterns when visualized**
+:::
+
+### Policy Implications I Need to Remember
+
+**Why this matters for my work:**
+- **Summary statistics can hide critical patterns**
+- **Outliers may represent important communities**
+- **Relationships aren't always linear**
+- **Visual inspection reveals data quality issues**
+
+**Example:** A county with "average" income might have extreme inequality that algorithms would miss without visualization.
+
+### Ethical Data Communication
+
+**From last week's algorithmic bias discussion:**
+
+**Research finding:** Only **27% of planners** warn users about unreliable ACS data
+- Most planners don't report margins of error
+- Many lack training on statistical uncertainty
+- **This violates AICP Code of Ethics**
+
+**My responsibility:**
+- Create honest, transparent visualizations
+- Always assess and communicate data quality
+- Consider who might be harmed by uncertain data
+
+### Real Consequences of Bad Visualizations
+
+**Common problems in government data presentation:**
+- Misleading scales or axes
+- Cherry-picked time periods
+- **Hidden or ignored uncertainty**
+- Missing context about data reliability
+
+::: {.callout-warning}
+**Real impact:** The Jurjevich et al. study found that **72% of Portland census tracts** had unreliable child poverty estimates, yet planners rarely communicated this uncertainty.
+
+**Result:** Poor policy decisions based on misunderstood data
+:::
+
+---
+
+## Part 2: Grammar of Graphics
+
+### The ggplot2 Philosophy
+
+**Grammar of Graphics principles:**
+
+**Data** → **Aesthetics** → **Geometries** → **Visual**
+
+- **Data:** My dataset (census data, survey responses, etc.)
+- **Aesthetics:** What variables map to visual properties (x, y, color, size)
+- **Geometries:** How to display the data (points, bars, lines)
+- **Additional layers:** Scales, themes, facets, annotations
+
+### Basic ggplot2 Structure
+
+**Every ggplot I create has this pattern:**
+
+```r
+ggplot(data = my_data) +
+  aes(x = variable1, y = variable2) +
+  geom_something() +
+  additional_layers()
+```
+
+::: {.callout-tip}
+**I build plots by adding layers with `+`**
+:::
+
+### Aesthetic Mappings: The Key to ggplot2
+
+**Aesthetics map data to visual properties:**
+- `x`, `y` - position
+- `color` - point/line color
+- `fill` - area fill color
+- `size` - point/line size
+- `shape` - point shape
+- `alpha` - transparency
+
+::: {.callout-important}
+**Important:** Aesthetics go inside `aes()`, constants go outside
+:::
+
+### Example: Basic Scatter Plot
+
+```r
+library(tidyverse)
+
+# Basic scatter plot
+ggplot(county_data) +
+  aes(x = median_income, y = total_population) +
+  geom_point() +
+  labs(
+    title = "Income vs Population in PA Counties",
+    x = "Median Household Income ($)",
+    y = "Total Population"
+  ) +
+  theme_minimal()
+```
+
+---
+
+## Part 3: Exploratory Data Analysis
+
+### The EDA Mindset
+
+**Exploratory Data Analysis is detective work I need to master:**
+
+1. **What does the data look like?** (distributions, missing values)
+2. **What patterns exist?** (relationships, clusters, trends)
+3. **What's unusual?** (outliers, anomalies, data quality issues)
+4. **What questions does this raise?** (hypotheses for further investigation)
+5. **How reliable is this data?**
+
+**Goal:** Understand my data before making decisions or building models
+
+### Enhanced EDA Workflow for Policy Analysis
+
+**My enhanced process:**
+
+1. **Load and inspect** - dimensions, variable types, missing data
+2. **Assess reliability** - examine margins of error, calculate coefficients of variation
+3. **Visualize distributions** - histograms, boxplots for each variable
+4. **Explore relationships** - scatter plots, correlations
+5. **Identify patterns** - grouping, clustering, geographical patterns
+6. **Question anomalies** - investigate outliers and unusual patterns
+7. **Document limitations** - prepare honest communication about data quality
+
+### Understanding Distributions
+
+**Why distribution shape matters:**
+
+```r
+# Exploring income distribution
+ggplot(county_data) +
+  aes(x = median_income) +
+  geom_histogram(bins = 15, fill = "steelblue", alpha = 0.7) +
+  labs(
+    title = "Distribution of Median Income Across PA Counties",
+    x = "Median Household Income ($)",
+    y = "Number of Counties"
+  )
+```
+
+**What I should look for:** Skewness, outliers, multiple peaks, gaps
+
+### Boxplots for Quick Summaries
+
+```r
+# Boxplot to understand income distribution
+ggplot(county_data) +
+  aes(y = median_income) +
+  geom_boxplot(fill = "lightblue") +
+  labs(
+    title = "Income Distribution Summary",
+    y = "Median Household Income ($)"
+  )
+```
+
+---
+
+## Critical: Data Quality Through Visualization
+
+### Research-Based Best Practices
+
+**Jurjevich et al. (2018): 5 Essential Guidelines I Must Follow:**
+
+1. **Report the corresponding MOEs of ACS estimates**
+   - Always include margin of error values
+
+2. **Include a footnote when not reporting MOEs**
+   - Explicitly acknowledge omission
+
+3. **Provide context for (un)reliability**
+   - Use coefficient of variation (CV):
+     - CV < 12% = reliable (green coding)
+     - CV 12-40% = somewhat reliable (yellow)
+     - CV > 40% = unreliable (red coding)
+
+4. **Reduce statistical uncertainty**
+   - Collapse data detail, aggregate geographies, use multi-year estimates
+
+5. **Always conduct statistical significance tests**
+   - When comparing ACS estimates over time
+
+::: {.callout-important}
+**Key insight:** These practices are not just technical best practices—they are **ethical requirements** under the AICP Code of Ethics
+:::
+
+### Visualizing Data Quality
+
+```r
+# Visualizing margin of error patterns
+county_reliability <- county_data %>%
+  mutate(
+    moe_percentage = (median_incomeM / median_incomeE) * 100,
+    cv = moe_percentage / 1.645  # Convert MOE to CV
+  )
+
+ggplot(county_reliability) +
+  aes(x = total_population, y = moe_percentage) +
+  geom_point(alpha = 0.7) +
+  labs(
+    title = "Data Quality vs Population Size",
+    x = "Total Population",
+    y = "Margin of Error (%)",
+    subtitle = "Smaller populations have higher uncertainty"
+  ) +
+  theme_minimal()
+```
+
+**Pattern I observed:** Smaller populations have higher uncertainty
+
+**Ethical implication:** These communities might be systematically undercounted
+
+---
+
+## Part 4: Data Joins & Integration
+
+### Why I Need to Join Data
+
+**To combine datasets effectively:**
+- Census demographics + Economic indicators
+- Survey responses + Geographic boundaries
+- Current data + Historical trends
+- Administrative records + Survey data
+
+### Types of Joins in dplyr
+
+**Four main types I'll use:**
+- `left_join()` - Keep all rows from left dataset
+- `right_join()` - Keep all rows from right dataset
+- `inner_join()` - Keep only rows that match in both
+- `full_join()` - Keep all rows from both datasets
+
+**Most common:** `left_join()` to add columns to my main dataset
+
+### Example: Joining Census Tables
+
+```r
+# Get income data
+income_data <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "PA",
+  year = 2022,
+  survey = "acs5"
+)
+
+# Get education data
+education_data <- get_acs(
+  geography = "county", 
+  variables = "B15003_022",  # Bachelor's degree
+  state = "PA",
+  year = 2022,
+  survey = "acs5"
+)
+
+# Join the datasets
+combined_data <- income_data %>%
+  left_join(education_data, by = "GEOID")
+```
+
+### Checking Join Results and Data Quality
+
+**I must always verify joins AND assess combined reliability:**
+
+```r
+# Check dimensions
+nrow(income_data)      # Should match
+nrow(education_data)   # Should match  
+nrow(combined_data)    # Should match
+
+# Check for missing values
+combined_data %>%
+  summarize(
+    missing_income = sum(is.na(median_income)),
+    missing_education = sum(is.na(college_pop))
+  )
+
+# Calculate reliability for both variables
+combined_data %>%
+  mutate(
+    income_cv = (income_moe / median_income) * 100 / 1.645,
+    college_cv = (college_moe / college_pop) * 100 / 1.645
+  )
+```
+
+---
+
+## EDA for Policy Analysis
+
+### Key Questions I Should Always Ask
+
+**For census data specifically:**
+- **Geographic patterns:** Are problems concentrated in certain areas?
+- **Population relationships:** How does size affect data quality?
+- **Demographic patterns:** Are certain communities systematically different?
+- **Temporal trends:** How do patterns change over time?
+- **Data integrity:** Where might survey bias affect results?
+- **Reliability assessment:** Which estimates should I trust?
+
+### Professional Visualization Standards
+
+```r
+# Create publication-ready visualization
+ggplot(combined_data) +
+  aes(x = median_income, y = college_percentage) +
+  geom_point(aes(size = total_population), alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE) +
+  scale_size_continuous(name = "Population") +
+  scale_x_continuous(labels = scales::dollar_format()) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  labs(
+    title = "Education and Income Relationship in PA Counties",
+    subtitle = "Higher income counties tend to have more college graduates",
+    x = "Median Household Income",
+    y = "Percent with Bachelor's Degree",
+    caption = "Source: ACS 2018-2022 5-year estimates"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    legend.position = "bottom"
+  )
+```
+
+---
+
+## Summary
+
+This week I learned that visualization is not just about making pretty charts—it's about ethical communication and uncovering patterns that summary statistics might hide. Key takeaways:
+
+1. **Anscombe's Quartet** taught me that identical statistics can hide completely different patterns
+2. **Professional ethics** require me to always assess and communicate data uncertainty
+3. **ggplot2's Grammar of Graphics** provides a systematic approach to building meaningful visualizations
+4. **Enhanced EDA workflow** helps me understand data quality before making policy decisions
+5. **Data joins** allow me to combine multiple sources while maintaining quality standards
+
+::: {.callout-important}
+**Most important lesson:** As a future planner, I have an ethical obligation to communicate data uncertainty honestly. My visualizations should reveal, not hide, the limitations of my data.
+:::
+
+### Skills I Practiced
+
+**ggplot2 fundamentals:**
+- Scatter plots, histograms, boxplots
+- Aesthetic mappings and customization
+- Professional themes and labels
+
+**EDA workflow:**
+- Distribution analysis
+- Outlier detection
+- Pattern identification
+
+**Ethical data practice:**
+- Visualizing and reporting margins of error
+- Using coefficient of variation to assess reliability
+- Creating honest, transparent communications
+
+::: {.callout-tip}
+**Moving forward:** I will always start my analysis with exploratory visualization and end with honest communication about data limitations. This is both a technical best practice and an ethical requirement.
+:::

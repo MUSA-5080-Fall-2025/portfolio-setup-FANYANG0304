@@ -44,6 +44,9 @@
 #quarto-content {
   max-width: 100% !important;
   width: 100% !important;
+  position: relative !important;
+  z-index: 10 !important;
+  background-color: #ffffff !important;
 }
 
 .page-columns .content {
@@ -53,10 +56,13 @@
   margin-right: 0 !important;
 }
 
-/* Adjust main content area width */
+/* Adjust main content area width and z-index */
 main {
   max-width: 100% !important;
   width: 100% !important;
+  position: relative !important;
+  z-index: 10 !important;
+  background-color: #ffffff !important;
 }
 
 /* Ensure content container uses full width */
@@ -101,10 +107,11 @@ main {
   color: #000 !important;
 }
 
-/* Adjust sidebar width */
+/* Adjust sidebar width and z-index */
 .sidebar {
   width: 280px !important;
   min-width: 280px !important;
+  z-index: 1 !important;
 }
 
 /* Adjust table of contents title */

@@ -1,0 +1,485 @@
+---
+title: "Assignment 1: Census Data Quality for Policy Decisions"
+subtitle: "Evaluating Data Reliability for Algorithmic Decision-Making"
+author: "Fan Yang"
+date: "September 22, 2025"
+format: 
+  html:
+    code-fold: false
+    toc: true
+    toc-location: left
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+# Assignment Overview
+
+## Scenario
+
+You are a data analyst for the **Pennsylvania Department of Human Services**. The department is considering implementing an algorithmic system to identify communities that should receive priority for social service funding and outreach programs. Your supervisor has asked you to evaluate the quality and reliability of available census data to inform this decision.
+
+Drawing on our Week 2 discussion of algorithmic bias, you need to assess not just what the data shows, but how reliable it is and what communities might be affected by data quality issues.
+
+## Learning Objectives
+
+- Apply dplyr functions to real census data for policy analysis
+- Evaluate data quality using margins of error 
+- Connect technical analysis to algorithmic decision-making
+- Identify potential equity implications of data reliability issues
+- Create professional documentation for policy stakeholders
+
+## Submission Instructions
+
+**Submit by posting your updated portfolio link on Canvas.** Your assignment should be accessible at `your-portfolio-url/assignments/assignment_1/`
+
+Make sure to update your `_quarto.yml` navigation to include this assignment under an "Assignments" menu.
+
+# Part 1: Portfolio Integration
+
+Create this assignment in your portfolio repository under an `assignments/assignment_1/` folder structure. Update your navigation menu to include:
+
+```
+- text: Assignments
+  menu:
+    - href: assignments/assignment_1/your_file_name.qmd
+      text: "Assignment 1: Census Data Exploration"
+```
+If there is a special character like comma, you need use double quote mark so that the quarto can identify this as text
+
+# Setup
+
+```{r setup}
+# Load required packages (hint: you need tidycensus, tidyverse, and knitr)
+library(tidycensus)
+library(tidyverse)
+library(knitr)
+
+# Set your Census API key
+census_api_key("86993dedbe98d77b9d79db6b8ba21a7fde55cb91", install = TRUE, overwrite = TRUE)
+
+# Choose your state for analysis - assign it to a variable called my_state
+my_state <- "PA"  # Pennsylvania
+```
+
+**State Selection:** I have chosen **Pennsylvania** for this analysis because: Pennsylvania has a diverse mix of urban, suburban, and rural counties, providing an excellent opportunity to examine how census data quality varies across different community types and population densities.
+
+# Part 2: County-Level Resource Assessment
+
+## 2.1 Data Retrieval
+
+**Your Task:** Use `get_acs()` to retrieve county-level data for your chosen state.
+
+**Requirements:**
+- Geography: county level
+- Variables: median household income (B19013_001) and total population (B01003_001)  
+- Year: 2022
+- Survey: acs5
+- Output format: wide
+
+**Hint:** Remember to give your variables descriptive names using the `variables = c(name = "code")` syntax.
+
+```{r county-data}
+# Write your get_acs() code here
+county_data <- get_acs(
+  geography = "county",
+  variables = c(
+    median_income = "B19013_001",
+    total_population = "B01003_001"
+  ),
+  state = my_state,
+  year = 2022,
+  survey = "acs5",
+  output = "wide"
+)
+
+# Clean the county names to remove state name and "County" 
+# Hint: use mutate() with str_remove()
+county_data <- county_data %>%
+  mutate(
+    county_name = str_remove(NAME, ", Pennsylvania"),
+    county_name = str_remove(county_name, " County")
+  )
+
+# Display the first few rows
+head(county_data)
+```
+
+## 2.2 Data Quality Assessment
+
+**Your Task:** Calculate margin of error percentages and create reliability categories.
+
+**Requirements:**
+- Calculate MOE percentage: (margin of error / estimate) * 100
+- Create reliability categories:
+  - High Confidence: MOE < 5%
+  - Moderate Confidence: MOE 5-10%  
+  - Low Confidence: MOE > 10%
+- Create a flag for unreliable estimates (MOE > 10%)
+
+**Hint:** Use `mutate()` with `case_when()` for the categories.
+
+```{r income-reliability}
+# Calculate MOE percentage and reliability categories using mutate()
+county_reliability <- county_data %>%
+  mutate(
+    # Calculate MOE percentage for median income
+    moe_percentage = (median_incomeM / median_incomeE) * 100,
+    
+    # Create reliability categories
+    reliability_category = case_when(
+      moe_percentage < 5 ~ "High Confidence",
+      moe_percentage >= 5 & moe_percentage <= 10 ~ "Moderate Confidence",
+      moe_percentage > 10 ~ "Low Confidence"
+    ),
+    
+    # Create flag for unreliable estimates
+    unreliable_flag = ifelse(moe_percentage > 10, "Unreliable", "Reliable")
+  )
+
+# Create a summary showing count of counties in each reliability category
+# Hint: use count() and mutate() to add percentages
+reliability_summary <- county_reliability %>%
+  count(reliability_category) %>%
+  mutate(
+    percentage = round((n / sum(n)) * 100, 1),
+    summary = paste0(n, " (", percentage, "%)")
+  )
+
+print(reliability_summary)
+```
+
+## 2.3 High Uncertainty Counties
+
+**Your Task:** Identify the 5 counties with the highest MOE percentages.
+
+**Requirements:**
+- Sort by MOE percentage (highest first)
+- Select the top 5 counties
+- Display: county name, median income, margin of error, MOE percentage, reliability category
+- Format as a professional table using `kable()`
+
+**Hint:** Use `arrange()`, `slice()`, and `select()` functions.
+
+```{r high-uncertainty}
+# Create table of top 5 counties by MOE percentage
+top_uncertainty <- county_reliability %>%
+  arrange(desc(moe_percentage)) %>%
+  slice(1:5) %>%
+  select(county_name, median_incomeE, median_incomeM, moe_percentage, reliability_category)
+
+# Format as table with kable() - include appropriate column names and caption
+kable(top_uncertainty,
+      col.names = c("County", "Median Income", "Margin of Error", "MOE %", "Reliability"),
+      caption = "Top 5 Counties with Highest Margin of Error Percentages",
+      digits = 2)
+```
+
+**Data Quality Commentary:**
+
+The results show that Forest, Sullivan, Union, Montour, and Elk counties have the highest uncertainty in median income estimates, with MOE percentages ranging from 6.63% to 9.99%. These counties would be poorly served by algorithms that rely heavily on median income data, as the estimates are less reliable and could lead to misallocation of resources. The higher uncertainty is likely due to smaller population sizes in these counties, which makes it more difficult to obtain precise statistical estimates through sampling methods.
+
+# Part 3: Neighborhood-Level Analysis
+
+## 3.1 Focus Area Selection
+
+**Your Task:** Select 2-3 counties from your reliability analysis for detailed tract-level study.
+
+**Strategy:** Choose counties that represent different reliability levels (e.g., 1 high confidence, 1 moderate, 1 low confidence) to compare how data quality varies.
+
+```{r select-counties}
+# Use filter() to select 2-3 counties from your county_reliability data
+# Store the selected counties in a variable called selected_counties
+
+# Get one county from each reliability category for comparison
+selected_counties <- county_reliability %>%
+  group_by(reliability_category) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(GEOID, county_name, median_incomeE, moe_percentage, reliability_category)
+
+# Display the selected counties with their key characteristics
+# Show: county name, median income, MOE percentage, reliability category
+kable(selected_counties,
+      col.names = c("GEOID", "County", "Median Income", "MOE %", "Reliability"),
+      caption = "Selected Counties for Detailed Analysis",
+      digits = 2)
+```
+
+**Comment on the output:** The selected counties represent a good range of data reliability levels - Adams County with high confidence (4.22% MOE) and Cameron County with moderate confidence (5.64% MOE). This selection allows us to compare how data quality issues manifest differently across different types of Pennsylvania communities, from more populous areas to smaller rural counties.
+
+## 3.2 Tract-Level Demographics
+
+**Your Task:** Get demographic data for census tracts in your selected counties.
+
+**Requirements:**
+- Geography: tract level
+- Variables: white alone (B03002_003), Black/African American (B03002_004), Hispanic/Latino (B03002_012), total population (B03002_001)
+- Use the same state and year as before
+- Output format: wide
+- **Challenge:** You'll need county codes, not names. Look at the GEOID patterns in your county data for hints.
+
+```{r tract-demographics}
+# Define your race/ethnicity variables with descriptive names
+race_vars <- c(
+  total_pop = "B03002_001",
+  white_alone = "B03002_003",
+  black_alone = "B03002_004",
+  hispanic = "B03002_012"
+)
+
+# Extract county codes from selected counties for tract-level analysis
+county_codes <- str_sub(selected_counties$GEOID, 3, 5)
+
+# Use get_acs() to retrieve tract-level data
+# Hint: You may need to specify county codes in the county parameter
+tract_data <- get_acs(
+  geography = "tract",
+  variables = race_vars,
+  state = my_state,
+  county = county_codes,
+  year = 2022,
+  survey = "acs5",
+  output = "wide"
+)
+
+# Calculate percentage of each group using mutate()
+# Create percentages for white, Black, and Hispanic populations
+tract_demographics <- tract_data %>%
+  mutate(
+    pct_white = (white_aloneE / total_popE) * 100,
+    pct_black = (black_aloneE / total_popE) * 100,
+    pct_hispanic = (hispanicE / total_popE) * 100,
+    
+    # Add readable tract and county name columns using str_extract() or similar
+    county_code = str_sub(GEOID, 3, 5),
+    tract_name = paste0("Tract ", str_sub(GEOID, 6, 11)),
+    county_name = case_when(
+      county_code %in% county_codes[1] ~ selected_counties$county_name[1],
+      county_code %in% county_codes[2] ~ selected_counties$county_name[2],
+      county_code %in% county_codes[3] ~ selected_counties$county_name[3],
+      TRUE ~ "Other"
+    )
+  )
+
+head(tract_demographics)
+```
+
+## 3.3 Demographic Analysis
+
+**Your Task:** Analyze the demographic patterns in your selected areas.
+
+```{r demographic-analysis}
+# Find the tract with the highest percentage of Hispanic/Latino residents
+# Hint: use arrange() and slice() to get the top tract
+highest_hispanic <- tract_demographics %>%
+  arrange(desc(pct_hispanic)) %>%
+  slice(1) %>%
+  select(county_name, tract_name, pct_hispanic, total_popE)
+
+print("Tract with highest Hispanic/Latino percentage:")
+print(highest_hispanic)
+
+# Calculate average demographics by county using group_by() and summarize()
+# Show: number of tracts, average percentage for each racial/ethnic group
+county_summary <- tract_demographics %>%
+  group_by(county_name) %>%
+  summarize(
+    num_tracts = n(),
+    avg_total_pop = mean(total_popE, na.rm = TRUE),
+    avg_pct_white = mean(pct_white, na.rm = TRUE),
+    avg_pct_black = mean(pct_black, na.rm = TRUE),
+    avg_pct_hispanic = mean(pct_hispanic, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Create a nicely formatted table of your results using kable()
+kable(county_summary,
+      col.names = c("County", "# Tracts", "Avg Population", "% White", "% Black", "% Hispanic"),
+      caption = "Average Demographics by County",
+      digits = 1)
+```
+
+# Part 4: Comprehensive Data Quality Evaluation
+
+## 4.1 MOE Analysis for Demographic Variables
+
+**Your Task:** Examine margins of error for demographic variables to see if some communities have less reliable data.
+
+**Requirements:**
+- Calculate MOE percentages for each demographic variable
+- Flag tracts where any demographic variable has MOE > 15%
+- Create summary statistics
+
+```{r demographic-moe}
+# Calculate MOE percentages for white, Black, and Hispanic variables
+# Hint: use the same formula as before (margin/estimate * 100)
+tract_moe_analysis <- tract_demographics %>%
+  mutate(
+    white_moe_pct = (white_aloneM / white_aloneE) * 100,
+    black_moe_pct = (black_aloneM / black_aloneE) * 100,
+    hispanic_moe_pct = (hispanicM / hispanicE) * 100,
+    
+    # Create a flag for tracts with high MOE on any demographic variable
+    # Use logical operators (| for OR) in an ifelse() statement
+    high_moe_flag = ifelse(
+      white_moe_pct > 15 | black_moe_pct > 15 | hispanic_moe_pct > 15,
+      "High MOE Issues",
+      "Acceptable MOE"
+    )
+  )
+
+# Create summary statistics showing how many tracts have data quality issues
+moe_summary <- tract_moe_analysis %>%
+  count(high_moe_flag) %>%
+  mutate(
+    percentage = round((n / sum(n)) * 100, 1)
+  )
+
+print("Summary of tracts with data quality issues:")
+print(moe_summary)
+
+# Show some example tracts with high MOE
+high_moe_examples <- tract_moe_analysis %>%
+  filter(high_moe_flag == "High MOE Issues") %>%
+  select(county_name, tract_name, white_moe_pct, black_moe_pct, hispanic_moe_pct) %>%
+  head(3)
+
+kable(high_moe_examples,
+      col.names = c("County", "Tract", "White MOE %", "Black MOE %", "Hispanic MOE %"),
+      caption = "Example Tracts with High MOE Issues",
+      digits = 1)
+```
+
+## 4.2 Pattern Analysis
+
+**Your Task:** Investigate whether data quality problems are randomly distributed or concentrated in certain types of communities.
+
+```{r pattern-analysis}
+# Group tracts by whether they have high MOE issues
+# Calculate average characteristics for each group:
+# - population size, demographic percentages
+
+# Use group_by() and summarize() to create this comparison
+pattern_analysis <- tract_moe_analysis %>%
+  group_by(high_moe_flag) %>%
+  summarize(
+    num_tracts = n(),
+    avg_population = mean(total_popE, na.rm = TRUE),
+    median_population = median(total_popE, na.rm = TRUE),
+    avg_pct_white = mean(pct_white, na.rm = TRUE),
+    avg_pct_black = mean(pct_black, na.rm = TRUE),
+    avg_pct_hispanic = mean(pct_hispanic, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Create a professional table showing the patterns
+kable(pattern_analysis,
+      col.names = c("MOE Status", "# Tracts", "Avg Pop", "Median Pop", "% White", "% Black", "% Hispanic"),
+      caption = "Comparison of Tracts by Data Quality Issues",
+      digits = 1)
+```
+
+**Pattern Analysis:** The analysis reveals that all 29 census tracts in our selected counties show high MOE issues (>15%) for at least one demographic variable. This is particularly concerning as it shows that even in counties with relatively good income data reliability, demographic estimates at the tract level can be highly uncertain. The pattern suggests that smaller geographic areas and potentially less diverse communities face greater challenges in data reliability, likely due to smaller sample sizes and the difficulty of obtaining precise estimates for minority populations in areas where they represent a small percentage of the total population.
+
+
+# Part 5: Policy Recommendations
+
+## 5.1 Analysis Integration and Professional Summary
+
+**Your Task:** Write an executive summary that integrates findings from all four analyses.
+
+**Executive Summary Requirements:**
+1. **Overall Pattern Identification**: What are the systematic patterns across all your analyses?
+2. **Equity Assessment**: Which communities face the greatest risk of algorithmic bias based on your findings?
+3. **Root Cause Analysis**: What underlying factors drive both data quality issues and bias risk?
+4. **Strategic Recommendations**: What should the Department implement to address these systematic issues?
+
+**Executive Summary:**
+
+My analysis of Pennsylvania's census data reveals systematic patterns in data quality that pose significant challenges for algorithmic decision-making in social service allocation. At the county level, I found that 85.1% of Pennsylvania's 67 counties have high confidence data (MOE < 5%) for median income, while 14.9% fall into the moderate confidence category (MOE 5-10%). Notably, no counties reached the low confidence threshold (MOE > 10%), indicating that county-level income data is generally reliable across Pennsylvania. However, the variation in data quality is not random - counties with higher MOE percentages tend to be smaller, rural communities such as Forest, Sullivan, and Cameron counties.
+
+The tract-level demographic analysis reveals more concerning patterns for algorithmic equity. All 29 census tracts examined in my selected counties showed high MOE issues (>15%) for at least one demographic variable, particularly for Black and Hispanic population estimates. This finding is especially troubling because demographic data is crucial for ensuring equitable service delivery and identifying communities that may face systemic disadvantages. The tract-level analysis shows average populations of around 3,763 people, with demographics averaging 88.7% white, 1.2% Black, and 6.8% Hispanic, suggesting that minority communities may be systematically underrepresented in reliable data.
+
+The equity implications of these findings are profound and create multiple layers of algorithmic bias risk. Communities most likely to experience data quality issues - rural areas, smaller populations, and areas with minority populations - may also be those most in need of social services but least likely to receive them through algorithmic allocation systems. This creates a systematic bias where algorithms trained on unreliable data could perpetuate or exacerbate existing inequalities. The combination of small population sizes and demographic diversity appears to compound data reliability issues, suggesting that the most vulnerable communities face the greatest risk of being poorly served by algorithmic systems.
+
+Given these systematic challenges, the Pennsylvania Department of Human Services must implement a tiered, equity-conscious approach to algorithmic decision-making. Rather than applying uniform algorithmic criteria across all communities, the department should develop differentiated strategies that provide additional oversight for moderate-confidence counties and alternative assessment methods for areas with known demographic data limitations. This includes establishing enhanced monitoring protocols, manual review processes for high-stakes decisions, and partnerships with community organizations to supplement census data in areas where it may be unreliable. Such an approach ensures that algorithmic efficiency enhances rather than undermines equitable service delivery across Pennsylvania's diverse communities.
+
+## 6.3 Specific Recommendations
+
+**Your Task:** Create a decision framework for algorithm implementation.
+
+```{r recommendations-data}
+# Create a summary table using your county reliability data
+# Include: county name, median income, MOE percentage, reliability category
+
+recommendations_table <- county_reliability %>%
+  select(county_name, median_incomeE, moe_percentage, reliability_category) %>%
+  # Add a new column with algorithm recommendations using case_when():
+  mutate(
+    algorithm_recommendation = case_when(
+      reliability_category == "High Confidence" ~ "Safe for algorithmic decisions",
+      reliability_category == "Moderate Confidence" ~ "Use with caution - monitor outcomes",
+      reliability_category == "Low Confidence" ~ "Requires manual review or additional data"
+    )
+  ) %>%
+  arrange(moe_percentage)
+
+# Format as a professional table with kable()
+kable(recommendations_table,
+      col.names = c("County", "Median Income", "MOE %", "Reliability", "Algorithm Recommendation"),
+      caption = "Algorithm Implementation Recommendations by County",
+      digits = 2)
+```
+
+**Key Recommendations:**
+
+**Your Task:** Use your analysis results to provide specific guidance to the department.
+
+1. **Counties suitable for immediate algorithmic implementation:** The 57 counties with high confidence data (MOE < 5%) including major population centers like Allegheny, Philadelphia, Montgomery, Bucks, and Chester counties are appropriate for immediate algorithmic implementation. These counties have large populations, stable demographic patterns, and reliable census estimates that minimize the risk of algorithmic bias. Their robust data quality allows algorithms to make accurate assessments and resource allocations with minimal human oversight required.
+
+2. **Counties requiring additional oversight:** The 10 counties with moderate confidence data (MOE 5-10%) including Forest, Sullivan, Union, Montour, Elk, Warren, Carbon, Snyder, Cameron, and Greene require enhanced monitoring protocols. These counties should implement quarterly outcome reviews, establish appeal processes for algorithmic decisions, conduct periodic manual audits of allocation patterns, and maintain enhanced documentation of decision rationales. Additionally, these counties should have lower thresholds for triggering manual review of high-stakes decisions.
+
+3. **Counties needing alternative approaches:** While my analysis found no counties with low confidence data at the county level, the tract-level analysis reveals that demographic data quality issues require special attention across all counties. For areas with significant demographic uncertainty, alternative approaches should include: partnering with local community organizations for supplementary data collection, implementing mandatory manual review for decisions affecting minority communities, developing alternative indicators beyond census data (such as school enrollment data or local administrative records), and establishing community feedback mechanisms to validate algorithmic outcomes.
+
+## Questions for Further Investigation
+
+1. **Geographic Clustering of Data Quality Issues:** Are the counties with moderate confidence data (Forest, Sullivan, Cameron, etc.) geographically clustered in specific regions of Pennsylvania, and do they share common characteristics such as rural designation, distance from urban centers, or economic base? Understanding spatial patterns could help identify systematic factors affecting census data collection and inform targeted data quality improvement efforts.
+
+2. **Demographic Data Reliability Across Different Community Types:** How does the reliability of demographic data vary between urban, suburban, and rural census tracts, and are there specific thresholds of population size or demographic diversity below which data becomes systematically unreliable? This analysis could help establish evidence-based guidelines for when additional data collection or alternative assessment methods are needed.
+
+3. **Impact of Data Quality on Service Delivery Outcomes:** How do current social service allocation patterns correlate with data quality levels, and are communities with less reliable census data currently underserved relative to their documented needs? This longitudinal analysis could provide evidence of existing algorithmic bias and help quantify the potential impact of implementing data quality-aware decision systems.
+
+# Technical Notes
+
+**Data Sources:** 
+- U.S. Census Bureau, American Community Survey 2018-2022 5-Year Estimates
+- Retrieved via tidycensus R package on 09/22/2025
+
+**Reproducibility:** 
+- All analysis conducted in R version 4.5.1
+- Census API key required for replication: "86993dedbe98d77b9d79db6b8ba21a7fde55cb91"
+- Complete code and documentation available at: [https://musa-5080-fall-2025.github.io/portfolio-setup-FANYANG0304/]
+
+**Methodology Notes:**
+County selection for detailed tract-level analysis was based on a stratified sampling approach, choosing counties from different reliability categories to ensure representation across data quality levels. Only Adams and Cameron counties were ultimately analyzed at the tract level due to the moderate confidence category having limited representation. MOE percentage calculations follow standard Census Bureau methodology (margin of error divided by estimate, multiplied by 100). Reliability categories were defined using commonly accepted thresholds in demographic analysis: High Confidence (<5%), Moderate Confidence (5-10%), and Low Confidence (>10%).
+
+**Limitations:**
+This analysis is limited to Pennsylvania and may not generalize to other states with different demographic or geographic characteristics. The tract-level analysis was constrained to only two counties, which may not fully represent the diversity of data quality issues across all Pennsylvania communities. The assignment focuses on specific demographic and income variables; other social and economic indicators may show different reliability patterns. The analysis uses a single time period (2022 ACS 5-year estimates) and does not account for temporal variations in data quality. Additionally, extreme MOE values (including infinite values) in some tract-level demographic estimates may indicate fundamental data collection challenges that require further investigation.
+
+---
+
+## Submission Checklist
+
+Before submitting your portfolio link on Canvas:
+
+- [ ] All code chunks run without errors
+- [ ] All "[Fill this in]" prompts have been completed
+- [ ] Tables are properly formatted and readable
+- [ ] Executive summary addresses all four required components
+- [ ] Portfolio navigation includes this assignment
+- [ ] Census API key is properly set 
+- [ ] Document renders correctly to HTML
+
+**Remember:** Submit your portfolio URL on Canvas, not the file itself. Your assignment should be accessible at `your-portfolio-url/assignments/assignment_1/your_file_name.html`

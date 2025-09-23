@@ -1,20 +1,149 @@
-<iframe id="week1-iframe" src="./week1/week1.html" width="100%" height="800" frameborder="0" allowfullscreen></iframe>
+---
+title: "MUSA 5080 Notes #1"
+subtitle: "Week 1: Introduction to R and dplyr"
+author: "Fan Yang"
+date: "September 8, 2025"
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-location: left
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
 
-<script>
-function resizeIframe() {
-    const iframe = document.getElementById('week1-iframe');
-    if (iframe) {
-        iframe.onload = function() {
-            try {
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                const height = iframeDoc.body.scrollHeight;
-                iframe.style.height = height + 'px';
-            } catch (e) {
-                iframe.style.height = '100vh';
-            }
-        };
-    }
-}
+::: {.callout-note}
+**Week 1: Introduction to R and dplyr**  
+**Date:** 09/08/2025
+:::
 
-document.addEventListener('DOMContentLoaded', resizeIframe);
-</script>
+---
+
+## Git & GitHub
+
+:::: {.columns}
+
+::: {.column width="30%"}
+### Git
+### GitHub
+:::
+
+::: {.column width="70%"}
+#### 1. **Git**
+Version control system that tracks changes in files
+
+- "Track changes" for code projects
+- Time machine for your work
+- Collaboration tool for teams
+
+#### 2. **GitHub**
+Cloud hosting for Git repositories
+
+- Backup your work in the cloud
+- Share projects with others
+- Deploy websites (like our portfolios)
+- Collaborate on code projects
+
+#### 3. **Key GitHub Concepts**
+Repository (repo): Folder containing your project files
+
+- Commit: Snapshot of your work at a point in time
+- Push: Send your changes to GitHub cloud
+- Pull: Get latest changes from GitHub cloud
+:::
+
+::::
+
+## Markdown Basics
+
+#### 1. **Text Formatting**
+
+```markdown
+**Bold text**
+*Italic text*
+***Bold and italic***
+`code text`
+~~Strikethrough~~
+```
+
+#### 2. **Headers**
+
+```markdown
+# Main Header
+## Section Header
+### Subsection Header
+```
+
+#### 3. **Lists**
+
+```markdown
+## Unordered List
+- Item 1
+- Item 2
+  - Sub-item A
+  - Sub-item B
+
+## Ordered List  
+1. First item
+2. Second item
+3. Third item
+```
+
+#### 4. **Links and Images**
+
+```markdown
+[Link text](https://example.com)
+[Link to another page](about.qmd)
+![Alt text](path/to/image.png)
+```
+
+## Basic R
+
+#### 1. **Tibbles better?**
+
+```r
+# Traditional Data Frame
+class(data)
+# Convert to tibble
+car_data <- as_tibble(data)
+class(car_data)
+```
+
+- Shows first 10 rows by default
+- Displays column names
+- Fits nicely on a screen
+
+#### 2. **Dplyr**
+
+```r
+library(tidyverse)
+
+# Load car sales data
+car_data <- read_csv("data/car_sales_data.csv")
+
+# Basic exploration
+glimpse(car_data)
+names(car_data)
+```
+
+```r
+# The power of pipes - read as "then"
+car_summary <- data %>%
+  filter(`Year of manufacture` >= 2020) %>%      # Recent models only
+  select(Manufacturer, Model, Price, Mileage) %>% # Key variables
+  mutate(price_k = Price / 1000) %>%             # Convert to thousands
+  filter(Mileage < 50000) %>%                    # Low mileage cars
+  group_by(Manufacturer) %>%                     # Group by brand
+  summarize(                                     # Calculate statistics
+    avg_price = mean(price_k, na.rm = TRUE),
+    count = n()
+  )
+```
+
+## Summary
+
+::: {.callout-tip}
+This week I mainly familiarized myself with several commonly used advanced tools (not limited to classroom use), and also learned the basic usage of R and dplyr functions. I need to reinforce the function usage in a timely manner.
+:::

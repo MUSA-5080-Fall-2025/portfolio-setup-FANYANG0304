@@ -19,15 +19,19 @@ website:
       - text: "Labs"
         menu:
           - href: labs/lab_setup_instructions.qmd
-            text: "Lab Setup Instructions"
+            text: "Lab 1: Setup Instructions"
           - href: labs/lab_0/lab0_index.qmd
-            text: "Lab 0: Getting Started with dplyr"
+            text: "Lab 2: Getting Started with dplyr"
           - href: labs/lab_3/week3_lab_exercise.qmd
             text: "Lab 3: Data Visualization and EDA"
+          - href: labs/lab_4/week4_inclass_practice.qmd
+            text: "Lab 4: Spatial Operations with Pennsylvania Data"
       - text: "Assignments"
         menu:
-          - href: assignments/assignment_1/assignment_1.qmd
+          - href: assignments/assignment_1/Fan_Yang_Assignment1.qmd
             text: "Assignment 1: Census Data Quality for Policy Decisions"
+          - href: assignments/assignment_2/Fan_Yang_Assignment2.qmd
+            text: "Assignment 2: Spatial Analysis and Visualization"
           
 format:
   html:

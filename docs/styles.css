@@ -121,3 +121,33 @@ main {
   margin-bottom: 1em !important;
   color: #333 !important;
 }
+
+/* Increase main content area width */
+.column-body,
+.column-page-inset {
+  max-width: 1400px !important;
+  width: 100% !important;
+}
+
+/* For pages with left TOC, give more room to content */
+body.toc-left #quarto-content main {
+  margin-left: 280px !important;
+  max-width: calc(100% - 300px) !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+}
+
+/* Ensure article content has enough width */
+article {
+  max-width: 1400px !important;
+  width: 100% !important;
+}
+
+/* Allow wider content for figures and tables */
+.page-columns .column-page,
+.page-columns .column-page-inset,
+.page-columns .column-page-left,
+.page-columns .column-page-right {
+  max-width: 100% !important;
+  width: 100% !important;
+}

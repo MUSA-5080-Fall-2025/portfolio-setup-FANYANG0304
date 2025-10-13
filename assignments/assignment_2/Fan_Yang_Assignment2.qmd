@@ -46,8 +46,7 @@ Load the required spatial data:
 - Pennsylvania census tracts
 
 **Your Task:**
-```{r}
-# Load required packages
+```{r setup}
 # Load required packages
 library(sf)
 library(tidyverse)
@@ -60,29 +59,36 @@ library(units)
 library(patchwork)
 library(ggspatial)
 
+```{r, echo=FALSE, results='hide'}
+# Set census API key (hidden from output)
 census_api_key("86993dedbe98d77b9d79db6b8ba21a7fde55cb91", install = TRUE, overwrite = TRUE)
+```
 
-# Load spatial data ---------------------------------------------------------
-# Pennsylvania county boundaries
+```{r}
+# Load spatial data
 library(here)
 
 pa_counties <- st_read(here("assignments", "assignment_2", "data", "Pennsylvania_County_Boundaries.shp"))
-
 hospitals   <- st_read(here("assignments", "assignment_2", "data", "hospitals.geojson"))
-
-# Pennsylvania census tracts
 pa_tracts <- tracts("PA", year = 2022, cb = TRUE)
 
-# 1. How many hospitals?
-cat("1. Number of hospitals in dataset:", nrow(hospitals), "\n")
+# Create summary table of dataset information
+dataset_summary <- data.frame(
+  Dataset = c("Hospitals", "Census Tracts", "Counties", "Hospitals", "Census Tracts"),
+  Metric = c("Count", "Count", "Count", "CRS", "CRS"),
+  Value = c(
+    nrow(hospitals),
+    nrow(pa_tracts),
+    nrow(pa_counties),
+    st_crs(pa_counties)$input,
+    st_crs(pa_tracts)$input
+  )
+)
 
-# 2. How many census tracts?
-cat("2. Number of census tracts in dataset:", nrow(pa_tracts), "\n")
-
-# 3. CRS information
-cat("Counties CRS:", st_crs(pa_counties)$input, "\n")
-cat("Hospitals CRS:", st_crs(hospitals)$input, "\n")
-cat("Census tracts CRS:", st_crs(pa_tracts)$input, "\n")
+kable(dataset_summary,
+      col.names = c("Dataset", "Metric", "Value"),
+      caption = "Spatial Dataset Summary",
+      align = c("l", "l", "l"))
 ```
 
 **Questions to answer:**
@@ -111,8 +117,6 @@ Use `tidycensus` to download tract-level demographic data for Pennsylvania.
 **Your Task:**
 ```{r}
 # Get demographic data from ACS
-# Set census API key (you'll need to get your own key from census.gov)
-# census_api_key("YOUR_API_KEY_HERE", install = TRUE)
 
 # Get demographic data for Pennsylvania tracts
 pa_demographics <- get_acs(
@@ -142,10 +146,19 @@ pa_demographics_wide <- pa_demographics %>%
 # Join to tract boundaries (already have geometry from get_acs)
 tracts_with_demographics <- pa_demographics_wide
 
-# Check for missing data
-cat("Missing income data:", sum(is.na(tracts_with_demographics$median_income)), "tracts\n")
-cat("Median income across all PA tracts: $", 
-    median(tracts_with_demographics$median_income, na.rm = TRUE), "\n")
+# Check for missing data and create summary table
+demographics_summary <- data.frame(
+  Metric = c("Missing Income Data", "Median Income (All Tracts)"),
+  Value = c(
+    paste(sum(is.na(tracts_with_demographics$median_income)), "tracts"),
+    paste("$", format(median(tracts_with_demographics$median_income, na.rm = TRUE), big.mark = ","))
+  )
+)
+
+kable(demographics_summary,
+      col.names = c("Metric", "Value"),
+      caption = "Demographics Data Quality Summary",
+      align = c("l", "l"))
 ```
 
 **Questions to answer:**
@@ -178,18 +191,32 @@ vulnerable_tracts <- tracts_with_demographics %>%
     vulnerable = low_income | high_elderly  # OR logic: either low income OR high elderly
   )
 
-# Summary statistics
-cat("Income threshold: $", income_threshold, 
-    " (PA median: $", median(tracts_with_demographics$median_income, na.rm = TRUE), ")\n")
-cat("Elderly threshold: ", elderly_threshold, "%\n")
-cat("Number of vulnerable tracts: ", sum(vulnerable_tracts$vulnerable), "\n")
-cat("Percentage of PA tracts that are vulnerable: ", 
-    round(sum(vulnerable_tracts$vulnerable) / nrow(vulnerable_tracts) * 100, 1), "%\n")
+# Create summary table of vulnerability criteria and results
+vulnerability_summary <- data.frame(
+  Metric = c(
+    "Income Threshold",
+    "PA Median Income",
+    "Elderly Threshold",
+    "Low Income Tracts",
+    "High Elderly Tracts",
+    "Vulnerable Tracts (Either)",
+    "Percentage Vulnerable"
+  ),
+  Value = c(
+    paste("$", format(income_threshold, big.mark = ",")),
+    paste("$", format(median(tracts_with_demographics$median_income, na.rm = TRUE), big.mark = ",")),
+    paste(elderly_threshold, "%"),
+    sum(vulnerable_tracts$low_income),
+    sum(vulnerable_tracts$high_elderly),
+    sum(vulnerable_tracts$vulnerable),
+    paste(round(sum(vulnerable_tracts$vulnerable) / nrow(vulnerable_tracts) * 100, 1), "%")
+  )
+)
 
-# Show distribution of criteria
-cat("Low income tracts: ", sum(vulnerable_tracts$low_income), "\n")
-cat("High elderly tracts: ", sum(vulnerable_tracts$high_elderly), "\n")
-cat("Both criteria (vulnerable): ", sum(vulnerable_tracts$vulnerable), "\n")
+kable(vulnerability_summary,
+      col.names = c("Metric", "Value"),
+      caption = "Vulnerability Criteria and Results Summary",
+      align = c("l", "l"))
 ```
 
 **Questions to answer:**
@@ -239,13 +266,24 @@ vulnerable_tracts_with_distance <- vulnerable_tracts_proj %>%
     distance_to_hospital_miles = min_distances_miles
   )
 
-# Summary statistics
-cat("Average distance to nearest hospital for vulnerable tracts: ", 
-    round(mean(min_distances_miles), 2), " miles\n")
-cat("Maximum distance to nearest hospital: ", 
-    round(max(min_distances_miles), 2), " miles\n")
-cat("Number of vulnerable tracts more than 15 miles from nearest hospital: ", 
-    sum(min_distances_miles > 15), "\n")
+# Create summary table of distance statistics
+distance_summary <- data.frame(
+  Metric = c(
+    "Average Distance",
+    "Maximum Distance",
+    "Tracts >15 miles from Hospital"
+  ),
+  Value = c(
+    paste(round(mean(min_distances_miles), 2), "miles"),
+    paste(round(max(min_distances_miles), 2), "miles"),
+    sum(min_distances_miles > 15)
+  )
+)
+
+kable(distance_summary,
+      col.names = c("Metric", "Value"),
+      caption = "Distance to Nearest Hospital Summary",
+      align = c("l", "l"))
 ```
 
 **Requirements:**
@@ -280,19 +318,29 @@ vulnerable_tracts_final <- vulnerable_tracts_with_distance %>%
     underserved = vulnerable & (distance_to_hospital_miles > underserved_threshold)
   )
 
-# Summary statistics
-cat("Underserved threshold: ", underserved_threshold, " miles from nearest hospital\n")
-cat("Number of underserved tracts: ", sum(vulnerable_tracts_final$underserved), "\n")
-cat("Percentage of vulnerable tracts that are underserved: ", 
-    round(sum(vulnerable_tracts_final$underserved) / sum(vulnerable_tracts_final$vulnerable) * 100, 1), "%\n")
-
-# Analysis of results
+# Create summary table of underserved analysis
 total_vulnerable <- sum(vulnerable_tracts_final$vulnerable)
 total_underserved <- sum(vulnerable_tracts_final$underserved)
 
-cat("This result ", ifelse(total_underserved > total_vulnerable * 0.3, "is concerning", "is somewhat expected"), 
-    " because ", total_underserved, " out of ", total_vulnerable, 
-    " vulnerable tracts (", round(total_underserved/total_vulnerable*100, 1), "%) are underserved.\n")
+underserved_summary <- data.frame(
+  Metric = c(
+    "Underserved Threshold",
+    "Number of Underserved Tracts",
+    "Percentage of Vulnerable Tracts Underserved",
+    "Assessment"
+  ),
+  Value = c(
+    paste(underserved_threshold, "miles"),
+    total_underserved,
+    paste(round(total_underserved / total_vulnerable * 100, 1), "%"),
+    ifelse(total_underserved > total_vulnerable * 0.3, "Concerning", "Somewhat Expected")
+  )
+)
+
+kable(underserved_summary,
+      col.names = c("Metric", "Value"),
+      caption = "Underserved Population Analysis Summary",
+      align = c("l", "l"))
 ```
 
 **Questions to answer:**
@@ -337,19 +385,27 @@ county_stats <- tracts_with_counties %>%
   filter(vulnerable_tracts > 0) %>%  # Only include counties with vulnerable tracts
   arrange(desc(pct_vulnerable_underserved))
 
-# Analysis of results
-top_5_underserved <- head(county_stats, 5)
-for(i in 1:nrow(top_5_underserved)) {
-  cat(i, ". ", top_5_underserved$COUNTY_NAM[i], ": ", 
-      top_5_underserved$pct_vulnerable_underserved[i], "% underserved\n", sep = "")
-}
+# Create summary tables for top counties
+top_5_underserved <- head(county_stats, 5) %>%
+  select(County = COUNTY_NAM, `% Underserved` = pct_vulnerable_underserved) %>%
+  mutate(Rank = row_number())
+
 top_5_population <- county_stats %>%
   arrange(desc(total_vulnerable_pop)) %>%
-  head(5)
-for(i in 1:nrow(top_5_population)) {
-  cat(i, ". ", top_5_population$COUNTY_NAM[i], ": ", 
-      format(top_5_population$total_vulnerable_pop[i], big.mark = ","), " people\n", sep = "")
-}
+  head(5) %>%
+  select(County = COUNTY_NAM, `Vulnerable Population` = total_vulnerable_pop) %>%
+  mutate(Rank = row_number(),
+         `Vulnerable Population` = format(`Vulnerable Population`, big.mark = ","))
+
+kable(top_5_underserved,
+      col.names = c("Rank", "County", "% Underserved"),
+      caption = "Top 5 Counties by Percentage of Underserved Vulnerable Tracts",
+      align = c("c", "l", "c"))
+
+kable(top_5_population,
+      col.names = c("Rank", "County", "Vulnerable Population"),
+      caption = "Top 5 Counties by Total Vulnerable Population",
+      align = c("c", "l", "r"))
 ```
 
 **Required county-level statistics:**
@@ -795,15 +851,39 @@ bus_shelters <- st_read(here("assignments", "assignment_2", "data", "bus_transit
 # Transform to Pennsylvania State Plane South CRS to match our analysis
 bus_shelters <- st_transform(bus_shelters, pa_crs)
 
-# Check the dataset
-cat("Number of features:", nrow(bus_shelters), "bus shelters\n")
-cat("Transformed CRS:", st_crs(bus_shelters)$input, "\n")
+# Create summary table of bus shelter data
+bus_shelter_summary <- data.frame(
+  Metric = c("Number of Bus Shelters", "CRS"),
+  Value = c(nrow(bus_shelters), st_crs(bus_shelters)$input)
+)
+
+kable(bus_shelter_summary,
+      col.names = c("Metric", "Value"),
+      caption = "Bus Shelter Dataset Summary",
+      align = c("l", "l"))
 
 # Show summary of shelter types
-print(table(bus_shelters$productgroup))
+shelter_types <- table(bus_shelters$productgroup)
+shelter_types_df <- data.frame(
+  Product_Group = names(shelter_types),
+  Count = as.numeric(shelter_types)
+)
+
+kable(shelter_types_df,
+      col.names = c("Product Group", "Count"),
+      caption = "Bus Shelter Types Distribution",
+      align = c("l", "c"))
 
 # Show first few shelter locations
-print(head(bus_shelters %>% st_drop_geometry() %>% select(site, siteid, productgroup)))
+shelter_sample <- bus_shelters %>% 
+  st_drop_geometry() %>% 
+  select(site, siteid, productgroup) %>%
+  head(6)
+
+kable(shelter_sample,
+      col.names = c("Site", "Site ID", "Product Group"),
+      caption = "Sample Bus Shelter Locations",
+      align = c("l", "l", "l"))
 ```
 
 **Questions to answer:**
@@ -850,8 +930,17 @@ Use at least TWO spatial operations to answer your research question.
 # Filter for Philadelphia area tracts (bus shelters are concentrated in Philadelphia)
 philly_tracts <- vulnerable_tracts_final %>%
   filter(str_detect(NAME, "Philadelphia"))
-cat("Number of vulnerable tracts in Philadelphia:", sum(philly_tracts$vulnerable), "\n")
-cat("Number of underserved tracts in Philadelphia:", sum(philly_tracts$underserved), "\n")
+
+# Create summary table for Philadelphia analysis
+philly_summary <- data.frame(
+  Metric = c("Vulnerable Tracts in Philadelphia", "Underserved Tracts in Philadelphia"),
+  Count = c(sum(philly_tracts$vulnerable), sum(philly_tracts$underserved))
+)
+
+kable(philly_summary,
+      col.names = c("Metric", "Count"),
+      caption = "Philadelphia Vulnerable Population Summary",
+      align = c("l", "c"))
 
 # Calculate distance from vulnerable tracts to nearest bus shelter
 philly_vulnerable <- philly_tracts %>% filter(vulnerable)
@@ -868,18 +957,40 @@ philly_vulnerable_with_transit <- philly_vulnerable %>%
     transit_accessible = vulnerable & has_transit_access
   )
 
-cat("Average distance to nearest bus shelter:", round(mean(min_shelter_distances_miles), 2), "miles\n")
-cat("Vulnerable tracts within 0.25 miles of bus shelter:", sum(philly_vulnerable_with_transit$has_transit_access), "\n")
-cat("Percentage with transit access:", 
-    round(sum(philly_vulnerable_with_transit$has_transit_access) / nrow(philly_vulnerable_with_transit) * 100, 1), "%\n")
+# Create summary table for transit access analysis
+transit_access_summary <- data.frame(
+  Metric = c(
+    "Average Distance to Bus Shelter",
+    "Tracts within 0.25 miles of Shelter",
+    "Percentage with Transit Access"
+  ),
+  Value = c(
+    paste(round(mean(min_shelter_distances_miles), 2), "miles"),
+    sum(philly_vulnerable_with_transit$has_transit_access),
+    paste(round(sum(philly_vulnerable_with_transit$has_transit_access) / nrow(philly_vulnerable_with_transit) * 100, 1), "%")
+  )
+)
+
+kable(transit_access_summary,
+      col.names = c("Metric", "Value"),
+      caption = "Transit Access Analysis Summary",
+      align = c("l", "l"))
 
 # Buffer analysis: 0.25 mile buffers around bus shelters
 shelter_buffers <- st_buffer(bus_shelters, dist = 402.34)  # 0.25 mile in meters
 tracts_in_shelter_buffer <- st_join(philly_vulnerable, shelter_buffers, 
                                     join = st_intersects, left = FALSE)
 
-cat("Number of vulnerable tracts intersecting shelter buffers:", 
-    length(unique(tracts_in_shelter_buffer$GEOID)), "\n")
+# Create summary table for buffer analysis
+buffer_summary <- data.frame(
+  Metric = c("Vulnerable Tracts Intersecting Shelter Buffers"),
+  Count = c(length(unique(tracts_in_shelter_buffer$GEOID)))
+)
+
+kable(buffer_summary,
+      col.names = c("Metric", "Count"),
+      caption = "Buffer Analysis Summary",
+      align = c("l", "c"))
 
 # Cross-tabulation of transit and hospital access
 access_crosstab <- philly_vulnerable_with_transit %>%
@@ -891,7 +1002,10 @@ access_crosstab <- philly_vulnerable_with_transit %>%
   group_by(transit_status, hospital_status) %>%
   summarise(count = n(), .groups = 'drop')
 
-print(access_crosstab)
+kable(access_crosstab,
+      col.names = c("Transit Status", "Hospital Status", "Count"),
+      caption = "Cross-tabulation: Transit Access vs Hospital Access",
+      align = c("l", "l", "c"))
 
 # Create visualization map
 transit_map <- ggplot() +
@@ -927,12 +1041,25 @@ transit_map <- ggplot() +
 
 print(transit_map)
 
-# Summary statistics
-cat("Tracts with transit access (<0.25 mi):", 
-    sum(philly_vulnerable_with_transit$has_transit_access), 
-    "(", round(sum(philly_vulnerable_with_transit$has_transit_access) / nrow(philly_vulnerable_with_transit) * 100, 1), "%)\n")
-cat("Average distance to bus shelter:", round(mean(min_shelter_distances_miles), 2), "miles\n")
-cat("Maximum distance to bus shelter:", round(max(min_shelter_distances_miles), 2), "miles\n")
+# Create final summary statistics table
+final_summary <- data.frame(
+  Metric = c(
+    "Tracts with Transit Access (<0.25 mi)",
+    "Average Distance to Bus Shelter",
+    "Maximum Distance to Bus Shelter"
+  ),
+  Value = c(
+    paste(sum(philly_vulnerable_with_transit$has_transit_access), 
+          "(", round(sum(philly_vulnerable_with_transit$has_transit_access) / nrow(philly_vulnerable_with_transit) * 100, 1), "%)"),
+    paste(round(mean(min_shelter_distances_miles), 2), "miles"),
+    paste(round(max(min_shelter_distances_miles), 2), "miles")
+  )
+)
+
+kable(final_summary,
+      col.names = c("Metric", "Value"),
+      caption = "Final Transit Access Summary Statistics",
+      align = c("l", "l"))
 ```
 
 **Analysis requirements:**
@@ -954,19 +1081,12 @@ This suggests two issues: (1) Philadelphia's hospital coverage is good—all vul
 
 ## Improvements from Assignment 1
 
-Based on feedback:
-- Added clearer code comments
+Based on feedback from Assignment 1, I have implemented the following key improvements:
 
-## Submission Requirements
+- **Protected Census API Key** - Hidden the actual API key from the output
+- **Enhanced Table Visualizations** - Replaced raw outputs with professional `kable()` tables  
+- **Improved Code Documentation** - Added comprehensive comments and better organization
+- **Professional Presentation** - Consistent formatting and clear analysis explanations
 
-**What to submit:**
-
-1. **Rendered HTML document posted to your course portfolio** with all code, outputs, maps, and text
-   - Use `embed-resources: true` in YAML so it's a single file
-   - All code should run without errors
-   - All maps and charts should display correctly
-
-**File naming:** `LastName_FirstName_Assignment2.html` and `LastName_FirstName_Assignment2.qmd`
 
 ---
-

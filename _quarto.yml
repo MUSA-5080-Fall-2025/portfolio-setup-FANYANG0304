@@ -16,6 +16,10 @@ website:
             text: "Week 2"
           - href: weekly-notes/week-03-notes.qmd
             text: "Week 3"
+          - href: weekly-notes/week-04-notes.qmd
+            text: "Week 4"
+          - href: weekly-notes/week-05-notes.qmd
+            text: "Week 5"
       - text: "Labs"
         menu:
           - href: labs/lab_setup_instructions.qmd

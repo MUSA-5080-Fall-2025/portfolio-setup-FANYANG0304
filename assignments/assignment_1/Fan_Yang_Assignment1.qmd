@@ -30,37 +30,21 @@ Drawing on our Week 2 discussion of algorithmic bias, you need to assess not jus
 - Identify potential equity implications of data reliability issues
 - Create professional documentation for policy stakeholders
 
-## Submission Instructions
-
-**Submit by posting your updated portfolio link on Canvas.** Your assignment should be accessible at `your-portfolio-url/assignments/assignment_1/`
-
-Make sure to update your `_quarto.yml` navigation to include this assignment under an "Assignments" menu.
-
 # Part 1: Portfolio Integration
-
-Create this assignment in your portfolio repository under an `assignments/assignment_1/` folder structure. Update your navigation menu to include:
-
-```
-- text: Assignments
-  menu:
-    - href: assignments/assignment_1/your_file_name.qmd
-      text: "Assignment 1: Census Data Exploration"
-```
-If there is a special character like comma, you need use double quote mark so that the quarto can identify this as text
 
 # Setup
 
 ```{r setup}
-# Load required packages (hint: you need tidycensus, tidyverse, and knitr)
 library(tidycensus)
 library(tidyverse)
 library(knitr)
 
-# Set your Census API key
-census_api_key("86993dedbe98d77b9d79db6b8ba21a7fde55cb91", install = TRUE, overwrite = TRUE)
+```{r, echo=FALSE, results='hide'}
+invisible(census_api_key("86993dedbe98d77b9d79db6b8ba21a7fde55cb91", install = TRUE, overwrite = TRUE))
+```
 
-# Choose your state for analysis - assign it to a variable called my_state
-my_state <- "PA"  # Pennsylvania
+```{r}
+my_state <- "PA"
 ```
 
 **State Selection:** I have chosen **Pennsylvania** for this analysis because: Pennsylvania has a diverse mix of urban, suburban, and rural counties, providing an excellent opportunity to examine how census data quality varies across different community types and population densities.
@@ -103,7 +87,9 @@ county_data <- county_data %>%
   )
 
 # Display the first few rows
-head(county_data)
+kable(head(county_data),
+      caption = "County-Level Data Sample",
+      digits = 0)
 ```
 
 ## 2.2 Data Quality Assessment
@@ -147,7 +133,10 @@ reliability_summary <- county_reliability %>%
     summary = paste0(n, " (", percentage, "%)")
   )
 
-print(reliability_summary)
+kable(reliability_summary,
+      col.names = c("Reliability Category", "Count", "Percentage", "Summary"),
+      caption = "County Data Reliability Summary",
+      digits = 1)
 ```
 
 ## 2.3 High Uncertainty Counties
@@ -263,7 +252,10 @@ tract_demographics <- tract_data %>%
     )
   )
 
-head(tract_demographics)
+kable(head(tract_demographics %>% select(county_name, tract_name, total_popE, pct_white, pct_black, pct_hispanic)),
+      col.names = c("County", "Tract", "Total Population", "% White", "% Black", "% Hispanic"),
+      caption = "Tract Demographics Sample",
+      digits = 1)
 ```
 
 ## 3.3 Demographic Analysis
@@ -278,8 +270,10 @@ highest_hispanic <- tract_demographics %>%
   slice(1) %>%
   select(county_name, tract_name, pct_hispanic, total_popE)
 
-print("Tract with highest Hispanic/Latino percentage:")
-print(highest_hispanic)
+kable(highest_hispanic,
+      col.names = c("County", "Tract", "Hispanic %", "Total Population"),
+      caption = "Tract with Highest Hispanic/Latino Percentage",
+      digits = 1)
 
 # Calculate average demographics by county using group_by() and summarize()
 # Show: number of tracts, average percentage for each racial/ethnic group
@@ -314,15 +308,21 @@ kable(county_summary,
 
 ```{r demographic-moe}
 # Calculate MOE percentages for white, Black, and Hispanic variables
-# Hint: use the same formula as before (margin/estimate * 100)
+# Handle cases where estimate is 0 to avoid Inf values
 tract_moe_analysis <- tract_demographics %>%
+  filter(total_popE > 0) %>%  # Remove tracts with zero population
   mutate(
-    white_moe_pct = (white_aloneM / white_aloneE) * 100,
-    black_moe_pct = (black_aloneM / black_aloneE) * 100,
-    hispanic_moe_pct = (hispanicM / hispanicE) * 100,
+    # Calculate MOE percentages, handling cases where estimate is 0
+    white_moe_pct = ifelse(white_aloneE > 0, (white_aloneM / white_aloneE) * 100, NA),
+    black_moe_pct = ifelse(black_aloneE > 0, (black_aloneM / black_aloneE) * 100, NA),
+    hispanic_moe_pct = ifelse(hispanicE > 0, (hispanicM / hispanicE) * 100, NA),
     
-    # Create a flag for tracts with high MOE on any demographic variable
-    # Use logical operators (| for OR) in an ifelse() statement
+    # Create separate MOE flags for each demographic group
+    white_high_moe = ifelse(white_moe_pct > 15, "High MOE", "Acceptable"),
+    black_high_moe = ifelse(black_moe_pct > 15, "High MOE", "Acceptable"),
+    hispanic_high_moe = ifelse(hispanic_moe_pct > 15, "High MOE", "Acceptable"),
+    
+    # Create a combined flag for tracts with high MOE on any demographic variable
     high_moe_flag = ifelse(
       white_moe_pct > 15 | black_moe_pct > 15 | hispanic_moe_pct > 15,
       "High MOE Issues",
@@ -337,8 +337,10 @@ moe_summary <- tract_moe_analysis %>%
     percentage = round((n / sum(n)) * 100, 1)
   )
 
-print("Summary of tracts with data quality issues:")
-print(moe_summary)
+kable(moe_summary,
+      col.names = c("MOE Status", "Count", "Percentage"),
+      caption = "Summary of Tracts with Data Quality Issues",
+      digits = 1)
 
 # Show some example tracts with high MOE
 high_moe_examples <- tract_moe_analysis %>%
@@ -357,31 +359,63 @@ kable(high_moe_examples,
 **Your Task:** Investigate whether data quality problems are randomly distributed or concentrated in certain types of communities.
 
 ```{r pattern-analysis}
-# Group tracts by whether they have high MOE issues
-# Calculate average characteristics for each group:
-# - population size, demographic percentages
+# Analyze patterns by separate demographic MOE flags
+# Calculate average characteristics for each demographic group's MOE status
 
-# Use group_by() and summarize() to create this comparison
-pattern_analysis <- tract_moe_analysis %>%
-  group_by(high_moe_flag) %>%
+# White population MOE analysis
+white_moe_analysis <- tract_moe_analysis %>%
+  group_by(white_high_moe) %>%
   summarize(
     num_tracts = n(),
     avg_population = mean(total_popE, na.rm = TRUE),
-    median_population = median(total_popE, na.rm = TRUE),
     avg_pct_white = mean(pct_white, na.rm = TRUE),
     avg_pct_black = mean(pct_black, na.rm = TRUE),
     avg_pct_hispanic = mean(pct_hispanic, na.rm = TRUE),
     .groups = "drop"
-  )
+  ) %>%
+  mutate(demographic_group = "White")
+
+# Black population MOE analysis  
+black_moe_analysis <- tract_moe_analysis %>%
+  group_by(black_high_moe) %>%
+  summarize(
+    num_tracts = n(),
+    avg_population = mean(total_popE, na.rm = TRUE),
+    avg_pct_white = mean(pct_white, na.rm = TRUE),
+    avg_pct_black = mean(pct_black, na.rm = TRUE),
+    avg_pct_hispanic = mean(pct_hispanic, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(demographic_group = "Black")
+
+# Hispanic population MOE analysis
+hispanic_moe_analysis <- tract_moe_analysis %>%
+  group_by(hispanic_high_moe) %>%
+  summarize(
+    num_tracts = n(),
+    avg_population = mean(total_popE, na.rm = TRUE),
+    avg_pct_white = mean(pct_white, na.rm = TRUE),
+    avg_pct_black = mean(pct_black, na.rm = TRUE),
+    avg_pct_hispanic = mean(pct_hispanic, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(demographic_group = "Hispanic")
+
+# Combine all analyses
+pattern_analysis <- bind_rows(
+  white_moe_analysis %>% rename(moe_status = white_high_moe),
+  black_moe_analysis %>% rename(moe_status = black_high_moe),
+  hispanic_moe_analysis %>% rename(moe_status = hispanic_high_moe)
+)
 
 # Create a professional table showing the patterns
 kable(pattern_analysis,
-      col.names = c("MOE Status", "# Tracts", "Avg Pop", "Median Pop", "% White", "% Black", "% Hispanic"),
-      caption = "Comparison of Tracts by Data Quality Issues",
+      col.names = c("MOE Status", "# Tracts", "Avg Pop", "% White", "% Black", "% Hispanic", "Demographic Group"),
+      caption = "Comparison of Tracts by Demographic Group MOE Status",
       digits = 1)
 ```
 
-**Pattern Analysis:** The analysis reveals that all 29 census tracts in our selected counties show high MOE issues (>15%) for at least one demographic variable. This is particularly concerning as it shows that even in counties with relatively good income data reliability, demographic estimates at the tract level can be highly uncertain. The pattern suggests that smaller geographic areas and potentially less diverse communities face greater challenges in data reliability, likely due to smaller sample sizes and the difficulty of obtaining precise estimates for minority populations in areas where they represent a small percentage of the total population.
+**Pattern Analysis:** The analysis reveals distinct patterns in data quality across different demographic groups. By examining separate MOE flags for each demographic group, we can see that data reliability issues are not uniformly distributed. The analysis shows that tracts with high MOE for specific demographic groups tend to have different characteristics - for example, tracts with high MOE for Black population estimates may have very low Black population percentages, while tracts with high MOE for Hispanic population estimates may have different demographic compositions. This granular analysis allows for more targeted policy interventions, as we can identify which specific demographic groups face data quality challenges in which communities, rather than treating all high-MOE tracts as equivalent.
 
 
 # Part 5: Policy Recommendations
@@ -459,7 +493,7 @@ kable(recommendations_table,
 
 **Reproducibility:** 
 - All analysis conducted in R version 4.5.1
-- Census API key required for replication: "86993dedbe98d77b9d79db6b8ba21a7fde55cb91"
+- Census API key required for replication (obtain from https://api.census.gov/data/key_signup.html)
 - Complete code and documentation available at: [https://musa-5080-fall-2025.github.io/portfolio-setup-FANYANG0304/]
 
 **Methodology Notes:**
@@ -474,12 +508,10 @@ This analysis is limited to Pennsylvania and may not generalize to other states 
 
 Before submitting your portfolio link on Canvas:
 
-- [ ] All code chunks run without errors
-- [ ] All "[Fill this in]" prompts have been completed
-- [ ] Tables are properly formatted and readable
-- [ ] Executive summary addresses all four required components
-- [ ] Portfolio navigation includes this assignment
-- [ ] Census API key is properly set 
-- [ ] Document renders correctly to HTML
-
-**Remember:** Submit your portfolio URL on Canvas, not the file itself. Your assignment should be accessible at `your-portfolio-url/assignments/assignment_1/your_file_name.html`
+- [x] All code chunks run without errors
+- [x] All "[Fill this in]" prompts have been completed
+- [x] Tables are properly formatted and readable
+- [x] Executive summary addresses all four required components
+- [x] Portfolio navigation includes this assignment
+- [x] Census API key is properly set 
+- [x] Document renders correctly to HTML

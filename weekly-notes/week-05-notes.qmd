@@ -1,0 +1,432 @@
+---
+title: "MUSA 5080 Notes #5"
+subtitle: "Week 5: Predictive Modeling & Cross-Validation"
+author: "Fan Yang"
+date: "October 6, 2025"
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-location: left
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+::: {.callout-note}
+**Week 5: Predictive Modeling & Cross-Validation**  
+**Date:** 10/06/2025
+:::
+
+# Overview
+
+This week we focused on building predictive models using linear regression with proper validation techniques. We learned about cross-validation, model comparison, diagnostics, and best practices for predictive modeling using Pennsylvania county home value data.
+
+## Key Learning Objectives
+
+- Understand predictive modeling workflow
+- Learn 10-fold cross-validation for model selection
+- Master model diagnostics and validation techniques
+- Handle multicollinearity and outliers
+- Compare models using appropriate metrics
+- Apply feature engineering and transformations
+
+# Part 1: Predictive Modeling Fundamentals
+
+## What is Predictive Modeling?
+
+**Goal:** Build a model that can accurately predict outcomes for new, unseen data
+
+**Key Principles:**
+- **Generalization:** Model should work on new data, not just training data
+- **Validation:** Test model performance on held-out data
+- **Comparison:** Use consistent metrics to compare different models
+- **Diagnostics:** Check model assumptions and identify problems
+
+## The Modeling Workflow
+
+1. **Data Collection** → Gather relevant predictors and target variable
+2. **Exploratory Data Analysis** → Understand relationships and distributions
+3. **Feature Engineering** → Transform variables for better model performance
+4. **Model Building** → Fit multiple models with different predictors
+5. **Model Validation** → Use cross-validation to assess performance
+6. **Model Selection** → Choose best model based on validation metrics
+7. **Diagnostics** → Check assumptions and identify issues
+8. **Final Model** → Deploy best-performing model
+
+# Part 2: Data Collection and EDA
+
+## Pennsylvania County Home Value Challenge
+
+**Target Variable:** Median home value (B25077_001)
+**Predictors:**
+- Total population (B01003_001)
+- Median household income (B19013_001)
+- Median age (B01002_001)
+- Percent with bachelor's degree (B15003_022)
+- Median rent (B25058_001)
+- Poverty rate (B17001_002)
+
+```r
+# Data collection using tidycensus
+library(tidycensus)
+library(tidyverse)
+
+challenge_data <- get_acs(
+  geography = "county",
+  state = "PA",
+  variables = c(
+    home_value = "B25077_001",      # TARGET: Median home value
+    total_pop = "B01003_001",       # Total population
+    median_income = "B19013_001",   # Median household income
+    median_age = "B01002_001",      # Median age
+    percent_college = "B15003_022", # Bachelor's degree or higher
+    median_rent = "B25058_001",     # Median rent
+    poverty_rate = "B17001_002"     # Population in poverty
+  ),
+  year = 2022,
+  output = "wide"
+)
+```
+
+## Exploratory Data Analysis
+
+**Key EDA Steps:**
+1. **Descriptive Statistics** → Understand data distributions
+2. **Correlation Analysis** → Identify relationships between variables
+3. **Visualization** → Plot relationships between predictors and target
+4. **Distribution Checks** → Identify need for transformations
+
+```r
+# Correlation analysis
+library(corrplot)
+
+cor_data <- challenge_data %>% 
+  select(home_valueE, total_popE, median_incomeE, median_ageE, 
+         percent_collegeE, median_rentE, poverty_rateE)
+
+cor_matrix <- cor(cor_data, use = "complete.obs")
+corrplot(cor_matrix, method = "color", type = "upper", 
+         tl.col = "black", tl.srt = 45, addCoef.col = "black")
+```
+
+**Key Findings from EDA:**
+- Strong positive correlation between income and home values
+- High correlation between income and rent (potential multicollinearity)
+- Right-skewed distributions suggest need for log transformation
+- Some counties may be outliers
+
+# Part 3: Feature Engineering
+
+## Why Transform Variables?
+
+**Common Issues:**
+- **Right-skewed distributions** → Violate normality assumptions
+- **Non-linear relationships** → Linear models may miss patterns
+- **Scale differences** → Variables with different scales can dominate
+
+## Log Transformation Strategy
+
+```r
+# Create log-transformed dataset
+data_log <- challenge_data %>%
+  mutate(
+    log_home_value = log(home_valueE + 1),
+    log_total_pop = log(total_popE + 1),
+    log_median_income = log(median_incomeE + 1),
+    log_median_rent = log(median_rentE + 1),
+    log_median_age = log(median_ageE + 1),
+    log_percent_college = log(percent_collegeE + 1),
+    log_poverty_rate = log(poverty_rateE + 1)
+  )
+```
+
+**Benefits of Log Transformation:**
+- Makes distributions more symmetric
+- Reduces impact of extreme values
+- Often improves linear relationships
+- Makes coefficients interpretable as percentage changes
+
+**Note:** Adding 1 before log transformation handles zero values
+
+# Part 4: Cross-Validation
+
+## Why Cross-Validation?
+
+**Problem with Single Train/Test Split:**
+- Results depend on random split
+- May not be representative of full dataset
+- Limited data for training
+
+**Solution: k-Fold Cross-Validation**
+- Split data into k folds (typically 5 or 10)
+- Train on k-1 folds, test on remaining fold
+- Repeat k times, average results
+- More robust estimate of model performance
+
+## 10-Fold Cross-Validation Setup
+
+```r
+library(caret)
+
+# Set up 10-fold cross-validation
+set.seed(123)
+train_control <- trainControl(method = "cv", number = 10)
+
+# Fit model with cross-validation
+model <- train(
+  log_home_value ~ log_median_income,
+  data = data_log,
+  method = "lm",
+  trControl = train_control
+)
+```
+
+**Key Parameters:**
+- `method = "cv"` → Use cross-validation
+- `number = 10` → 10 folds
+- `set.seed(123)` → Reproducible results
+
+# Part 5: Model Building Strategy
+
+## Progressive Model Building
+
+**Strategy:** Start simple, add complexity gradually
+
+```r
+# Model 1: Income only
+model1 <- train(
+  log_home_value ~ log_median_income,
+  data = data_log,
+  method = "lm",
+  trControl = train_control
+)
+
+# Model 2: + Education
+model2 <- train(
+  log_home_value ~ log_median_income + log_percent_college,
+  data = data_log,
+  method = "lm",
+  trControl = train_control
+)
+
+# Model 3: + Poverty
+model3 <- train(
+  log_home_value ~ log_median_income + log_percent_college + log_poverty_rate,
+  data = data_log,
+  method = "lm",
+  trControl = train_control
+)
+
+# Continue adding variables...
+```
+
+**Benefits of Progressive Building:**
+- Understand contribution of each variable
+- Identify when adding variables stops helping
+- Detect multicollinearity issues
+- Maintain interpretability
+
+## Model Comparison Metrics
+
+**Key Metrics:**
+- **RMSE (Root Mean Square Error)** → Lower is better
+- **R² (R-squared)** → Higher is better (0-1 scale)
+- **MAE (Mean Absolute Error)** → Lower is better
+
+```r
+# Calculate RMSE on original scale
+calc_original_rmse <- function(model, data) {
+  pred_log <- predict(model, data)
+  pred_original <- exp(pred_log) - 1
+  actual_original <- data$home_valueE
+  sqrt(mean((pred_original - actual_original)^2, na.rm = TRUE))
+}
+```
+
+**Important:** Convert predictions back to original scale for meaningful interpretation
+
+# Part 6: Model Diagnostics
+
+## Why Model Diagnostics?
+
+**Linear Regression Assumptions:**
+1. **Linearity** → Relationship between predictors and outcome is linear
+2. **Independence** → Observations are independent
+3. **Homoscedasticity** → Constant variance of residuals
+4. **Normality** → Residuals are normally distributed
+5. **No multicollinearity** → Predictors are not highly correlated
+
+## Diagnostic Tools
+
+### 1. Residual Plots
+
+```r
+# Standard residual plots
+par(mfrow = c(2, 2))
+plot(final_lm)
+par(mfrow = c(1, 1))
+```
+
+**What to Look For:**
+- **Residuals vs Fitted:** Random scatter around zero
+- **Normal Q-Q:** Points follow diagonal line
+- **Scale-Location:** Horizontal line with random scatter
+- **Residuals vs Leverage:** No extreme outliers
+
+### 2. Cook's Distance
+
+```r
+# Identify influential observations
+cooks_d <- cooks.distance(final_lm)
+influential <- which(cooks_d > 4/nrow(data_log))
+
+if(length(influential) > 0) {
+  cat("Influential observations:", length(influential), "\n")
+  print(challenge_data[influential, c("NAME", "home_valueE")])
+}
+```
+
+**Rule of Thumb:** Cook's Distance > 4/n indicates influential observations
+
+### 3. Variance Inflation Factor (VIF)
+
+```r
+library(car)
+
+# Check for multicollinearity
+if(ncol(model.matrix(final_lm)) > 2) {
+  print(round(vif(final_lm), 2))
+}
+```
+
+**Interpretation:**
+- VIF < 5: No multicollinearity concern
+- VIF 5-10: Moderate multicollinearity
+- VIF > 10: High multicollinearity (consider removing variables)
+
+### 4. Breusch-Pagan Test
+
+```r
+library(lmtest)
+
+# Test for heteroscedasticity
+print(bptest(final_lm))
+```
+
+**Interpretation:**
+- p-value > 0.05: No heteroscedasticity (good)
+- p-value < 0.05: Heteroscedasticity present (may need transformation)
+
+# Part 7: Model Refinement
+
+## Handling Outliers
+
+**When to Remove Outliers:**
+- High Cook's Distance (> 4/n)
+- Clear data entry errors
+- Extreme values that don't represent population
+
+**Process:**
+1. Identify influential observations
+2. Remove from dataset
+3. Refit model
+4. Compare performance
+
+```r
+if(length(influential) > 0) {
+  data_no_outliers <- data_log[-influential, ]
+  
+  # Retrain best model
+  model_no_outliers <- train(
+    formula(best_model),
+    data = data_no_outliers,
+    method = "lm",
+    trControl = train_control
+  )
+  
+  # Compare performance
+  rmse_after <- calc_original_rmse(model_no_outliers, data_no_outliers)
+  cat("RMSE after removal:", scales::dollar(round(rmse_after, 0)), "\n")
+}
+```
+
+## Model Selection Criteria
+
+**Primary Criterion:** Lowest RMSE on original scale
+**Secondary Criteria:**
+- Higher R²
+- Simpler model (fewer variables)
+- Better diagnostics
+- More interpretable
+
+# Part 8: Best Practices
+
+## Data Preparation
+
+1. **Handle Missing Values** → Use complete cases or imputation
+2. **Check Data Quality** → Look for obvious errors
+3. **Transform Variables** → Log transform skewed variables
+4. **Standardize if Needed** → For some algorithms
+
+## Model Building
+
+1. **Start Simple** → Begin with most important predictors
+2. **Use Cross-Validation** → Always validate model performance
+3. **Compare Models** → Use consistent metrics
+4. **Check Assumptions** → Run diagnostics
+
+## Validation
+
+1. **Use Appropriate Metrics** → RMSE for regression, accuracy for classification
+2. **Convert to Original Scale** → For interpretable results
+3. **Report Confidence Intervals** → Show uncertainty
+4. **Test on New Data** → Final validation
+
+## Interpretation
+
+1. **Coefficient Interpretation** → Log-transformed variables show percentage changes
+2. **Model Limitations** → Acknowledge assumptions and limitations
+3. **Practical Significance** → Consider if improvements are meaningful
+4. **Generalizability** → Discuss how well model applies to new data
+
+# Key Takeaways
+
+## Predictive Modeling Skills
+
+1. **Data Preparation**: Clean, transform, and explore data thoroughly
+2. **Cross-Validation**: Always use proper validation techniques
+3. **Model Comparison**: Use consistent metrics and systematic approach
+4. **Diagnostics**: Check assumptions and identify problems
+5. **Feature Engineering**: Transform variables for better model performance
+
+## Common Pitfalls
+
+- **Overfitting**: Model performs well on training data but poorly on new data
+- **Data Leakage**: Using future information to predict past outcomes
+- **Ignoring Assumptions**: Not checking linear regression assumptions
+- **Inappropriate Metrics**: Using wrong metrics for model comparison
+- **Ignoring Outliers**: Not identifying and handling influential observations
+
+## Model Performance
+
+- **RMSE**: Primary metric for regression problems
+- **R²**: Proportion of variance explained
+- **Cross-Validation**: Essential for unbiased performance estimates
+- **Original Scale**: Always report results in interpretable units
+
+## Next Steps
+
+- Learn about regularization techniques (Ridge, Lasso)
+- Explore non-linear models (polynomial, splines)
+- Understand ensemble methods
+- Practice with different types of data and problems
+
+# Resources
+
+- **caret package**: https://topepo.github.io/caret/
+- **tidycensus package**: https://walker-data.com/tidycensus/
+- **Linear Regression Diagnostics**: https://www.statmethods.net/stats/regression.html
+- **Cross-Validation**: https://en.wikipedia.org/wiki/Cross-validation_(statistics)
+- **Model Selection**: https://www.stat.cmu.edu/~cshalizi/350/lectures/26/lecture-26.pdf

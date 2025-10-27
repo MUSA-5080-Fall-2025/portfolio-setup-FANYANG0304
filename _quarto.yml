@@ -36,7 +36,13 @@ website:
             text: "Assignment 1: Census Data Quality for Policy Decisions"
           - href: assignments/assignment_2/Fan_Yang_Assignment2.qmd
             text: "Assignment 2: Spatial Analysis and Visualization"
-          
+      - text: "Midterm Challenge"
+        menu:
+          - href: Midterm/Yang_Chen_Fang_Gao_Xiang_Zhao_Appendix.qmd
+            text: "Midterm Appendix"
+          - href: Midterm/Yang_Chen_Fang_Gao_Xiang_Zhao_Presentation.qmd
+            text: "Midterm Presentation"
+
 format:
   html:
     theme: cosmo

@@ -1,0 +1,653 @@
+---
+title: "Spatial Predictive Analysis: Predicting Burglaries with Sanitation Violations"
+author: "Fan Yang"
+date: "November 15, 2025"
+format:
+  html:
+    code-fold: show
+    code-tools: true
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    theme: cosmo
+    embed-resources: true
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+## Introduction
+
+This analysis constructs a spatial prediction model for Chicago burglaries, with sanitation code violations as the primary predictor variable. It hypothesizes that sanitation violations may also correlate with burglary risk, drawing on the “broken windows” theory—where visible signs of disorder, such as uncollected trash or violations, indicate diminished social control and may trigger criminal activity. Based on this premise, the analysis explores how community disorder indicators relate to property crime patterns by testing whether sanitation complaints can predict burglary locations.
+
+```{r setup}
+#| code-fold: true
+
+library(tidyverse)
+library(sf)
+library(here)
+library(viridis)
+library(terra)
+library(spdep)
+library(FNN)
+library(MASS)
+library(patchwork)
+library(knitr)
+library(kableExtra)
+library(classInt)
+library(spatstat.geom)
+library(spatstat.explore)
+
+options(scipen = 999)
+set.seed(1115)
+
+theme_spatial <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title = element_text(face = "bold", size = base_size + 1),
+      plot.subtitle = element_text(color = "gray30", size = base_size - 1),
+      legend.position = "right",
+      panel.grid.minor = element_blank(),
+      axis.text = element_blank(),
+      axis.title = element_blank()
+    )
+}
+
+theme_set(theme_spatial())
+```
+
+## Part 1: Data Loading and Exploration
+
+### Load Spatial Boundaries
+
+```{r load-boundaries}
+#| output: false
+
+policeDistricts <- 
+  st_read("https://data.cityofchicago.org/api/geospatial/24zt-jpfn?method=export&format=GeoJSON") %>%
+  st_transform('ESRI:102271') %>%
+  dplyr::select(District = dist_num)
+
+policeBeats <- 
+  st_read("https://data.cityofchicago.org/api/geospatial/n9it-hstw?method=export&format=GeoJSON") %>%
+  st_transform('ESRI:102271') %>%
+  dplyr::select(Beat = beat_num)
+
+chicagoBoundary <- 
+  st_read("https://raw.githubusercontent.com/urbanSpatial/Public-Policy-Analytics-Landing/master/DATA/Chapter5/chicagoBoundary.geojson") %>%
+  st_transform('ESRI:102271')
+```
+
+### Load Burglary Data
+
+```{r load-burglaries}
+#| output: false
+
+burglaries <- st_read(here("assignments", "assignment_4", "data", "burglaries.shp")) %>% 
+  st_transform('ESRI:102271')
+```
+
+The dataset contains 7,482 burglary incidents from 2017.
+
+### Load Sanitation Violation Data
+
+```{r load-violations}
+#| cache: true
+
+violations_raw <- read_csv(
+  here("assignments", "assignment_4", "data", "311_data.csv"),
+  show_col_types = FALSE
+)
+
+violations <- violations_raw %>%
+  filter(`Type of Service Request` == "Sanitation Code Violation") %>%
+  filter(!is.na(Latitude) & !is.na(Longitude)) %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform('ESRI:102271')
+```
+
+The sanitation violations dataset contains 152,636 complaints from 2017, including issues like improper garbage disposal, rodent infestations, and unsanitary property conditions.
+
+### Visualize Spatial Distribution
+
+```{r visualize-data}
+#| fig-width: 10
+#| fig-height: 5
+
+p1 <- ggplot() + 
+  geom_sf(data = chicagoBoundary, fill = "gray95", color = "gray60") +
+  geom_sf(data = burglaries, color = "#d62828", size = 0.1, alpha = 0.3) +
+  labs(
+    title = "Burglary Locations",
+    subtitle = paste0("n = ", format(nrow(burglaries), big.mark=","))
+  ) +
+  theme_void()
+
+p2 <- ggplot() + 
+  geom_sf(data = chicagoBoundary, fill = "gray95", color = "gray60") +
+  geom_sf(data = violations, color = "#457b9d", size = 0.1, alpha = 0.3) +
+  labs(
+    title = "Sanitation Violations",
+    subtitle = paste0("n = ", format(nrow(violations), big.mark=","))
+  ) +
+  theme_void()
+
+p1 + p2 + 
+  plot_annotation(title = "Spatial Distribution: Burglaries and Sanitation Violations")
+```
+
+Both datasets reveal a certain spatial clustering effect, with hot spots concentrated in similar areas (though sanitation code violations are more prevalent). Sanitation code violations appear to be a useful indicator for predicting the risk of residential burglary.
+
+## Part 2: Fishnet Grid Creation
+
+### Create and Aggregate Grid
+
+500m x 500m fishnet grid.
+
+```{r create-fishnet}
+fishnet <- st_make_grid(
+  chicagoBoundary,
+  cellsize = 500,
+  square = TRUE
+) %>%
+  st_sf() %>%
+  mutate(uniqueID = row_number())
+
+fishnet <- fishnet[chicagoBoundary, ]
+```
+
+### Aggregate Burglaries to Grid
+
+```{r aggregate-burglaries}
+burglaries_fishnet <- st_join(burglaries, fishnet, join = st_within) %>%
+  st_drop_geometry() %>%
+  group_by(uniqueID) %>%
+  summarize(countBurglaries = n())
+
+fishnet <- fishnet %>%
+  left_join(burglaries_fishnet, by = "uniqueID") %>%
+  mutate(countBurglaries = replace_na(countBurglaries, 0))
+```
+
+### Aggregate Sanitation Violations to Grid
+
+```{r aggregate-violations}
+violations_fishnet <- st_join(violations, fishnet, join = st_within) %>%
+  st_drop_geometry() %>%
+  group_by(uniqueID) %>%
+  summarize(sanitation_violations = n())
+
+fishnet <- fishnet %>%
+  left_join(violations_fishnet, by = "uniqueID") %>%
+  mutate(sanitation_violations = replace_na(sanitation_violations, 0))
+```
+
+### Summary Statistics
+
+```{r summary-stats}
+data.frame(
+  Variable = c("Burglaries", "Sanitation Violations"),
+  Min = c(min(fishnet$countBurglaries), min(fishnet$sanitation_violations)),
+  Median = c(median(fishnet$countBurglaries), median(fishnet$sanitation_violations)),
+  Mean = c(round(mean(fishnet$countBurglaries), 2), round(mean(fishnet$sanitation_violations), 2)),
+  Max = c(max(fishnet$countBurglaries), max(fishnet$sanitation_violations)),
+  `Cells with Zero` = c(
+    paste0(sum(fishnet$countBurglaries == 0), " (", round(100 * sum(fishnet$countBurglaries == 0) / nrow(fishnet), 1), "%)"),
+    paste0(sum(fishnet$sanitation_violations == 0), " (", round(100 * sum(fishnet$sanitation_violations == 0) / nrow(fishnet), 1), "%)")
+  )
+) %>%
+  kable(caption = "Distribution Summary") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+### Visualize Aggregated Counts
+
+```{r visualize-fishnet}
+#| fig-width: 10
+#| fig-height: 4
+
+p1 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = sanitation_violations), color = NA) +
+  scale_fill_viridis_c(
+    name = "Count",
+    option = "mako",
+    trans = "log1p"
+  ) +
+  labs(title = "Sanitation Violations per Cell") +
+  theme_void()
+
+p2 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = countBurglaries), color = NA) +
+  scale_fill_viridis_c(
+    name = "Count",
+    option = "plasma",
+    trans = "log1p"
+  ) +
+  labs(title = "Burglaries per Cell") +
+  theme_void()
+
+p1 + p2 +
+  plot_annotation(
+    title = "Spatial Relationship: Sanitation Violations and Burglaries",
+    subtitle = "Do high-violation areas correspond to high-burglary areas?"
+  )
+```
+
+These two maps reveal substantial spatial overlap between sanitation violation hot spots and residential burglary hot spots.
+
+## Part 3: Spatial Features
+
+### Calculate Nearest Neighbor Distance
+
+It measures the average distance from each cell to the three nearest sanitation violations, capturing local exposure to disorder.
+
+```{r nn-feature}
+fishnet_coords <- st_coordinates(st_centroid(fishnet))
+violations_coords <- st_coordinates(violations)
+
+nn_result <- get.knnx(violations_coords, fishnet_coords, k = 3)
+
+fishnet <- fishnet %>%
+  mutate(sanitation.nn = rowMeans(nn_result$nn.dist))
+```
+
+```{r plot-nn}
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot() +
+  geom_sf(data = fishnet, aes(fill = sanitation.nn), color = NA) +
+  scale_fill_viridis_c(
+    option = "viridis",
+    direction = -1,
+    name = "Distance (ft)",
+    trans = "log1p"
+  ) +
+  labs(
+    title = "Average Distance to 3 Nearest Sanitation Violations",
+    subtitle = "Lower values indicate proximity to disorder hot spots"
+  ) +
+  theme_void()
+```
+
+Cells with low values are located in areas with concentrated sanitation problems. If the broken windows theory holds, it means that these areas may face elevated burglary risk.
+
+### Local Moran's I Analysis
+
+I identify statistically significant clusters of sanitation violations using LISA to pinpoint disorder hot spots.
+
+```{r local-morans}
+coords <- st_coordinates(st_centroid(fishnet))
+fishnet_nb <- knn2nb(knearneigh(coords, k = 5))
+fishnet_weights <- nb2listw(fishnet_nb, style = "W", zero.policy = TRUE)
+
+local_moran <- localmoran(fishnet$sanitation_violations, fishnet_weights, zero.policy = TRUE)
+
+fishnet <- fishnet %>%
+  mutate(
+    localMorans = local_moran[, 1],
+    localMorans_pval = local_moran[, 5],
+    sig_hotspot = localMorans > 0 & localMorans_pval <= 0.05
+  )
+```
+
+```{r plot-hotspots}
+#| fig-width: 10
+#| fig-height: 4
+
+p1 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = localMorans), color = NA) +
+  scale_fill_gradient2(
+    low = "#2166ac", mid = "white", high = "#b2182b",
+    midpoint = 0,
+    name = "Local\nMoran's I"
+  ) +
+  labs(title = "Local Moran's I Statistic") +
+  theme_void()
+
+p2 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = sig_hotspot), color = NA) +
+  scale_fill_manual(
+    values = c("gray90", "#d62828"),
+    labels = c("Not Significant", "Hot Spot (p ≤ 0.05)"),
+    name = ""
+  ) +
+  labs(title = "Significant Hot Spots") +
+  theme_void()
+
+p1 + p2
+```
+
+LISA reveals 540 cells that are statistically significant hot spots, representing areas where high sanitation violation counts cluster together. The central and south-central regions have a higher concentration.
+
+### Distance to Hot Spots
+
+```{r distance-hotspot}
+hotspot_cells <- fishnet %>% filter(sig_hotspot == TRUE)
+
+if(nrow(hotspot_cells) > 0) {
+  hotspot_union <- st_union(hotspot_cells)
+  
+  fishnet <- fishnet %>%
+    mutate(
+      dist_to_hotspot = as.numeric(st_distance(st_centroid(.), hotspot_union))
+    )
+} else {
+  fishnet <- fishnet %>% mutate(dist_to_hotspot = NA)
+}
+```
+
+```{r plot-distance}
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot() +
+  geom_sf(data = fishnet, aes(fill = dist_to_hotspot), color = NA) +
+  scale_fill_viridis_c(
+    option = "plasma",
+    direction = -1,
+    name = "Distance (ft)",
+    trans = "log1p",
+    breaks = c(0, 500, 1000, 4000)
+  ) +
+  geom_sf(data = filter(fishnet, sig_hotspot == TRUE), 
+          fill = NA, color = "red", size = 0.3) +
+  labs(
+    title = "Distance to Nearest Sanitation Hot Spot",
+    subtitle = "Red outlines = significant clusters"
+  ) +
+  theme_void()
+```
+
+The map reveals multiple sanitation violation hotspots in Chicago, primarily concentrated in the city's south central area, while the northern regions remain distant from these problem zones.
+
+### Kernel Density Estimation Baseline
+
+```{r kde}
+burglary_ppp <- as.ppp(
+  st_coordinates(burglaries),
+  W = as.owin(st_bbox(chicagoBoundary))
+)
+
+kde_result <- density.ppp(
+  burglary_ppp,
+  sigma = 1000,
+  edge = TRUE
+)
+
+kde_raster <- rast(kde_result)
+crs(kde_raster) <- "ESRI:102271"
+
+fishnet_centroids <- st_centroid(fishnet)
+fishnet$kde_value <- terra::extract(kde_raster, vect(fishnet_centroids))[, 2]
+```
+
+```{r plot-kde}
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot() +
+  geom_sf(data = fishnet, aes(fill = kde_value), color = NA) +
+  scale_fill_viridis_c(
+    option = "turbo",
+    name = "Density"
+  ) +
+  labs(
+    title = "Kernel Density Estimation of Burglaries",
+    subtitle = "Baseline prediction using only spatial distribution"
+  ) +
+  theme_void()
+```
+
+KDE as a baseline—it predicts burglary risk solely based on past locations. An effective regression model should theoretically outperform this.
+
+## Part 4: Count Regression Models
+
+### Prepare Modeling Dataset
+
+```{r join-districts}
+fishnet_centroids_with_id <- st_centroid(fishnet) %>%
+  mutate(uniqueID = fishnet$uniqueID)
+
+fishnet_districts <- st_join(
+  fishnet_centroids_with_id,
+  policeDistricts
+) %>%
+  st_drop_geometry() %>%
+  dplyr::select(uniqueID, District)
+
+fishnet <- fishnet %>%
+  left_join(fishnet_districts, by = "uniqueID")
+
+fishnet_model <- fishnet %>%
+  filter(!is.na(sanitation_violations) & !is.na(sanitation.nn) & 
+         !is.na(dist_to_hotspot) & !is.na(District))
+```
+
+### Fit Poisson Model
+
+```{r poisson-model}
+model_poisson <- glm(
+  countBurglaries ~ sanitation_violations + sanitation.nn + dist_to_hotspot,
+  family = "poisson",
+  data = fishnet_model
+)
+
+summary(model_poisson)
+```
+
+### Fit Negative Binomial Model
+
+```{r negbin-model}
+model_nb <- glm.nb(
+  countBurglaries ~ sanitation_violations + sanitation.nn + dist_to_hotspot,
+  data = fishnet_model
+)
+
+summary(model_nb)
+```
+
+### Model Comparison
+
+```{r model-comparison}
+data.frame(
+  Model = c("Poisson", "Negative Binomial"),
+  AIC = c(round(AIC(model_poisson), 2), round(AIC(model_nb), 2)),
+  BIC = c(round(BIC(model_poisson), 2), round(BIC(model_nb), 2))
+) %>%
+  kable(caption = "Model Comparison") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+The Negative Binomial model shows a lower AIC, indicating better fit. This confirms the presence of overdispersion problem in the burglary count data, justifying the use of the more flexible Negative Binomial specification.
+
+## Part 5: Spatial Cross-Validation
+
+Leave-One-Group-Out cross-validation by police district ensures spatial separation between training and test sets, preventing information leakage from nearby cells.
+
+```{r spatial-cv}
+districts <- unique(fishnet_model$District)
+cv_results <- tibble()
+
+for (i in seq_along(districts)) {
+  
+  test_district <- districts[i]
+  
+  train_data <- fishnet_model %>% filter(District != test_district)
+  test_data <- fishnet_model %>% filter(District == test_district)
+  
+  model_cv <- glm.nb(
+    countBurglaries ~ sanitation_violations + sanitation.nn + dist_to_hotspot,
+    data = train_data
+  )
+  
+  test_data <- test_data %>%
+    mutate(
+      prediction = predict(model_cv, test_data, type = "response")
+    )
+  
+  mae <- mean(abs(test_data$countBurglaries - test_data$prediction))
+  rmse <- sqrt(mean((test_data$countBurglaries - test_data$prediction)^2))
+  
+  cv_results <- bind_rows(
+    cv_results,
+    tibble(
+      fold = i,
+      test_district = test_district,
+      n_test = nrow(test_data),
+      mae = round(mae, 2),
+      rmse = round(rmse, 2)
+    )
+  )
+}
+```
+
+### Cross-Validation Results
+
+```{r cv-summary}
+data.frame(
+  Metric = c("Mean MAE", "Mean RMSE", "SD of MAE"),
+  Value = c(
+    round(mean(cv_results$mae), 2),
+    round(mean(cv_results$rmse), 2),
+    round(sd(cv_results$mae), 2)
+  )
+) %>%
+  kable(caption = "Overall Cross-Validation Performance") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+```{r cv-table}
+cv_results %>%
+  arrange(desc(mae)) %>%
+  kable(
+    digits = 2,
+    caption = "LOGO Cross-Validation Results by District"
+  ) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+The cross-validation results show how well the model generalizes to unseen districts. Variation in MAE across districts reflects different relationships between sanitation violations and burglaries in different neighborhoods.
+
+## Part 6: Model Evaluation
+
+### Generate Final Predictions
+
+```{r final-predictions}
+final_model <- glm.nb(
+  countBurglaries ~ sanitation_violations + sanitation.nn + dist_to_hotspot,
+  data = fishnet_model
+)
+
+fishnet <- fishnet %>%
+  mutate(
+    prediction_nb = predict(final_model, fishnet_model, type = "response")[match(uniqueID, fishnet_model$uniqueID)]
+  )
+
+kde_sum <- sum(fishnet$kde_value, na.rm = TRUE)
+count_sum <- sum(fishnet$countBurglaries, na.rm = TRUE)
+fishnet <- fishnet %>%
+  mutate(
+    prediction_kde = (kde_value / kde_sum) * count_sum
+  )
+```
+
+### Visual Comparison
+
+```{r compare-predictions}
+#| fig-width: 12
+#| fig-height: 4
+
+p1 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = countBurglaries), color = NA) +
+  scale_fill_viridis_c(name = "Count", option = "plasma", limits = c(0, 15), trans = "sqrt") +
+  labs(title = "Actual Burglaries") +
+  theme_void()
+
+p2 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = prediction_nb), color = NA) +
+  scale_fill_viridis_c(name = "Predicted", option = "plasma", limits = c(0, 15), trans = "sqrt") +
+  labs(title = "Model Predictions") +
+  theme_void()
+
+p3 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = prediction_kde), color = NA) +
+  scale_fill_viridis_c(name = "Predicted", option = "plasma", limits = c(0, 15), trans = "sqrt") +
+  labs(title = "KDE Baseline") +
+  theme_void()
+
+p1 + p2 + p3 +
+  plot_annotation(
+    title = "Actual vs. Predicted Burglaries",
+    subtitle = "Does the sanitation-based model outperform simple KDE?"
+  )
+```
+
+The regression model based on sanitation violations (middle) effectively captures the spatial distribution patterns of actual burglaries (left), with hot spot areas largely aligning. In contrast, while the KDE baseline model (right) also identifies major hot spots (even outperforming in the metric comparisons below), it exhibits blurred spatial details and excessive smoothing. Thus the regression model incorporating sanitation features preserves spatial details better, though its overall predictive capability may be comparable to or like inferior to KDE.
+
+### Performance Metrics
+
+```{r performance-metrics}
+comparison <- fishnet %>%
+  st_drop_geometry() %>%
+  filter(!is.na(prediction_nb), !is.na(prediction_kde)) %>%
+  summarize(
+    model_mae = round(mean(abs(countBurglaries - prediction_nb)), 2),
+    model_rmse = round(sqrt(mean((countBurglaries - prediction_nb)^2)), 2),
+    kde_mae = round(mean(abs(countBurglaries - prediction_kde)), 2),
+    kde_rmse = round(sqrt(mean((countBurglaries - prediction_kde)^2)), 2)
+  )
+
+comparison %>%
+  pivot_longer(everything(), names_to = "metric", values_to = "value") %>%
+  separate(metric, into = c("approach", "metric"), sep = "_") %>%
+  pivot_wider(names_from = metric, values_from = value) %>%
+  kable(caption = "Model vs. KDE Performance") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+KDE performs better in statistical metrics, but as shown in the previous image, KDE's spatial representation is overly smooth and lacks detail. My predictive model, however, performs better at finer spatial granularity.
+
+### Error Analysis
+
+```{r prediction-errors}
+#| fig-width: 10
+#| fig-height: 5
+
+fishnet_errors <- fishnet %>%
+  filter(!is.na(prediction_nb) & !is.na(countBurglaries)) %>%
+  mutate(
+    error_nb = countBurglaries - prediction_nb,
+    abs_error_nb = abs(error_nb)
+  )
+
+p1 <- ggplot() +
+  geom_sf(data = fishnet_errors, aes(fill = error_nb), color = NA) +
+  scale_fill_gradient2(
+    name = "Error",
+    low = "#2166ac", mid = "white", high = "#b2182b",
+    midpoint = 0,
+    limits = c(-10, 10)
+  ) +
+  labs(title = "Prediction Errors (Actual - Predicted)") +
+  theme_void()
+
+p2 <- ggplot() +
+  geom_sf(data = fishnet_errors, aes(fill = abs_error_nb), color = NA) +
+  scale_fill_viridis_c(name = "Abs. Error", option = "magma") +
+  labs(title = "Absolute Errors") +
+  theme_void()
+
+p1 + p2
+```
+
+The model performs well overall: The random distribution of red and blue errors in the left image indicates no systematic bias, while the large dark areas in the right image demonstrate that absolute errors are generally small. Only a few scattered points show larger errors, meaning the model predicts accurately in most regions, but specific areas may require additional features for improved prediction.
+
+## Conclusion
+
+**Performance:** The negative binomial model achieved a cross-validation MAE of 2.29, performing roughly on par with the KDE baseline. All three spatial features demonstrated statistical significance. However, KDE exhibits overly smoothed predictions spatially, whereas my predictive model effectively captures fine-grained details consistent with actual values.
+
+**Spatial Patterns:** Sanitation hotspots and residential burglary hotspots show significant overlap, particularly in central and southern Chicago. This aligns with the Broken Windows theory—areas exhibiting visible disorder tend to experience higher rates of property crime.
+
+**Limitations:** Error analysis indicates that most predictions are accurate, but significant discrepancies exist in a few areas. These outliers may possess characteristics not captured by health data—potentially unusual building/land use types or specific economic and demographic conditions. Furthermore, relying solely on a single type of 311 call overlooks certain behavioral patterns.

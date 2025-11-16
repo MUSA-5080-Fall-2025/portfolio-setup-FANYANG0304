@@ -20,6 +20,14 @@ website:
             text: "Week 4"
           - href: weekly-notes/week-05-notes.qmd
             text: "Week 5"
+          - href: weekly-notes/week-06-notes.qmd
+            text: "Week 6"
+          - href: weekly-notes/week-07-notes.qmd
+            text: "Week 7"
+          - href: weekly-notes/week-09-notes.qmd
+            text: "Week 9"
+          - href: weekly-notes/week-10-notes.qmd
+            text: "Week 10"
       - text: "Labs"
         menu:
           - href: labs/lab_setup_instructions.qmd
@@ -38,7 +46,6 @@ website:
             text: "Assignment 2: Spatial Analysis and Visualization"
           - href: assignments/assignment_4/Fan_Yang_Assignment4.qmd
             text: "Assignment 4: Spatial Predictive Analysis"
-
 format:
   html:
     theme: cosmo

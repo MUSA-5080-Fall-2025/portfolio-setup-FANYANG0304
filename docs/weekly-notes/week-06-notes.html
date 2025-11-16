@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.24">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Fan Yang">
+<meta name="dcterms.date" content="2025-10-13">
+
+<title>MUSA 5080 Notes #6 – Fan Yang - MUSA 5080</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dc55a5b9e770e841cd82e46aadbfb9b0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-e31584831b205ffbb2d98406f31c2a5b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Fan Yang - MUSA 5080</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-weekly-notes" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Weekly Notes</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-weekly-notes">    
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-01-notes.html">
+ <span class="dropdown-text">Week 1</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-02-notes.html">
+ <span class="dropdown-text">Week 2</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-03-notes.html">
+ <span class="dropdown-text">Week 3</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-04-notes.html">
+ <span class="dropdown-text">Week 4</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-05-notes.html">
+ <span class="dropdown-text">Week 5</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-06-notes.html">
+ <span class="dropdown-text">Week 6</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-07-notes.html">
+ <span class="dropdown-text">Week 7</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-09-notes.html">
+ <span class="dropdown-text">Week 9</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-10-notes.html">
+ <span class="dropdown-text">Week 10</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-labs" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Labs</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-labs">    
+        <li>
+    <a class="dropdown-item" href="../labs/lab_setup_instructions.html">
+ <span class="dropdown-text">Lab 1: Setup Instructions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../labs/lab_0/lab0_index.html">
+ <span class="dropdown-text">Lab 2: Getting Started with dplyr</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../labs/lab_3/week3_lab_exercise.html">
+ <span class="dropdown-text">Lab 3: Data Visualization and EDA</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../labs/lab_4/week4_inclass_practice.html">
+ <span class="dropdown-text">Lab 4: Spatial Operations with Pennsylvania Data</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-assignments" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Assignments</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-assignments">    
+        <li>
+    <a class="dropdown-item" href="../assignments/assignment_1/Fan_Yang_Assignment1.html">
+ <span class="dropdown-text">Assignment 1: Census Data Quality for Policy Decisions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assignments/assignment_2/Fan_Yang_Assignment2.html">
+ <span class="dropdown-text">Assignment 2: Spatial Analysis and Visualization</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assignments/assignment_4/Fan_Yang_Assignment4.html">
+ <span class="dropdown-text">Assignment 4: Spatial Predictive Analysis</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a>
+  <ul class="collapse">
+  <li><a href="#key-learning-objectives" id="toc-key-learning-objectives" class="nav-link" data-scroll-target="#key-learning-objectives">Key Learning Objectives</a></li>
+  </ul></li>
+  <li><a href="#part-1-expanding-your-regression-toolkit" id="toc-part-1-expanding-your-regression-toolkit" class="nav-link" data-scroll-target="#part-1-expanding-your-regression-toolkit">Part 1: Expanding Your Regression Toolkit</a>
+  <ul class="collapse">
+  <li><a href="#categorical-variables-dummy-variables" id="toc-categorical-variables-dummy-variables" class="nav-link" data-scroll-target="#categorical-variables-dummy-variables">Categorical Variables (Dummy Variables)</a>
+  <ul class="collapse">
+  <li><a href="#understanding-dummy-variables" id="toc-understanding-dummy-variables" class="nav-link" data-scroll-target="#understanding-dummy-variables">Understanding Dummy Variables</a></li>
+  <li><a href="#the-n-1-rule" id="toc-the-n-1-rule" class="nav-link" data-scroll-target="#the-n-1-rule">The (n-1) Rule</a></li>
+  <li><a href="#interpreting-neighborhood-dummies" id="toc-interpreting-neighborhood-dummies" class="nav-link" data-scroll-target="#interpreting-neighborhood-dummies">Interpreting Neighborhood Dummies</a></li>
+  </ul></li>
+  <li><a href="#interaction-effects" id="toc-interaction-effects" class="nav-link" data-scroll-target="#interaction-effects">Interaction Effects</a>
+  <ul class="collapse">
+  <li><a href="#when-relationships-depend-on-other-variables" id="toc-when-relationships-depend-on-other-variables" class="nav-link" data-scroll-target="#when-relationships-depend-on-other-variables">When Relationships Depend on Other Variables</a></li>
+  <li><a href="#creating-interaction-terms" id="toc-creating-interaction-terms" class="nav-link" data-scroll-target="#creating-interaction-terms">Creating Interaction Terms</a></li>
+  <li><a href="#interpreting-interaction-coefficients" id="toc-interpreting-interaction-coefficients" class="nav-link" data-scroll-target="#interpreting-interaction-coefficients">Interpreting Interaction Coefficients</a></li>
+  <li><a href="#when-not-to-use-interactions" id="toc-when-not-to-use-interactions" class="nav-link" data-scroll-target="#when-not-to-use-interactions">When NOT to Use Interactions</a></li>
+  </ul></li>
+  <li><a href="#polynomial-terms-non-linear-relationships" id="toc-polynomial-terms-non-linear-relationships" class="nav-link" data-scroll-target="#polynomial-terms-non-linear-relationships">Polynomial Terms: Non-Linear Relationships</a>
+  <ul class="collapse">
+  <li><a href="#when-straight-lines-dont-fit" id="toc-when-straight-lines-dont-fit" class="nav-link" data-scroll-target="#when-straight-lines-dont-fit">When Straight Lines Don’t Fit</a></li>
+  <li><a href="#creating-polynomial-terms" id="toc-creating-polynomial-terms" class="nav-link" data-scroll-target="#creating-polynomial-terms">Creating Polynomial Terms</a></li>
+  <li><a href="#interpreting-polynomial-coefficients" id="toc-interpreting-polynomial-coefficients" class="nav-link" data-scroll-target="#interpreting-polynomial-coefficients">Interpreting Polynomial Coefficients</a></li>
+  <li><a href="#comparing-linear-vs.-quadratic" id="toc-comparing-linear-vs.-quadratic" class="nav-link" data-scroll-target="#comparing-linear-vs.-quadratic">Comparing Linear vs.&nbsp;Quadratic</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#part-2-why-space-matters" id="toc-part-2-why-space-matters" class="nav-link" data-scroll-target="#part-2-why-space-matters">Part 2: Why Space Matters</a>
+  <ul class="collapse">
+  <li><a href="#toblers-first-law-of-geography" id="toc-toblers-first-law-of-geography" class="nav-link" data-scroll-target="#toblers-first-law-of-geography">Tobler’s First Law of Geography</a>
+  <ul class="collapse">
+  <li><a href="#what-this-means-for-house-prices" id="toc-what-this-means-for-house-prices" class="nav-link" data-scroll-target="#what-this-means-for-house-prices">What This Means for House Prices</a></li>
+  </ul></li>
+  <li><a href="#hedonic-model-framework" id="toc-hedonic-model-framework" class="nav-link" data-scroll-target="#hedonic-model-framework">Hedonic Model Framework</a></li>
+  </ul></li>
+  <li><a href="#part-3-creating-spatial-features" id="toc-part-3-creating-spatial-features" class="nav-link" data-scroll-target="#part-3-creating-spatial-features">Part 3: Creating Spatial Features</a>
+  <ul class="collapse">
+  <li><a href="#three-approaches-to-spatial-features" id="toc-three-approaches-to-spatial-features" class="nav-link" data-scroll-target="#three-approaches-to-spatial-features">Three Approaches to Spatial Features</a>
+  <ul class="collapse">
+  <li><a href="#buffer-aggregation" id="toc-buffer-aggregation" class="nav-link" data-scroll-target="#buffer-aggregation">1️⃣ Buffer Aggregation</a></li>
+  <li><a href="#k-nearest-neighbors-knn" id="toc-k-nearest-neighbors-knn" class="nav-link" data-scroll-target="#k-nearest-neighbors-knn">2️⃣ k-Nearest Neighbors (kNN)</a></li>
+  <li><a href="#distance-to-specific-points" id="toc-distance-to-specific-points" class="nav-link" data-scroll-target="#distance-to-specific-points">3️⃣ Distance to Specific Points</a></li>
+  </ul></li>
+  <li><a href="#model-comparison-adding-spatial-features" id="toc-model-comparison-adding-spatial-features" class="nav-link" data-scroll-target="#model-comparison-adding-spatial-features">Model Comparison: Adding Spatial Features</a></li>
+  </ul></li>
+  <li><a href="#part-4-fixed-effects" id="toc-part-4-fixed-effects" class="nav-link" data-scroll-target="#part-4-fixed-effects">Part 4: Fixed Effects</a>
+  <ul class="collapse">
+  <li><a href="#what-are-fixed-effects" id="toc-what-are-fixed-effects" class="nav-link" data-scroll-target="#what-are-fixed-effects">What Are Fixed Effects?</a>
+  <ul class="collapse">
+  <li><a href="#the-code" id="toc-the-code" class="nav-link" data-scroll-target="#the-code">The Code</a></li>
+  <li><a href="#why-use-fixed-effects" id="toc-why-use-fixed-effects" class="nav-link" data-scroll-target="#why-use-fixed-effects">Why Use Fixed Effects?</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#part-5-cross-validation-with-categorical-variables" id="toc-part-5-cross-validation-with-categorical-variables" class="nav-link" data-scroll-target="#part-5-cross-validation-with-categorical-variables">Part 5: Cross-Validation with Categorical Variables</a>
+  <ul class="collapse">
+  <li><a href="#the-problem-sparse-categories" id="toc-the-problem-sparse-categories" class="nav-link" data-scroll-target="#the-problem-sparse-categories">⚠️ The Problem: Sparse Categories</a>
+  <ul class="collapse">
+  <li><a href="#when-cv-fails-with-categorical-variables" id="toc-when-cv-fails-with-categorical-variables" class="nav-link" data-scroll-target="#when-cv-fails-with-categorical-variables">When CV Fails with Categorical Variables</a></li>
+  <li><a href="#check-your-data-first" id="toc-check-your-data-first" class="nav-link" data-scroll-target="#check-your-data-first">Check Your Data First!</a></li>
+  </ul></li>
+  <li><a href="#solution-group-small-neighborhoods" id="toc-solution-group-small-neighborhoods" class="nav-link" data-scroll-target="#solution-group-small-neighborhoods">Solution: Group Small Neighborhoods</a></li>
+  <li><a href="#full-model-comparison-with-cv" id="toc-full-model-comparison-with-cv" class="nav-link" data-scroll-target="#full-model-comparison-with-cv">Full Model Comparison with CV</a></li>
+  <li><a href="#expected-results" id="toc-expected-results" class="nav-link" data-scroll-target="#expected-results">Expected Results</a></li>
+  </ul></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">Key Takeaways</a>
+  <ul class="collapse">
+  <li><a href="#advanced-regression-skills" id="toc-advanced-regression-skills" class="nav-link" data-scroll-target="#advanced-regression-skills">Advanced Regression Skills</a></li>
+  <li><a href="#model-building-strategy" id="toc-model-building-strategy" class="nav-link" data-scroll-target="#model-building-strategy">Model Building Strategy</a></li>
+  <li><a href="#common-pitfalls" id="toc-common-pitfalls" class="nav-link" data-scroll-target="#common-pitfalls">Common Pitfalls</a></li>
+  <li><a href="#model-performance-insights" id="toc-model-performance-insights" class="nav-link" data-scroll-target="#model-performance-insights">Model Performance Insights</a></li>
+  <li><a href="#next-steps" id="toc-next-steps" class="nav-link" data-scroll-target="#next-steps">Next Steps</a></li>
+  </ul></li>
+  <li><a href="#resources" id="toc-resources" class="nav-link" data-scroll-target="#resources">Resources</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content column-page-right" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">MUSA 5080 Notes #6</h1>
+<p class="subtitle lead">Week 6: Spatial Machine Learning &amp; Advanced Regression</p>
+</div>
+
+
+
+<div class="quarto-title-meta column-page-right">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Fan Yang </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 13, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Week 6: Spatial Machine Learning &amp; Advanced Regression</strong><br>
+<strong>Date:</strong> 10/13/2025</p>
+</div>
+</div>
+<section id="overview" class="level1">
+<h1>Overview</h1>
+<p>This week we expanded our regression toolkit to include categorical variables, interactions, polynomial terms, and spatial features. We learned how to build comprehensive hedonic models that account for both structural characteristics and spatial relationships, using Boston housing data as our case study.</p>
+<section id="key-learning-objectives" class="level2">
+<h2 class="anchored" data-anchor-id="key-learning-objectives">Key Learning Objectives</h2>
+<ul>
+<li>Understand how to incorporate categorical variables (dummy variables) in regression</li>
+<li>Learn to model interaction effects when relationships vary by group</li>
+<li>Master polynomial terms for non-linear relationships</li>
+<li>Create spatial features using buffers, k-NN, and distance calculations</li>
+<li>Apply fixed effects to control for unmeasured neighborhood characteristics</li>
+<li>Handle categorical variables in cross-validation properly</li>
+</ul>
+</section>
+</section>
+<section id="part-1-expanding-your-regression-toolkit" class="level1">
+<h1>Part 1: Expanding Your Regression Toolkit</h1>
+<section id="categorical-variables-dummy-variables" class="level2">
+<h2 class="anchored" data-anchor-id="categorical-variables-dummy-variables">Categorical Variables (Dummy Variables)</h2>
+<section id="understanding-dummy-variables" class="level3">
+<h3 class="anchored" data-anchor-id="understanding-dummy-variables">Understanding Dummy Variables</h3>
+<p>When you include a categorical variable in a model, R automatically creates binary indicators:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure name is a factor</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>boston.sf <span class="ot">&lt;-</span> boston.sf <span class="sc">%&gt;%</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">as.factor</span>(name))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit model with neighborhood fixed effects</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>model_neighborhoods <span class="ot">&lt;-</span> <span class="fu">lm</span>(SalePrice <span class="sc">~</span> LivingArea <span class="sc">+</span> name, </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                          <span class="at">data =</span> boston.sf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>How R handles this:</strong> - Creates binary indicators: <code>nameBack_Bay</code>, <code>nameBeacon_Hill</code>, etc. - Each is 1 if that neighborhood, 0 otherwise - <strong>One neighborhood is automatically chosen as reference category</strong> (omitted)</p>
+</section>
+<section id="the-n-1-rule" class="level3">
+<h3 class="anchored" data-anchor-id="the-n-1-rule">The (n-1) Rule</h3>
+<p><strong>Important:</strong> R picks one category as the reference (usually first alphabetically)</p>
+<ul>
+<li>All other coefficients are interpreted <strong>relative to the reference</strong></li>
+<li>Reference category gets the intercept</li>
+<li>Other categories get intercept + their coefficient</li>
+</ul>
+</section>
+<section id="interpreting-neighborhood-dummies" class="level3">
+<h3 class="anchored" data-anchor-id="interpreting-neighborhood-dummies">Interpreting Neighborhood Dummies</h3>
+<p><strong>Example coefficients:</strong> - <strong>Intercept (Allston)</strong>: Base price in reference neighborhood - <strong>nameBack_Bay</strong>: +<span class="math inline">\(X premium vs. Allston (all else equal)
+- **nameRoxbury**: -\)</span>Y discount vs.&nbsp;Allston (all else equal)</p>
+<p><strong>Key point:</strong> These capture ALL unmeasured neighborhood characteristics (schools, prestige, amenities, etc.)</p>
+</section>
+</section>
+<section id="interaction-effects" class="level2">
+<h2 class="anchored" data-anchor-id="interaction-effects">Interaction Effects</h2>
+<section id="when-relationships-depend-on-other-variables" class="level3">
+<h3 class="anchored" data-anchor-id="when-relationships-depend-on-other-variables">When Relationships Depend on Other Variables</h3>
+<p><strong>The Question:</strong> Does the effect of one variable <strong>depend on</strong> the level of another variable?</p>
+<p><strong>Example:</strong> Does square footage matter more in wealthy neighborhoods?</p>
+<p><strong>Mathematical Form:</strong></p>
+<pre><code>SalePrice = β₀ + β₁(LivingArea) + β₂(WealthyNeighborhood) + 
+            β₃(LivingArea × WealthyNeighborhood) + ε</code></pre>
+</section>
+<section id="creating-interaction-terms" class="level3">
+<h3 class="anchored" data-anchor-id="creating-interaction-terms">Creating Interaction Terms</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define wealthy neighborhoods</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>wealthy_hoods <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Back Bay"</span>, <span class="st">"Beacon Hill"</span>, <span class="st">"South End"</span>, <span class="st">"Bay Village"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create binary indicator</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>boston.sf <span class="ot">&lt;-</span> boston.sf <span class="sc">%&gt;%</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">wealthy_neighborhood =</span> <span class="fu">ifelse</span>(name <span class="sc">%in%</span> wealthy_hoods, </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>                                   <span class="st">"Wealthy"</span>, <span class="st">"Not Wealthy"</span>),</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">wealthy_neighborhood =</span> <span class="fu">as.factor</span>(wealthy_neighborhood)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Model without interaction (parallel slopes)</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>model_no_interact <span class="ot">&lt;-</span> <span class="fu">lm</span>(SalePrice <span class="sc">~</span> LivingArea <span class="sc">+</span> wealthy_neighborhood, </span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>                        <span class="at">data =</span> boston.sf)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Model with interaction (different slopes)</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>model_interact <span class="ot">&lt;-</span> <span class="fu">lm</span>(SalePrice <span class="sc">~</span> LivingArea <span class="sc">*</span> wealthy_neighborhood, </span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> boston.sf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>What the interaction allows:</strong> - Living area can have different effects in different neighborhoods - Both intercept AND slope differ - <strong>Non-parallel lines</strong> on a plot</p>
+</section>
+<section id="interpreting-interaction-coefficients" class="level3">
+<h3 class="anchored" data-anchor-id="interpreting-interaction-coefficients">Interpreting Interaction Coefficients</h3>
+<p><strong>Coefficient breakdown:</strong> - <strong>Intercept (Not Wealthy)</strong>: Base price in non-wealthy areas - <strong>LivingArea (Not Wealthy)</strong>: $/sq ft in non-wealthy areas - <strong>wealthy_neighborhoodWealthy</strong>: Premium intercept in wealthy areas - <strong>LivingArea:wealthy_neighborhoodWealthy</strong>: <strong>Extra $/sq ft in wealthy areas</strong></p>
+<p><strong>Key insight:</strong> The interaction term tells us how much MORE each sq ft is worth in wealthy neighborhoods!</p>
+</section>
+<section id="when-not-to-use-interactions" class="level3">
+<h3 class="anchored" data-anchor-id="when-not-to-use-interactions">When NOT to Use Interactions</h3>
+<ul>
+<li><strong>Small samples</strong>: Need sufficient data in each group</li>
+<li><strong>Overfitting</strong>: Too many interactions make models unstable</li>
+<li><strong>No theoretical reason</strong>: Don’t add interactions just because you can</li>
+</ul>
+</section>
+</section>
+<section id="polynomial-terms-non-linear-relationships" class="level2">
+<h2 class="anchored" data-anchor-id="polynomial-terms-non-linear-relationships">Polynomial Terms: Non-Linear Relationships</h2>
+<section id="when-straight-lines-dont-fit" class="level3">
+<h3 class="anchored" data-anchor-id="when-straight-lines-dont-fit">When Straight Lines Don’t Fit</h3>
+<p><strong>Signs of non-linearity:</strong> - Curved residual plots - Diminishing returns - U-shaped or inverted-U patterns - Theoretical reasons for non-linear relationships</p>
+<p><strong>Example:</strong> House age - depreciation then vintage premium</p>
+</section>
+<section id="creating-polynomial-terms" class="level3">
+<h3 class="anchored" data-anchor-id="creating-polynomial-terms">Creating Polynomial Terms</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate age from year built</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>boston.sf <span class="ot">&lt;-</span> boston.sf <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Age =</span> <span class="dv">2025</span> <span class="sc">-</span> YR_BUILT) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Age <span class="sc">&lt;</span> <span class="dv">2000</span>)  <span class="co"># Remove outliers</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Linear model (baseline)</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>model_age_linear <span class="ot">&lt;-</span> <span class="fu">lm</span>(SalePrice <span class="sc">~</span> Age <span class="sc">+</span> LivingArea, <span class="at">data =</span> boston.sf)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Quadratic model (polynomial)</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>model_age_quad <span class="ot">&lt;-</span> <span class="fu">lm</span>(SalePrice <span class="sc">~</span> Age <span class="sc">+</span> <span class="fu">I</span>(Age<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> LivingArea, </span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> boston.sf)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>The <code>I()</code> Function:</strong> - Why <code>I(Age^2)</code> instead of just <code>Age^2</code>? - In R formulas, <code>^</code> has special meaning - <code>I()</code> tells R: “interpret this literally, compute Age²”</p>
+</section>
+<section id="interpreting-polynomial-coefficients" class="level3">
+<h3 class="anchored" data-anchor-id="interpreting-polynomial-coefficients">Interpreting Polynomial Coefficients</h3>
+<p><strong>Model equation:</strong></p>
+<pre><code>Price = β₀ + β₁×Age + β₂×Age² + β₃×LivingArea</code></pre>
+<p><strong>⚠️ Can’t interpret coefficients directly!</strong></p>
+<p>With Age², the effect of age is no longer constant. You need to calculate the <strong>marginal effect</strong>:</p>
+<p><strong>Marginal effect of Age = β₁ + 2×β₂×Age</strong></p>
+<p>This means the effect changes at every age!</p>
+</section>
+<section id="comparing-linear-vs.-quadratic" class="level3">
+<h3 class="anchored" data-anchor-id="comparing-linear-vs.-quadratic">Comparing Linear vs.&nbsp;Quadratic</h3>
+<p><strong>Use F-test to compare:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(model_age_linear, model_age_quad)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>If quadratic is significant:</strong> - Non-linear relationship exists - Quadratic model fits better - R² improvement shows how much better</p>
+</section>
+</section>
+</section>
+<section id="part-2-why-space-matters" class="level1">
+<h1>Part 2: Why Space Matters</h1>
+<section id="toblers-first-law-of-geography" class="level2">
+<h2 class="anchored" data-anchor-id="toblers-first-law-of-geography">Tobler’s First Law of Geography</h2>
+<blockquote class="blockquote">
+<p>“Everything is related to everything else, but near things are more related than distant things” - Waldo Tobler, 1970</p>
+</blockquote>
+<section id="what-this-means-for-house-prices" class="level3">
+<h3 class="anchored" data-anchor-id="what-this-means-for-house-prices">What This Means for House Prices</h3>
+<ul>
+<li>Crime <strong>nearby</strong> matters more than crime across the city</li>
+<li>Parks <strong>within walking distance</strong> affect value</li>
+<li>Your <strong>immediate neighborhood</strong> defines your market</li>
+</ul>
+<p><strong>The Challenge:</strong> How do we quantify “nearbyness” in a way our regression model can use?</p>
+<p><strong>Answer:</strong> Create spatial features that measure proximity to amenities/disamenities</p>
+</section>
+</section>
+<section id="hedonic-model-framework" class="level2">
+<h2 class="anchored" data-anchor-id="hedonic-model-framework">Hedonic Model Framework</h2>
+<p><strong>Hedonic models</strong> decompose the price of a good into its characteristics:</p>
+<pre><code>Price = f(structural features, location features, neighborhood features)</code></pre>
+<p><strong>Components:</strong> - <strong>Structural</strong>: Size, age, condition, bedrooms, bathrooms - <strong>Location</strong>: Distance to downtown, transit, amenities - <strong>Neighborhood</strong>: Crime, schools, prestige, demographics</p>
+</section>
+</section>
+<section id="part-3-creating-spatial-features" class="level1">
+<h1>Part 3: Creating Spatial Features</h1>
+<section id="three-approaches-to-spatial-features" class="level2">
+<h2 class="anchored" data-anchor-id="three-approaches-to-spatial-features">Three Approaches to Spatial Features</h2>
+<section id="buffer-aggregation" class="level3">
+<h3 class="anchored" data-anchor-id="buffer-aggregation">1️⃣ Buffer Aggregation</h3>
+<p><strong>Count or sum</strong> events within a defined distance</p>
+<p><strong>Example:</strong> Number of crimes within 500 feet</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create buffer features</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>boston.sf <span class="ot">&lt;-</span> boston.sf <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">crimes_500ft =</span> <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">st_buffer</span>(geometry, <span class="dv">500</span>),  <span class="co"># 500 feet buffer</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>      crimes.sf</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    )),</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">crimes_660ft =</span> <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">st_buffer</span>(geometry, <span class="dv">660</span>),  <span class="co"># 660 feet buffer</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>      crimes.sf</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    ))</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Interpretation:</strong> <code>crimes_500ft = 5</code> means 5 crimes occurred within 500 feet of this house</p>
+</section>
+<section id="k-nearest-neighbors-knn" class="level3">
+<h3 class="anchored" data-anchor-id="k-nearest-neighbors-knn">2️⃣ k-Nearest Neighbors (kNN)</h3>
+<p><strong>Average distance</strong> to k closest events</p>
+<p><strong>Example:</strong> Average distance to 3 nearest violent crimes</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate distance matrix</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>dist_matrix <span class="ot">&lt;-</span> <span class="fu">st_distance</span>(boston.sf, crimes.sf)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to get mean distance to k nearest neighbors</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>get_knn_distance <span class="ot">&lt;-</span> <span class="cf">function</span>(dist_matrix, k) {</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">apply</span>(dist_matrix, <span class="dv">1</span>, <span class="cf">function</span>(distances) {</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(<span class="fu">as.numeric</span>(<span class="fu">sort</span>(distances)[<span class="dv">1</span><span class="sc">:</span>k]))</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Create multiple kNN features</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>boston.sf <span class="ot">&lt;-</span> boston.sf <span class="sc">%&gt;%</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">crime_nn1 =</span> <span class="fu">get_knn_distance</span>(dist_matrix, <span class="at">k =</span> <span class="dv">1</span>),</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">crime_nn3 =</span> <span class="fu">get_knn_distance</span>(dist_matrix, <span class="at">k =</span> <span class="dv">3</span>),</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">crime_nn5 =</span> <span class="fu">get_knn_distance</span>(dist_matrix, <span class="at">k =</span> <span class="dv">5</span>)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Interpretation:</strong> <code>crime_nn3 = 83.29</code> means the average distance to the 3 nearest crimes is 83.29 feet</p>
+<p><strong>Which k value to use?</strong> Check correlation with price to find the relevant “zone of influence”</p>
+</section>
+<section id="distance-to-specific-points" class="level3">
+<h3 class="anchored" data-anchor-id="distance-to-specific-points">3️⃣ Distance to Specific Points</h3>
+<p><strong>Straight-line distance</strong> to important locations</p>
+<p><strong>Example:</strong> Distance to downtown, nearest T station</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define downtown Boston (Boston Common)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>downtown <span class="ot">&lt;-</span> <span class="fu">st_sfc</span>(<span class="fu">st_point</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="fl">71.0656</span>, <span class="fl">42.3551</span>)), <span class="at">crs =</span> <span class="st">"EPSG:4326"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="st">'ESRI:102286'</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate distance from each house to downtown</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>boston.sf <span class="ot">&lt;-</span> boston.sf <span class="sc">%&gt;%</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">dist_downtown_ft =</span> <span class="fu">as.numeric</span>(<span class="fu">st_distance</span>(geometry, downtown)),</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">dist_downtown_mi =</span> dist_downtown_ft <span class="sc">/</span> <span class="dv">5280</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Interpretation:</strong> <code>dist_downtown_mi = 2.5</code> means 2.5 miles from downtown</p>
+</section>
+</section>
+<section id="model-comparison-adding-spatial-features" class="level2">
+<h2 class="anchored" data-anchor-id="model-comparison-adding-spatial-features">Model Comparison: Adding Spatial Features</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Model 1: Structural only</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>model_structural <span class="ot">&lt;-</span> <span class="fu">lm</span>(SalePrice <span class="sc">~</span> LivingArea <span class="sc">+</span> R_BDRMS <span class="sc">+</span> Age, </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">data =</span> boston.sf)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Model 2: Add spatial features</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>model_spatial <span class="ot">&lt;-</span> <span class="fu">lm</span>(SalePrice <span class="sc">~</span> LivingArea <span class="sc">+</span> R_BDRMS <span class="sc">+</span> Age <span class="sc">+</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                    crimes_500ft <span class="sc">+</span> crime_nn3 <span class="sc">+</span> dist_downtown_mi,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                    <span class="at">data =</span> boston.sf)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare R²</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_structural)<span class="sc">$</span>r.squared</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_spatial)<span class="sc">$</span>r.squared</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Expected improvement:</strong> Spatial features typically add 5-15% to R²</p>
+</section>
+</section>
+<section id="part-4-fixed-effects" class="level1">
+<h1>Part 4: Fixed Effects</h1>
+<section id="what-are-fixed-effects" class="level2">
+<h2 class="anchored" data-anchor-id="what-are-fixed-effects">What Are Fixed Effects?</h2>
+<p><strong>Fixed Effects</strong> = Categorical variables that capture <strong>all unmeasured characteristics</strong> of a group</p>
+<p><strong>In hedonic models:</strong> - Each neighborhood gets its own dummy variable - Captures everything unique about that neighborhood we didn’t explicitly measure - School quality, prestige, walkability, job access, cultural amenities</p>
+<section id="the-code" class="level3">
+<h3 class="anchored" data-anchor-id="the-code">The Code</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add neighborhood fixed effects</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>reg5 <span class="ot">&lt;-</span> <span class="fu">lm</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  SalePrice <span class="sc">~</span> LivingArea <span class="sc">+</span> Age <span class="sc">+</span> </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>              crimes_500ft <span class="sc">+</span> </span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>              <span class="fu">as.factor</span>(name),  <span class="co"># Fixed Effects</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> boston.sf</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Behind the scenes, R creates dummies:</strong> - <code>is_BackBay = 1</code> if Back Bay, 0 otherwise - <code>is_Beacon = 1</code> if Beacon Hill, 0 otherwise - … (R drops one as reference category)</p>
+</section>
+<section id="why-use-fixed-effects" class="level3">
+<h3 class="anchored" data-anchor-id="why-use-fixed-effects">Why Use Fixed Effects?</h3>
+<p><strong>Dramatically Improve Prediction</strong></p>
+<p><strong>Model Comparison (R²):</strong> - Structural only: 0.58 - + Spatial features: 0.67 - + Fixed Effects: 0.81 ✓</p>
+<p><strong>Why such a big jump?</strong> - Neighborhoods bundle many unmeasured factors - School districts, job access, amenities, “cool factor”</p>
+<p><strong>Trade-off:</strong> FE are powerful but they’re a <strong>black box</strong> - we don’t know WHY Back Bay commands a premium</p>
+</section>
+</section>
+</section>
+<section id="part-5-cross-validation-with-categorical-variables" class="level1">
+<h1>Part 5: Cross-Validation with Categorical Variables</h1>
+<section id="the-problem-sparse-categories" class="level2">
+<h2 class="anchored" data-anchor-id="the-problem-sparse-categories">⚠️ The Problem: Sparse Categories</h2>
+<section id="when-cv-fails-with-categorical-variables" class="level3">
+<h3 class="anchored" data-anchor-id="when-cv-fails-with-categorical-variables">When CV Fails with Categorical Variables</h3>
+<p><strong>You might see this error:</strong></p>
+<pre><code>Error in model.frame.default: 
+  factor 'name' has new level 'West End'</code></pre>
+<p><strong>What happened?</strong> 1. Random split created 10 folds 2. All “West End” sales ended up in ONE fold (the test fold) 3. Training folds never saw “West End” 4. Model can’t predict for a category it never learned</p>
+<p><strong>The Issue:</strong> When neighborhoods have <strong>very few sales</strong> (&lt;10), random CV splits can put all instances in the same fold, breaking the model.</p>
+</section>
+<section id="check-your-data-first" class="level3">
+<h3 class="anchored" data-anchor-id="check-your-data-first">Check Your Data First!</h3>
+<p><strong>ALWAYS run this before CV with categorical variables:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check category sizes</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>category_check <span class="ot">&lt;-</span> boston.sf <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(name) <span class="sc">%&gt;%</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(n)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(category_check)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Rule of Thumb:</strong> Categories with <strong>n &lt; 10</strong> will likely cause CV problems</p>
+</section>
+</section>
+<section id="solution-group-small-neighborhoods" class="level2">
+<h2 class="anchored" data-anchor-id="solution-group-small-neighborhoods">Solution: Group Small Neighborhoods</h2>
+<p><strong>Most practical approach:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Add count column</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>boston.sf <span class="ot">&lt;-</span> boston.sf <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_count</span>(name)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Group small neighborhoods</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>boston.sf <span class="ot">&lt;-</span> boston.sf <span class="sc">%&gt;%</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_cv =</span> <span class="fu">if_else</span>(</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>      n <span class="sc">&lt;</span> <span class="dv">10</span>,                       <span class="co"># If fewer than 10 sales</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Small_Neighborhoods"</span>,        <span class="co"># Group them</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">as.character</span>(name)            <span class="co"># Keep original</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_cv =</span> <span class="fu">as.factor</span>(name_cv)</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Use grouped version in CV</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>ctrl <span class="ot">&lt;-</span> <span class="fu">trainControl</span>(<span class="at">method =</span> <span class="st">"cv"</span>, <span class="at">number =</span> <span class="dv">10</span>)</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>cv_model_fe <span class="ot">&lt;-</span> <span class="fu">train</span>(</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>  SalePrice <span class="sc">~</span> LivingArea <span class="sc">+</span> Age <span class="sc">+</span> crimes_500ft <span class="sc">+</span> </span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>              <span class="fu">as.factor</span>(name_cv),   <span class="co"># Use name_cv, not name!</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> boston.sf,</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"lm"</span>,</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">trControl =</span> ctrl</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Trade-off:</strong> Lose granularity for small neighborhoods, but avoid CV crashes</p>
+</section>
+<section id="full-model-comparison-with-cv" class="level2">
+<h2 class="anchored" data-anchor-id="full-model-comparison-with-cv">Full Model Comparison with CV</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(caret)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Prep data</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>boston.sf <span class="ot">&lt;-</span> boston.sf <span class="sc">%&gt;%</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_count</span>(name) <span class="sc">%&gt;%</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_cv =</span> <span class="fu">if_else</span>(n <span class="sc">&lt;</span> <span class="dv">10</span>, <span class="st">"Small_Neighborhoods"</span>, <span class="fu">as.character</span>(name)),</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_cv =</span> <span class="fu">as.factor</span>(name_cv)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>ctrl <span class="ot">&lt;-</span> <span class="fu">trainControl</span>(<span class="at">method =</span> <span class="st">"cv"</span>, <span class="at">number =</span> <span class="dv">10</span>)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare models</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>cv_structural <span class="ot">&lt;-</span> <span class="fu">train</span>(</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  SalePrice <span class="sc">~</span> LivingArea <span class="sc">+</span> Age <span class="sc">+</span> R_FULL_BTH,</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> boston.sf, <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">trControl =</span> ctrl</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>cv_spatial <span class="ot">&lt;-</span> <span class="fu">train</span>(</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>  SalePrice <span class="sc">~</span> LivingArea <span class="sc">+</span> Age <span class="sc">+</span> R_FULL_BTH <span class="sc">+</span> crimes_500ft <span class="sc">+</span> crime_nn3,</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> boston.sf, <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">trControl =</span> ctrl</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>cv_fixedeffects <span class="ot">&lt;-</span> <span class="fu">train</span>(</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>  SalePrice <span class="sc">~</span> LivingArea <span class="sc">+</span> Age <span class="sc">+</span> R_FULL_BTH <span class="sc">+</span> crimes_500ft <span class="sc">+</span> crime_nn3 <span class="sc">+</span> </span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>              <span class="fu">as.factor</span>(name_cv),</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> boston.sf, <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">trControl =</span> ctrl</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Results</span></span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">Model =</span> <span class="fu">c</span>(<span class="st">"Structural"</span>, <span class="st">"+ Spatial"</span>, <span class="st">"+ Fixed Effects"</span>),</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">RMSE =</span> <span class="fu">c</span>(cv_structural<span class="sc">$</span>results<span class="sc">$</span>RMSE, </span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>           cv_spatial<span class="sc">$</span>results<span class="sc">$</span>RMSE, </span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>           cv_fixedeffects<span class="sc">$</span>results<span class="sc">$</span>RMSE)</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="expected-results" class="level2">
+<h2 class="anchored" data-anchor-id="expected-results">Expected Results</h2>
+<p><strong>Typical pattern:</strong></p>
+<pre><code>Model              RMSE      Interpretation
+Structural        $533,331   Baseline - just house characteristics
++ Spatial         $500,422   Adding location features helps!
++ Fixed Effects   $347,261   Neighborhoods capture a LOT</code></pre>
+<p><strong>Key Insight:</strong> Each layer improves <strong>out-of-sample</strong> prediction, with fixed effects providing the biggest boost</p>
+</section>
+</section>
+<section id="key-takeaways" class="level1">
+<h1>Key Takeaways</h1>
+<section id="advanced-regression-skills" class="level2">
+<h2 class="anchored" data-anchor-id="advanced-regression-skills">Advanced Regression Skills</h2>
+<ol type="1">
+<li><strong>Categorical Variables</strong>: Use <code>as.factor()</code> to create dummy variables automatically</li>
+<li><strong>Interactions</strong>: Use <code>*</code> to allow relationships to vary by group</li>
+<li><strong>Polynomial Terms</strong>: Use <code>I(x^2)</code> for non-linear relationships</li>
+<li><strong>Spatial Features</strong>: Create proximity measures using buffers, k-NN, and distance</li>
+<li><strong>Fixed Effects</strong>: Control for unmeasured group characteristics</li>
+<li><strong>CV with Categories</strong>: Always check category sizes and group sparse ones</li>
+</ol>
+</section>
+<section id="model-building-strategy" class="level2">
+<h2 class="anchored" data-anchor-id="model-building-strategy">Model Building Strategy</h2>
+<p><strong>Progressive approach:</strong> 1. Start with structural variables (baseline) 2. Add spatial features (location matters!) 3. Add fixed effects (neighborhoods matter a lot!) 4. Consider interactions and polynomials (if theoretically justified) 5. Validate with cross-validation</p>
+</section>
+<section id="common-pitfalls" class="level2">
+<h2 class="anchored" data-anchor-id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li><strong>Sparse categories in CV</strong>: Always check and group small categories</li>
+<li><strong>Ignoring spatial relationships</strong>: Location is crucial for housing prices</li>
+<li><strong>Overfitting with interactions</strong>: Only add if you have theory and data</li>
+<li><strong>Wrong CRS for distance calculations</strong>: Always transform to projected CRS</li>
+<li><strong>Not handling outliers</strong>: Check distributions and consider transformations</li>
+</ul>
+</section>
+<section id="model-performance-insights" class="level2">
+<h2 class="anchored" data-anchor-id="model-performance-insights">Model Performance Insights</h2>
+<ul>
+<li><strong>Structural variables</strong>: Explain ~50-60% of variation</li>
+<li><strong>Spatial features</strong>: Add 5-15% improvement</li>
+<li><strong>Fixed effects</strong>: Add 10-20% improvement (biggest boost!)</li>
+<li><strong>Combined</strong>: Can reach 80%+ R² for housing price models</li>
+</ul>
+</section>
+<section id="next-steps" class="level2">
+<h2 class="anchored" data-anchor-id="next-steps">Next Steps</h2>
+<ul>
+<li>Practice building comprehensive hedonic models</li>
+<li>Experiment with different spatial feature definitions</li>
+<li>Learn about spatial autocorrelation and its implications</li>
+<li>Explore regularization techniques (Ridge, Lasso) for feature selection</li>
+<li>Apply these techniques to your own research questions</li>
+</ul>
+</section>
+</section>
+<section id="resources" class="level1">
+<h1>Resources</h1>
+<ul>
+<li><strong>sf package</strong>: https://r-spatial.github.io/sf/</li>
+<li><strong>caret package</strong>: https://topepo.github.io/caret/</li>
+<li><strong>Hedonic Modeling</strong>: https://en.wikipedia.org/wiki/Hedonic_regression</li>
+<li><strong>Tobler’s First Law</strong>: https://en.wikipedia.org/wiki/Tobler%27s_first_law_of_geography</li>
+<li><strong>Cross-Validation with Categorical Variables</strong>: Best practices for handling sparse categories</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

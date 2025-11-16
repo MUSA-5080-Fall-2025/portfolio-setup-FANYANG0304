@@ -1,0 +1,536 @@
+---
+title: "MUSA 5080 Notes #6"
+subtitle: "Week 6: Spatial Machine Learning & Advanced Regression"
+author: "Fan Yang"
+date: "October 13, 2025"
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-location: left
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+::: {.callout-note}
+**Week 6: Spatial Machine Learning & Advanced Regression**  
+**Date:** 10/13/2025
+:::
+
+# Overview
+
+This week we expanded our regression toolkit to include categorical variables, interactions, polynomial terms, and spatial features. We learned how to build comprehensive hedonic models that account for both structural characteristics and spatial relationships, using Boston housing data as our case study.
+
+## Key Learning Objectives
+
+- Understand how to incorporate categorical variables (dummy variables) in regression
+- Learn to model interaction effects when relationships vary by group
+- Master polynomial terms for non-linear relationships
+- Create spatial features using buffers, k-NN, and distance calculations
+- Apply fixed effects to control for unmeasured neighborhood characteristics
+- Handle categorical variables in cross-validation properly
+
+# Part 1: Expanding Your Regression Toolkit
+
+## Categorical Variables (Dummy Variables)
+
+### Understanding Dummy Variables
+
+When you include a categorical variable in a model, R automatically creates binary indicators:
+
+```r
+# Ensure name is a factor
+boston.sf <- boston.sf %>%
+  mutate(name = as.factor(name))
+
+# Fit model with neighborhood fixed effects
+model_neighborhoods <- lm(SalePrice ~ LivingArea + name, 
+                          data = boston.sf)
+```
+
+**How R handles this:**
+- Creates binary indicators: `nameBack_Bay`, `nameBeacon_Hill`, etc.
+- Each is 1 if that neighborhood, 0 otherwise
+- **One neighborhood is automatically chosen as reference category** (omitted)
+
+### The (n-1) Rule
+
+**Important:** R picks one category as the reference (usually first alphabetically)
+
+- All other coefficients are interpreted **relative to the reference**
+- Reference category gets the intercept
+- Other categories get intercept + their coefficient
+
+### Interpreting Neighborhood Dummies
+
+**Example coefficients:**
+- **Intercept (Allston)**: Base price in reference neighborhood
+- **nameBack_Bay**: +$X premium vs. Allston (all else equal)
+- **nameRoxbury**: -$Y discount vs. Allston (all else equal)
+
+**Key point:** These capture ALL unmeasured neighborhood characteristics (schools, prestige, amenities, etc.)
+
+## Interaction Effects
+
+### When Relationships Depend on Other Variables
+
+**The Question:** Does the effect of one variable **depend on** the level of another variable?
+
+**Example:** Does square footage matter more in wealthy neighborhoods?
+
+**Mathematical Form:**
+```
+SalePrice = β₀ + β₁(LivingArea) + β₂(WealthyNeighborhood) + 
+            β₃(LivingArea × WealthyNeighborhood) + ε
+```
+
+### Creating Interaction Terms
+
+```r
+# Define wealthy neighborhoods
+wealthy_hoods <- c("Back Bay", "Beacon Hill", "South End", "Bay Village")
+
+# Create binary indicator
+boston.sf <- boston.sf %>%
+  mutate(
+    wealthy_neighborhood = ifelse(name %in% wealthy_hoods, 
+                                   "Wealthy", "Not Wealthy"),
+    wealthy_neighborhood = as.factor(wealthy_neighborhood)
+  )
+
+# Model without interaction (parallel slopes)
+model_no_interact <- lm(SalePrice ~ LivingArea + wealthy_neighborhood, 
+                        data = boston.sf)
+
+# Model with interaction (different slopes)
+model_interact <- lm(SalePrice ~ LivingArea * wealthy_neighborhood, 
+                     data = boston.sf)
+```
+
+**What the interaction allows:**
+- Living area can have different effects in different neighborhoods
+- Both intercept AND slope differ
+- **Non-parallel lines** on a plot
+
+### Interpreting Interaction Coefficients
+
+**Coefficient breakdown:**
+- **Intercept (Not Wealthy)**: Base price in non-wealthy areas
+- **LivingArea (Not Wealthy)**: $/sq ft in non-wealthy areas
+- **wealthy_neighborhoodWealthy**: Premium intercept in wealthy areas
+- **LivingArea:wealthy_neighborhoodWealthy**: **Extra $/sq ft in wealthy areas**
+
+**Key insight:** The interaction term tells us how much MORE each sq ft is worth in wealthy neighborhoods!
+
+### When NOT to Use Interactions
+
+- **Small samples**: Need sufficient data in each group
+- **Overfitting**: Too many interactions make models unstable
+- **No theoretical reason**: Don't add interactions just because you can
+
+## Polynomial Terms: Non-Linear Relationships
+
+### When Straight Lines Don't Fit
+
+**Signs of non-linearity:**
+- Curved residual plots
+- Diminishing returns
+- U-shaped or inverted-U patterns
+- Theoretical reasons for non-linear relationships
+
+**Example:** House age - depreciation then vintage premium
+
+### Creating Polynomial Terms
+
+```r
+# Calculate age from year built
+boston.sf <- boston.sf %>%
+  mutate(Age = 2025 - YR_BUILT) %>%
+  filter(Age < 2000)  # Remove outliers
+
+# Linear model (baseline)
+model_age_linear <- lm(SalePrice ~ Age + LivingArea, data = boston.sf)
+
+# Quadratic model (polynomial)
+model_age_quad <- lm(SalePrice ~ Age + I(Age^2) + LivingArea, 
+                     data = boston.sf)
+```
+
+**The `I()` Function:**
+- Why `I(Age^2)` instead of just `Age^2`?
+- In R formulas, `^` has special meaning
+- `I()` tells R: "interpret this literally, compute Age²"
+
+### Interpreting Polynomial Coefficients
+
+**Model equation:**
+```
+Price = β₀ + β₁×Age + β₂×Age² + β₃×LivingArea
+```
+
+**⚠️ Can't interpret coefficients directly!**
+
+With Age², the effect of age is no longer constant. You need to calculate the **marginal effect**:
+
+**Marginal effect of Age = β₁ + 2×β₂×Age**
+
+This means the effect changes at every age!
+
+### Comparing Linear vs. Quadratic
+
+**Use F-test to compare:**
+```r
+anova(model_age_linear, model_age_quad)
+```
+
+**If quadratic is significant:**
+- Non-linear relationship exists
+- Quadratic model fits better
+- R² improvement shows how much better
+
+# Part 2: Why Space Matters
+
+## Tobler's First Law of Geography
+
+> "Everything is related to everything else, but near things are more related than distant things"
+> - Waldo Tobler, 1970
+
+### What This Means for House Prices
+
+- Crime **nearby** matters more than crime across the city
+- Parks **within walking distance** affect value
+- Your **immediate neighborhood** defines your market
+
+**The Challenge:** How do we quantify "nearbyness" in a way our regression model can use?
+
+**Answer:** Create spatial features that measure proximity to amenities/disamenities
+
+## Hedonic Model Framework
+
+**Hedonic models** decompose the price of a good into its characteristics:
+
+```
+Price = f(structural features, location features, neighborhood features)
+```
+
+**Components:**
+- **Structural**: Size, age, condition, bedrooms, bathrooms
+- **Location**: Distance to downtown, transit, amenities
+- **Neighborhood**: Crime, schools, prestige, demographics
+
+# Part 3: Creating Spatial Features
+
+## Three Approaches to Spatial Features
+
+### 1️⃣ Buffer Aggregation
+
+**Count or sum** events within a defined distance
+
+**Example:** Number of crimes within 500 feet
+
+```r
+# Create buffer features
+boston.sf <- boston.sf %>%
+  mutate(
+    crimes_500ft = lengths(st_intersects(
+      st_buffer(geometry, 500),  # 500 feet buffer
+      crimes.sf
+    )),
+    crimes_660ft = lengths(st_intersects(
+      st_buffer(geometry, 660),  # 660 feet buffer
+      crimes.sf
+    ))
+  )
+```
+
+**Interpretation:** `crimes_500ft = 5` means 5 crimes occurred within 500 feet of this house
+
+### 2️⃣ k-Nearest Neighbors (kNN)
+
+**Average distance** to k closest events
+
+**Example:** Average distance to 3 nearest violent crimes
+
+```r
+# Calculate distance matrix
+dist_matrix <- st_distance(boston.sf, crimes.sf)
+
+# Function to get mean distance to k nearest neighbors
+get_knn_distance <- function(dist_matrix, k) {
+  apply(dist_matrix, 1, function(distances) {
+    mean(as.numeric(sort(distances)[1:k]))
+  })
+}
+
+# Create multiple kNN features
+boston.sf <- boston.sf %>%
+  mutate(
+    crime_nn1 = get_knn_distance(dist_matrix, k = 1),
+    crime_nn3 = get_knn_distance(dist_matrix, k = 3),
+    crime_nn5 = get_knn_distance(dist_matrix, k = 5)
+  )
+```
+
+**Interpretation:** `crime_nn3 = 83.29` means the average distance to the 3 nearest crimes is 83.29 feet
+
+**Which k value to use?** Check correlation with price to find the relevant "zone of influence"
+
+### 3️⃣ Distance to Specific Points
+
+**Straight-line distance** to important locations
+
+**Example:** Distance to downtown, nearest T station
+
+```r
+# Define downtown Boston (Boston Common)
+downtown <- st_sfc(st_point(c(-71.0656, 42.3551)), crs = "EPSG:4326") %>%
+  st_transform('ESRI:102286')
+
+# Calculate distance from each house to downtown
+boston.sf <- boston.sf %>%
+  mutate(
+    dist_downtown_ft = as.numeric(st_distance(geometry, downtown)),
+    dist_downtown_mi = dist_downtown_ft / 5280
+  )
+```
+
+**Interpretation:** `dist_downtown_mi = 2.5` means 2.5 miles from downtown
+
+## Model Comparison: Adding Spatial Features
+
+```r
+# Model 1: Structural only
+model_structural <- lm(SalePrice ~ LivingArea + R_BDRMS + Age, 
+                       data = boston.sf)
+
+# Model 2: Add spatial features
+model_spatial <- lm(SalePrice ~ LivingArea + R_BDRMS + Age +
+                    crimes_500ft + crime_nn3 + dist_downtown_mi,
+                    data = boston.sf)
+
+# Compare R²
+summary(model_structural)$r.squared
+summary(model_spatial)$r.squared
+```
+
+**Expected improvement:** Spatial features typically add 5-15% to R²
+
+# Part 4: Fixed Effects
+
+## What Are Fixed Effects?
+
+**Fixed Effects** = Categorical variables that capture **all unmeasured characteristics** of a group
+
+**In hedonic models:**
+- Each neighborhood gets its own dummy variable
+- Captures everything unique about that neighborhood we didn't explicitly measure
+- School quality, prestige, walkability, job access, cultural amenities
+
+### The Code
+
+```r
+# Add neighborhood fixed effects
+reg5 <- lm(
+  SalePrice ~ LivingArea + Age + 
+              crimes_500ft + 
+              as.factor(name),  # Fixed Effects
+  data = boston.sf
+)
+```
+
+**Behind the scenes, R creates dummies:**
+- `is_BackBay = 1` if Back Bay, 0 otherwise
+- `is_Beacon = 1` if Beacon Hill, 0 otherwise
+- ... (R drops one as reference category)
+
+### Why Use Fixed Effects?
+
+**Dramatically Improve Prediction**
+
+**Model Comparison (R²):**
+- Structural only: 0.58
+- + Spatial features: 0.67
+- + Fixed Effects: 0.81 ✓
+
+**Why such a big jump?**
+- Neighborhoods bundle many unmeasured factors
+- School districts, job access, amenities, "cool factor"
+
+**Trade-off:** FE are powerful but they're a **black box** - we don't know WHY Back Bay commands a premium
+
+# Part 5: Cross-Validation with Categorical Variables
+
+## ⚠️ The Problem: Sparse Categories
+
+### When CV Fails with Categorical Variables
+
+**You might see this error:**
+```
+Error in model.frame.default: 
+  factor 'name' has new level 'West End'
+```
+
+**What happened?**
+1. Random split created 10 folds
+2. All "West End" sales ended up in ONE fold (the test fold)
+3. Training folds never saw "West End"
+4. Model can't predict for a category it never learned
+
+**The Issue:** When neighborhoods have **very few sales** (<10), random CV splits can put all instances in the same fold, breaking the model.
+
+### Check Your Data First!
+
+**ALWAYS run this before CV with categorical variables:**
+
+```r
+# Check category sizes
+category_check <- boston.sf %>%
+  st_drop_geometry() %>%
+  count(name) %>%
+  arrange(n)
+
+print(category_check)
+```
+
+**Rule of Thumb:** Categories with **n < 10** will likely cause CV problems
+
+## Solution: Group Small Neighborhoods
+
+**Most practical approach:**
+
+```r
+# Step 1: Add count column
+boston.sf <- boston.sf %>%
+  add_count(name)
+
+# Step 2: Group small neighborhoods
+boston.sf <- boston.sf %>%
+  mutate(
+    name_cv = if_else(
+      n < 10,                       # If fewer than 10 sales
+      "Small_Neighborhoods",        # Group them
+      as.character(name)            # Keep original
+    ),
+    name_cv = as.factor(name_cv)
+  )
+
+# Step 3: Use grouped version in CV
+library(caret)
+ctrl <- trainControl(method = "cv", number = 10)
+
+cv_model_fe <- train(
+  SalePrice ~ LivingArea + Age + crimes_500ft + 
+              as.factor(name_cv),   # Use name_cv, not name!
+  data = boston.sf,
+  method = "lm",
+  trControl = ctrl
+)
+```
+
+**Trade-off:** Lose granularity for small neighborhoods, but avoid CV crashes
+
+## Full Model Comparison with CV
+
+```r
+library(caret)
+
+# Prep data
+boston.sf <- boston.sf %>%
+  add_count(name) %>%
+  mutate(
+    name_cv = if_else(n < 10, "Small_Neighborhoods", as.character(name)),
+    name_cv = as.factor(name_cv)
+  )
+
+ctrl <- trainControl(method = "cv", number = 10)
+
+# Compare models
+cv_structural <- train(
+  SalePrice ~ LivingArea + Age + R_FULL_BTH,
+  data = boston.sf, method = "lm", trControl = ctrl
+)
+
+cv_spatial <- train(
+  SalePrice ~ LivingArea + Age + R_FULL_BTH + crimes_500ft + crime_nn3,
+  data = boston.sf, method = "lm", trControl = ctrl
+)
+
+cv_fixedeffects <- train(
+  SalePrice ~ LivingArea + Age + R_FULL_BTH + crimes_500ft + crime_nn3 + 
+              as.factor(name_cv),
+  data = boston.sf, method = "lm", trControl = ctrl
+)
+
+# Results
+data.frame(
+  Model = c("Structural", "+ Spatial", "+ Fixed Effects"),
+  RMSE = c(cv_structural$results$RMSE, 
+           cv_spatial$results$RMSE, 
+           cv_fixedeffects$results$RMSE)
+)
+```
+
+## Expected Results
+
+**Typical pattern:**
+```
+Model              RMSE      Interpretation
+Structural        $533,331   Baseline - just house characteristics
++ Spatial         $500,422   Adding location features helps!
++ Fixed Effects   $347,261   Neighborhoods capture a LOT
+```
+
+**Key Insight:** Each layer improves **out-of-sample** prediction, with fixed effects providing the biggest boost
+
+# Key Takeaways
+
+## Advanced Regression Skills
+
+1. **Categorical Variables**: Use `as.factor()` to create dummy variables automatically
+2. **Interactions**: Use `*` to allow relationships to vary by group
+3. **Polynomial Terms**: Use `I(x^2)` for non-linear relationships
+4. **Spatial Features**: Create proximity measures using buffers, k-NN, and distance
+5. **Fixed Effects**: Control for unmeasured group characteristics
+6. **CV with Categories**: Always check category sizes and group sparse ones
+
+## Model Building Strategy
+
+**Progressive approach:**
+1. Start with structural variables (baseline)
+2. Add spatial features (location matters!)
+3. Add fixed effects (neighborhoods matter a lot!)
+4. Consider interactions and polynomials (if theoretically justified)
+5. Validate with cross-validation
+
+## Common Pitfalls
+
+- **Sparse categories in CV**: Always check and group small categories
+- **Ignoring spatial relationships**: Location is crucial for housing prices
+- **Overfitting with interactions**: Only add if you have theory and data
+- **Wrong CRS for distance calculations**: Always transform to projected CRS
+- **Not handling outliers**: Check distributions and consider transformations
+
+## Model Performance Insights
+
+- **Structural variables**: Explain ~50-60% of variation
+- **Spatial features**: Add 5-15% improvement
+- **Fixed effects**: Add 10-20% improvement (biggest boost!)
+- **Combined**: Can reach 80%+ R² for housing price models
+
+## Next Steps
+
+- Practice building comprehensive hedonic models
+- Experiment with different spatial feature definitions
+- Learn about spatial autocorrelation and its implications
+- Explore regularization techniques (Ridge, Lasso) for feature selection
+- Apply these techniques to your own research questions
+
+# Resources
+
+- **sf package**: https://r-spatial.github.io/sf/
+- **caret package**: https://topepo.github.io/caret/
+- **Hedonic Modeling**: https://en.wikipedia.org/wiki/Hedonic_regression
+- **Tobler's First Law**: https://en.wikipedia.org/wiki/Tobler%27s_first_law_of_geography
+- **Cross-Validation with Categorical Variables**: Best practices for handling sparse categories

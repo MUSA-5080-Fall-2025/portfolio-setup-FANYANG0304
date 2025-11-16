@@ -1,5 +1,390 @@
 [
   {
+    "objectID": "weekly-notes/week-10-notes.html",
+    "href": "weekly-notes/week-10-notes.html",
+    "title": "MUSA 5080 Notes #10",
+    "section": "",
+    "text": "Note\n\n\n\nWeek 10: Logistic Regression for Binary Outcomes\nDate: 11/10/2025"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#key-learning-objectives",
+    "href": "weekly-notes/week-10-notes.html#key-learning-objectives",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Key Learning Objectives",
+    "text": "Key Learning Objectives\n\nUnderstand when and why to use logistic regression instead of linear regression\nLearn to fit and interpret logistic regression models\nMaster confusion matrices and classification metrics (sensitivity, specificity, precision)\nUnderstand ROC curves and AUC\nLearn to choose appropriate thresholds for binary classification\nRecognize equity considerations in binary prediction models"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#where-weve-been",
+    "href": "weekly-notes/week-10-notes.html#where-weve-been",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Where We’ve Been",
+    "text": "Where We’ve Been\nWeeks 1-7: Linear regression - Predicting continuous outcomes: home prices, income, population - Y = β₀ + β₁X₁ + β₂X₂ + … + ε - Used RMSE to evaluate predictions\nLast week: Poisson regression - Predicting count outcomes: number of crimes - Different distribution, but still predicting quantities\nToday: A fundamentally different question - Not “how much?” but “will it happen?” - Binary outcomes: yes/no, 0/1, success/failure - This requires a completely different approach"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#what-makes-binary-outcomes-different",
+    "href": "weekly-notes/week-10-notes.html#what-makes-binary-outcomes-different",
+    "title": "MUSA 5080 Notes #10",
+    "section": "What Makes Binary Outcomes Different?",
+    "text": "What Makes Binary Outcomes Different?\nThe problem with linear regression for binary outcomes:\nProblems: - Predictions can be &gt; 1 or &lt; 0 (makes no sense for probability!) - Assumes constant effect across range (not realistic) - Violates regression assumptions (errors aren’t normal)\nExample: Predicting whether a student passes (1) or fails (0) an exam based on study hours - Linear regression might predict probability &gt; 1 for high study hours - Linear regression might predict probability &lt; 0 for low study hours - Neither makes sense!"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#enter-logistic-regression",
+    "href": "weekly-notes/week-10-notes.html#enter-logistic-regression",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Enter: Logistic Regression",
+    "text": "Enter: Logistic Regression\nThe solution: Transform the problem!\nInstead of predicting Y directly, predict the probability that Y = 1\nThe logistic function constrains predictions between 0 and 1:\n\\[p(X) = \\frac{1}{1+e^{-(\\beta_0 + \\beta_1X_1 + ... + \\beta_kX_k)}}\\]\nKey properties: - Always outputs values between 0 and 1 - S-shaped curve (sigmoid) - Approaches 1 but never exceeds it - Approaches 0 but never goes negative"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#when-do-we-use-logistic-regression",
+    "href": "weekly-notes/week-10-notes.html#when-do-we-use-logistic-regression",
+    "title": "MUSA 5080 Notes #10",
+    "section": "When Do We Use Logistic Regression?",
+    "text": "When Do We Use Logistic Regression?\nPerfect for binary classification problems in policy:\nCriminal Justice: - Will someone reoffend? (recidivism) - Will someone appear for court? (flight risk)\nHealth: - Will patient develop disease? (risk assessment) - Will treatment be successful? (outcome prediction)\nEconomics: - Will loan default? (credit risk) - Will person get hired? (employment prediction)\nUrban Planning: - Will building be demolished? (blight prediction) - Will household participate in program? (uptake prediction)"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#the-logit-transformation",
+    "href": "weekly-notes/week-10-notes.html#the-logit-transformation",
+    "title": "MUSA 5080 Notes #10",
+    "section": "The Logit Transformation",
+    "text": "The Logit Transformation\nBehind the scenes: We work with log-odds, not probabilities directly\nOdds: \\(\\text{Odds} = \\frac{p}{1-p}\\)\nLog-Odds (Logit): \\(\\text{logit}(p) = \\ln\\left(\\frac{p}{1-p}\\right)\\)\nThis creates a linear relationship: \\[\\ln\\left(\\frac{p}{1-p}\\right) = \\beta_0 + \\beta_1X_1 + \\beta_2X_2 + ...\\]\nWhy this matters: - Coefficients are log-odds (like linear regression!) - But we interpret as odds ratios when exponentiated: \\(e^{\\beta}\\) - OR &gt; 1: predictor increases odds of outcome - OR &lt; 1: predictor decreases odds of outcome"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#example-email-spam-detection",
+    "href": "weekly-notes/week-10-notes.html#example-email-spam-detection",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Example: Email Spam Detection",
+    "text": "Example: Email Spam Detection\nGoal: Predict whether email is spam (1) or legitimate (0)\nPredictors: - Number of exclamation marks - Contains word “free” - Email length\n# Create example spam detection data\nset.seed(123)\nn_emails &lt;- 1000\n\nspam_data &lt;- data.frame(\n  exclamation_marks = c(rpois(100, 5), rpois(900, 0.5)),  # Spam has more !\n  contains_free = c(rbinom(100, 1, 0.8), rbinom(900, 1, 0.1)),  # Spam mentions \"free\"\n  length = c(rnorm(100, 200, 50), rnorm(900, 500, 100)),  # Spam is shorter\n  is_spam = c(rep(1, 100), rep(0, 900))\n)"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#fitting-the-logistic-model",
+    "href": "weekly-notes/week-10-notes.html#fitting-the-logistic-model",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Fitting the Logistic Model",
+    "text": "Fitting the Logistic Model\nIn R, we use glm() with family = \"binomial\"\n# Fit logistic regression\nspam_model &lt;- glm(\n  is_spam ~ exclamation_marks + contains_free + length,\n  data = spam_data,\n  family = \"binomial\"  # This specifies logistic regression\n)\n\n# View results\nsummary(spam_model)"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#interpreting-coefficients",
+    "href": "weekly-notes/week-10-notes.html#interpreting-coefficients",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Interpreting Coefficients",
+    "text": "Interpreting Coefficients\n# Extract coefficients\ncoefs &lt;- coef(spam_model)\n\n# Convert to odds ratios\nodds_ratios &lt;- exp(coefs)\nInterpretation: - exclamation_marks: Each additional ! multiplies odds of spam by the odds ratio - contains_free: Having “free” multiplies odds by the odds ratio - length: Each additional character multiplies odds by the odds ratio (shorter = more likely spam)\nExample: - If odds ratio = 1.15: 15% increase in odds per unit - If odds ratio = 0.80: 20% decrease in odds per unit - If odds ratio = 2.00: Doubling of odds per unit"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#making-predictions",
+    "href": "weekly-notes/week-10-notes.html#making-predictions",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Making Predictions",
+    "text": "Making Predictions\nThe model outputs probabilities:\n# Predict probability for a new email\nnew_email &lt;- data.frame(\n  exclamation_marks = 3,\n  contains_free = 1,\n  length = 150\n)\n\npredicted_prob &lt;- predict(spam_model, newdata = new_email, type = \"response\")\nBut now what? - If probability = 0.723, is this spam or not? - We need to choose a threshold (cutoff) - Threshold = 0.5 is common default, but is it the right choice?\nThe answer depends on: - Cost of false positives (marking legitimate email as spam) - Cost of false negatives (missing actual spam) - These costs are rarely equal!"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#from-probabilities-to-decisions",
+    "href": "weekly-notes/week-10-notes.html#from-probabilities-to-decisions",
+    "title": "MUSA 5080 Notes #10",
+    "section": "From Probabilities to Decisions",
+    "text": "From Probabilities to Decisions\nWe now have a model that predicts probabilities.\nBut policy decisions require binary choices: spam/not spam, approve/deny, intervene/don’t intervene.\nThis requires two steps: 1. Choose a threshold to convert probabilities → binary predictions 2. Evaluate how good those predictions are\nThe confusion matrix helps us with step 2"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#the-four-outcomes",
+    "href": "weekly-notes/week-10-notes.html#the-four-outcomes",
+    "title": "MUSA 5080 Notes #10",
+    "section": "The Four Outcomes",
+    "text": "The Four Outcomes\nWhen we make binary predictions, four things can happen:\nModel says “Yes”: - True Positive (TP): Correct! ✓ - False Positive (FP): Wrong - Type I error\nModel says “No”: - True Negative (TN): Correct! ✓ - False Negative (FN): Wrong - Type II error\nRemember: The model predicts probabilities. WE choose the threshold that converts probabilities to yes/no predictions."
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#calculating-performance-metrics",
+    "href": "weekly-notes/week-10-notes.html#calculating-performance-metrics",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Calculating Performance Metrics",
+    "text": "Calculating Performance Metrics\nFrom the confusion matrix, we derive metrics that emphasize different trade-offs:\nSensitivity (Recall, True Positive Rate): \\[\\text{Sensitivity} = \\frac{TP}{TP + FN}\\] “Of all actual positives, how many did we catch?”\nSpecificity (True Negative Rate): \\[\\text{Specificity} = \\frac{TN}{TN + FP}\\] “Of all actual negatives, how many did we correctly identify?”\nPrecision (Positive Predictive Value): \\[\\text{Precision} = \\frac{TP}{TP + FP}\\] “Of all our positive predictions, how many were correct?”\nAccuracy: \\[\\text{Accuracy} = \\frac{TP + TN}{TP + TN + FP + FN}\\] “What proportion of all predictions were correct?”"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#example-covid-testing",
+    "href": "weekly-notes/week-10-notes.html#example-covid-testing",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Example: COVID Testing",
+    "text": "Example: COVID Testing\nScenario: Testing for COVID-19\n\n\n\n\n\n\n\n\n\nTrue Status\nTest Result\nOutcome\nConsequence\n\n\n\n\nPositive\nPositive\nTrue Positive (TP)\nQuarantine (correct)\n\n\nPositive\nNegative\nFalse Negative (FN)\nGoes to work, spreads virus\n\n\nNegative\nPositive\nFalse Positive (FP)\nQuarantines unnecessarily\n\n\nNegative\nNegative\nTrue Negative (TN)\nGoes to work (correct)\n\n\n\nWhich error is worse? - False Negative → Virus spreads - False Positive → Unnecessary quarantine\nThe answer depends on context! (And changes our threshold choice)"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#why-threshold-choice-matters",
+    "href": "weekly-notes/week-10-notes.html#why-threshold-choice-matters",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Why Threshold Choice Matters",
+    "text": "Why Threshold Choice Matters\nRemember: The model gives us probabilities. We decide what probability triggers action.\nThreshold = 0.3 (low bar) - More emails marked as spam - Higher sensitivity (catch more spam) - Lower specificity (more false alarms)\nThreshold = 0.7 (high bar) - Fewer emails marked as spam - Lower sensitivity (miss some spam) - Higher specificity (fewer false alarms)\nThere is no “right” answer - it depends on the costs of each type of error"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#the-great-sensitivity-specificity-trade-off",
+    "href": "weekly-notes/week-10-notes.html#the-great-sensitivity-specificity-trade-off",
+    "title": "MUSA 5080 Notes #10",
+    "section": "The Great Sensitivity-Specificity Trade-off",
+    "text": "The Great Sensitivity-Specificity Trade-off\nAs threshold increases: - Sensitivity decreases (we catch fewer positives) - Specificity increases (we have fewer false alarms) - Precision increases (when we do predict positive, we’re more often right)\nAs threshold decreases: - Sensitivity increases (we catch more positives) - Specificity decreases (we have more false alarms) - Precision decreases (more of our positive predictions are wrong)\nThis is a fundamental trade-off - you can’t maximize both simultaneously!"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#two-policy-scenarios",
+    "href": "weekly-notes/week-10-notes.html#two-policy-scenarios",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Two Policy Scenarios",
+    "text": "Two Policy Scenarios\nScenario A: Rare, deadly disease screening - Disease is rare but fatal if untreated - Treatment is safe with minor side effects - Goal: Don’t miss any cases (high sensitivity) - Acceptable: Some false positives (low threshold)\nScenario B: Identifying “high-risk” individuals for intervention - Limited intervention slots - False positives waste resources - False negatives miss opportunities to help - Goal: Use resources efficiently (high precision) - Decision depends on: Cost of intervention vs. cost of missed case"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#the-roc-curve-visualizing-all-thresholds",
+    "href": "weekly-notes/week-10-notes.html#the-roc-curve-visualizing-all-thresholds",
+    "title": "MUSA 5080 Notes #10",
+    "section": "The ROC Curve: Visualizing All Thresholds",
+    "text": "The ROC Curve: Visualizing All Thresholds\nROC = Receiver Operating Characteristic\n(Originally developed for radar signal detection in WWII)\nWhat it shows: - Every possible threshold - Trade-off between True Positive Rate (Sensitivity) and False Positive Rate (1 - Specificity) - Overall model discrimination ability\nHow to read it: - X-axis: False Positive Rate (1 - Specificity) - Y-axis: True Positive Rate (Sensitivity) - Diagonal line: Random guessing - Top-left corner: Perfect prediction"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#creating-an-roc-curve",
+    "href": "weekly-notes/week-10-notes.html#creating-an-roc-curve",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Creating an ROC Curve",
+    "text": "Creating an ROC Curve\nlibrary(pROC)\n\n# Create ROC curve\nroc_obj &lt;- roc(actual_outcome, predicted_probability)\n\n# Plot it\nggroc(roc_obj) +\n  geom_abline(slope = 1, intercept = 1, linetype = \"dashed\", color = \"gray50\") +\n  labs(title = \"ROC Curve\",\n       x = \"1 - Specificity (False Positive Rate)\",\n       y = \"Sensitivity (True Positive Rate)\") +\n  theme_minimal()\n\n# Calculate AUC\nauc_value &lt;- auc(roc_obj)"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#interpreting-auc",
+    "href": "weekly-notes/week-10-notes.html#interpreting-auc",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Interpreting AUC",
+    "text": "Interpreting AUC\nAUC (Area Under the Curve) summarizes overall model performance:\n\nAUC = 1.0: Perfect classifier\nAUC = 0.9-1.0: Excellent\nAUC = 0.8-0.9: Good\nAUC = 0.7-0.8: Acceptable\nAUC = 0.6-0.7: Poor\nAUC = 0.5: No better than random guessing\nAUC &lt; 0.5: Worse than random (your model is backwards!)\n\nImportant limitations: - AUC doesn’t tell us which threshold to use - AUC doesn’t account for class imbalance - AUC doesn’t show us equity implications"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#the-core-problem-disparate-impact",
+    "href": "weekly-notes/week-10-notes.html#the-core-problem-disparate-impact",
+    "title": "MUSA 5080 Notes #10",
+    "section": "The Core Problem: Disparate Impact",
+    "text": "The Core Problem: Disparate Impact\nA model can be “accurate” overall but perform very differently across groups\nExample metrics from a recidivism model:\n\n\n\nGroup\nSensitivity\nSpecificity\nFalse Positive Rate\n\n\n\n\nOverall\n0.72\n0.68\n0.32\n\n\nGroup A\n0.78\n0.74\n0.26\n\n\nGroup B\n0.64\n0.58\n0.42\n\n\n\nGroup B experiences: - Lower sensitivity (more people who will reoffend are missed) - Lower specificity (more people who won’t reoffend are flagged) - Higher false positive rate (more unjust interventions)\nThis is algorithmic bias in action"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#real-world-case-compas",
+    "href": "weekly-notes/week-10-notes.html#real-world-case-compas",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Real-World Case: COMPAS",
+    "text": "Real-World Case: COMPAS\nCOMPAS: Commercial algorithm used in criminal justice to predict recidivism\nProPublica investigation (2016) found: - Similar overall accuracy for Black and White defendants - BUT: False positive rates differed dramatically - Black defendants: 45% false positive rate - White defendants: 23% false positive rate - Black defendants twice as likely to be incorrectly labeled “high risk”\nResult: - Different threshold needed for different groups to achieve equity - But single-threshold systems are the norm - Key insight: Overall accuracy masks disparate impact"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#framework-for-threshold-selection",
+    "href": "weekly-notes/week-10-notes.html#framework-for-threshold-selection",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Framework for Threshold Selection",
+    "text": "Framework for Threshold Selection\nStep 1: Understand the consequences - What happens with a false positive? - What happens with a false negative? - Are costs symmetric or asymmetric?\nStep 2: Consider stakeholder perspectives - Who is affected by each type of error? - Do all groups experience consequences equally?\nStep 3: Choose your metric priority - Maximize sensitivity? (catch all positives) - Maximize specificity? (minimize false alarms) - Balance precision and recall? (F1 score) - Equalize across groups?\nStep 4: Test multiple thresholds - Evaluate performance across thresholds - Look at group-wise performance - Consider sensitivity analysis"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#cost-benefit-analysis-approach",
+    "href": "weekly-notes/week-10-notes.html#cost-benefit-analysis-approach",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Cost-Benefit Analysis Approach",
+    "text": "Cost-Benefit Analysis Approach\nAssign concrete costs to errors:\nExample: Disease screening - True Positive: Treatment cost $1000, prevent $50,000 in complications - False Positive: Unnecessary treatment $1000 - True Negative: No cost - False Negative: Miss disease, $50,000 in complications later\nCalculate expected cost at each threshold: \\[E[\\text{Cost}] = C_{FP} \\times FP + C_{FN} \\times FN\\]\nChoose threshold that minimizes expected cost\nNote: This assumes we can quantify all costs, which is often impossible for justice/equity concerns"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#practical-recommendations",
+    "href": "weekly-notes/week-10-notes.html#practical-recommendations",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Practical Recommendations",
+    "text": "Practical Recommendations\n\nReport multiple metrics - not just accuracy\nShow the ROC curve - demonstrates trade-offs\nTest multiple thresholds - document your choice\nEvaluate by sub-group - check for disparate impact\nDocument assumptions - explain why you chose your threshold\nConsider context - what are the real-world consequences?\nProvide uncertainty - confidence intervals, not just point estimates\nEnable recourse - can predictions be challenged?\n\nMost importantly: Be transparent about limitations and potential harms"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#logistic-regression-skills",
+    "href": "weekly-notes/week-10-notes.html#logistic-regression-skills",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Logistic Regression Skills",
+    "text": "Logistic Regression Skills\n\nWhen to use: Binary outcomes (yes/no, 0/1)\nModel fitting: glm() with family = \"binomial\"\nCoefficient interpretation: Odds ratios (exponentiate coefficients)\nPredictions: Probabilities between 0 and 1\nThreshold selection: Critical decision with real consequences"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#evaluation-metrics",
+    "href": "weekly-notes/week-10-notes.html#evaluation-metrics",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Evaluation Metrics",
+    "text": "Evaluation Metrics\n\nSensitivity (Recall): Of all positives, how many did we catch?\nSpecificity: Of all negatives, how many did we correctly identify?\nPrecision: Of our positive predictions, how many were correct?\nROC Curve: Visualizes all threshold trade-offs\nAUC: Overall discrimination ability (but has limitations)"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#critical-considerations",
+    "href": "weekly-notes/week-10-notes.html#critical-considerations",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Critical Considerations",
+    "text": "Critical Considerations\n\nThreshold choice matters: No single “right” threshold\nCosts are asymmetric: False positives and false negatives have different consequences\nEquity matters: Models can perform differently across groups\nOverall accuracy can mask bias: Always check group-wise performance\nTransparency is essential: Document your choices and assumptions"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#common-pitfalls",
+    "href": "weekly-notes/week-10-notes.html#common-pitfalls",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Common Pitfalls",
+    "text": "Common Pitfalls\n\nUsing linear regression for binary outcomes: Predictions outside [0,1] range\nDefaulting to 0.5 threshold: May not be appropriate for your context\nOnly reporting accuracy: Doesn’t show the full picture\nIgnoring class imbalance: Can lead to misleading metrics\nNot checking for disparate impact: Overall performance can hide group differences\nNot considering real-world costs: Statistical metrics don’t capture all consequences"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#best-practices",
+    "href": "weekly-notes/week-10-notes.html#best-practices",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Best Practices",
+    "text": "Best Practices\n\nAlways visualize: ROC curves show trade-offs clearly\nTest multiple thresholds: Don’t assume 0.5 is right\nEvaluate by subgroup: Check for equity concerns\nDocument your choices: Explain why you chose your threshold\nConsider context: What are the real-world consequences?\nBe transparent: Acknowledge limitations and potential harms"
+  },
+  {
+    "objectID": "weekly-notes/week-10-notes.html#next-steps",
+    "href": "weekly-notes/week-10-notes.html#next-steps",
+    "title": "MUSA 5080 Notes #10",
+    "section": "Next Steps",
+    "text": "Next Steps\n\nPractice fitting logistic regression models on your own data\nExperiment with different thresholds and see how metrics change\nLearn about F1 score and other composite metrics\nExplore calibration plots (predicted vs. actual probabilities)\nStudy real-world cases of algorithmic bias in binary classification\nConsider how to implement group-specific thresholds for equity"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html",
+    "href": "weekly-notes/week-07-notes.html",
+    "title": "MUSA 5080 Notes #7",
+    "section": "",
+    "text": "Note\n\n\n\nWeek 7: Model Diagnostics & Spatial Autocorrelation\nDate: 10/20/2025"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#key-learning-objectives",
+    "href": "weekly-notes/week-07-notes.html#key-learning-objectives",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Key Learning Objectives",
+    "text": "Key Learning Objectives\n\nUnderstand spatial patterns in model errors\nLearn to calculate and interpret Moran’s I\nVisualize error patterns spatially\nUnderstand when spatial autocorrelation indicates model problems\nApply spatial diagnostics to improve model specification"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#suppressing-progress-bars-in-rendered-output",
+    "href": "weekly-notes/week-07-notes.html#suppressing-progress-bars-in-rendered-output",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Suppressing Progress Bars in Rendered Output",
+    "text": "Suppressing Progress Bars in Rendered Output\nProblem: When using tigris or tidycensus functions, progress bars appear in rendered HTML documents, making them look unprofessional.\nSolution 1: Add to each function call\n# Add progress = FALSE to EVERY tigris/tidycensus call\ntracts &lt;- get_acs(\n  geography = \"tract\",\n  variables = \"B01003_001\",\n  state = \"PA\",\n  geometry = TRUE,\n  progress = FALSE  # &lt;-- Add this!\n)\n\nroads &lt;- roads(state = \"PA\", \n               county = \"Philadelphia\",\n               progress = FALSE)  # &lt;-- Add this!\nSolution 2: Set globally (Recommended)\n# Add this near the top of your .qmd after loading libraries\noptions(tigris_use_cache = TRUE)\noptions(tigris_progress = FALSE)  # Suppress tigris progress bars\nAction Required: Always suppress progress bars in your rendered documents for professional output."
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#what-are-model-errors",
+    "href": "weekly-notes/week-07-notes.html#what-are-model-errors",
+    "title": "MUSA 5080 Notes #7",
+    "section": "What Are Model Errors?",
+    "text": "What Are Model Errors?\nPrediction error for observation i:\n\\[e_i = \\hat{y}_i - y_i\\]\nWhere: - \\(\\hat{y}_i\\) = predicted value - \\(y_i\\) = actual value\nIn R:\n# Calculate errors\nboston_test &lt;- boston %&gt;%\n  mutate(\n    predicted = predict(model, boston),\n    error = predicted - SalePrice,\n    abs_error = abs(error),\n    pct_error = abs(error) / SalePrice\n  )"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#good-errors-vs.-bad-errors",
+    "href": "weekly-notes/week-07-notes.html#good-errors-vs.-bad-errors",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Good Errors vs. Bad Errors",
+    "text": "Good Errors vs. Bad Errors\nRandom errors (good): - No systematic pattern - Scattered across space - Prediction equally good everywhere - Model captures key relationships\nClustered errors (bad): - Spatial pattern visible - Under/over-predict in specific areas - Model misses something about location - Need more spatial features!"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#toblers-first-law-revisited",
+    "href": "weekly-notes/week-07-notes.html#toblers-first-law-revisited",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Tobler’s First Law (Revisited)",
+    "text": "Tobler’s First Law (Revisited)\n\n“Everything is related to everything else, but near things are more related than distant things.” - Waldo Tobler (1970)\n\nApplied to model errors: - If nearby houses have similar errors… - …our model is missing a spatial pattern! - Need to add more spatial features or fixed effects"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#visualizing-error-patterns",
+    "href": "weekly-notes/week-07-notes.html#visualizing-error-patterns",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Visualizing Error Patterns",
+    "text": "Visualizing Error Patterns\nMap your errors to see patterns:\n# Convert to spatial data\nboston_test &lt;- boston_test %&gt;%\n  st_as_sf(coords = c(\"Longitude\", \"Latitude\"), crs = 4326) %&gt;%\n  st_transform('ESRI:102286')\n\n# Map errors\nggplot(boston_test) +\n  geom_sf(aes(fill = error),\n          shape = 21,\n          size = 1,\n          alpha = 0.6,\n          stroke = 0.2) +\n  scale_fill_gradient2(\n    low = \"blue\",\n    mid = \"white\",\n    high = \"red\",\n    midpoint = 0,\n    limits = c(-300000, 300000),\n    oob = scales::squish\n  ) +\n  theme_void()\nWhat to look for: - Blue clusters (we under-predict) - Red clusters (we over-predict) - Random scatter (good!)"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#scatter-plot-spatial-lag-of-errors",
+    "href": "weekly-notes/week-07-notes.html#scatter-plot-spatial-lag-of-errors",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Scatter Plot: Spatial Lag of Errors",
+    "text": "Scatter Plot: Spatial Lag of Errors\nCreate the spatial lag:\nlibrary(spdep)\n\n# Define neighbors (5 nearest)\ncoords &lt;- st_coordinates(boston_test)\nneighbors &lt;- knn2nb(knearneigh(coords, k=5))\nweights &lt;- nb2listw(neighbors, style=\"W\")\n\n# Calculate spatial lag of errors\nboston_test$error_lag &lt;- lag.listw(weights, boston_test$error)\nThen plot:\nggplot(boston_test, aes(x=error_lag, y=error)) +\n  geom_point(alpha=0.5) +\n  geom_smooth(method=\"lm\", color=\"red\") +\n  labs(title=\"Is my error correlated with neighbors' errors?\",\n       x=\"Avg error of 5 nearest neighbors\",\n       y=\"My error\")\nInterpretation: - Positive slope = errors cluster (bad) - No slope = random errors (good)"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#what-is-morans-i",
+    "href": "weekly-notes/week-07-notes.html#what-is-morans-i",
+    "title": "MUSA 5080 Notes #7",
+    "section": "What is Moran’s I?",
+    "text": "What is Moran’s I?\nMoran’s I measures spatial autocorrelation\nRange: -1 to +1\n\n+1 = Perfect positive correlation (clustering)\n0 = Random spatial pattern\n-1 = Perfect negative correlation (dispersion)\n\nFormula:\n\\[I = \\frac{n \\sum_i \\sum_j w_{ij}(x_i - \\bar{x})(x_j - \\bar{x})}{\\sum_i \\sum_j w_{ij} \\sum_i (x_i - \\bar{x})^2}\\]\nWhere \\(w_{ij}\\) = spatial weight between locations i and j"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#the-intuition-behind-morans-i",
+    "href": "weekly-notes/week-07-notes.html#the-intuition-behind-morans-i",
+    "title": "MUSA 5080 Notes #7",
+    "section": "The Intuition Behind Moran’s I",
+    "text": "The Intuition Behind Moran’s I\nThe formula is really just asking:\n\n“When I’m above/below average, are my neighbors also above/below average?”\n\nBreaking it down:\n\n\\((x_i - \\bar{x})\\) = How far is my house’s error from the mean?\n\\((x_j - \\bar{x})\\) = How far is my neighbor’s error from the mean?\nMultiply them:\n\nIf both positive or both negative → positive product (similar)\nIf opposite signs → negative product (dissimilar)\n\nSum across all neighbor pairs and normalize\n\nResult: - Lots of positive products → High Moran’s I (clustering) - Products near zero → Low Moran’s I (random) - Negative products → Negative Moran’s I (rare with errors)"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#defining-neighbors",
+    "href": "weekly-notes/week-07-notes.html#defining-neighbors",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Defining “Neighbors”",
+    "text": "Defining “Neighbors”\nDifferent ways to define spatial relationships:\nContiguity: - Polygons that share a border - Queen vs. Rook\nDistance: - All within X meters - Fixed threshold\nk-Nearest: - Closest k points - Adaptive distance\nFor point data (houses), use k-nearest neighbors:\n# Create 5-nearest neighbors\ncoords &lt;- st_coordinates(boston_test)\nnb &lt;- knn2nb(knearneigh(coords, k=5))\nweights &lt;- nb2listw(nb, style=\"W\")"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#calculating-spatial-lag",
+    "href": "weekly-notes/week-07-notes.html#calculating-spatial-lag",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Calculating Spatial Lag",
+    "text": "Calculating Spatial Lag\nSpatial lag = average value of neighbors\nExample: 5 houses\n\n\n\nHouse\nSale Price\n2 Nearest\nSpatial Lag\n\n\n\n\nA\n$200k\nB, C\n$275k\n\n\nB\n$250k\nA, C\n$250k\n\n\nC\n$300k\nB, D\n$275k\n\n\nD\n$350k\nC, E\n$350k\n\n\nE\n$400k\nD\n$350k\n\n\n\nIn R:\nboston$price_lag &lt;- lag.listw(weights, boston$SalePrice)"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#computing-morans-i",
+    "href": "weekly-notes/week-07-notes.html#computing-morans-i",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Computing Moran’s I",
+    "text": "Computing Moran’s I\nCalculate Moran’s I for your errors:\n# Test for spatial autocorrelation in errors\nmoran_test &lt;- moran.mc(\n  boston_test$error,        # Your errors\n  weights,                  # Spatial weights matrix\n  nsim = 999                # Number of permutations\n)\n\n# View results\nmoran_test$statistic         # Moran's I value\nmoran_test$p.value          # Is it significant?\nInterpretation: - I &gt; 0 and p &lt; 0.05 → Significant clustering - I ≈ 0 → Random pattern (good!) - I &lt; 0 → Dispersion (rare with errors)"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#visualizing-significance",
+    "href": "weekly-notes/week-07-notes.html#visualizing-significance",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Visualizing Significance",
+    "text": "Visualizing Significance\nCompare observed I to random permutations:\nlibrary(ggplot2)\n\nmoran_df &lt;- data.frame(sim_I = moran_test$res[1:999])\n\nggplot(moran_df, aes(x = sim_I)) +\n  geom_histogram(binwidth = 0.01, fill = \"gray70\", color = \"white\") +\n  geom_vline(aes(xintercept = moran_test$statistic), \n             color = \"#FA7800\", linewidth = 1.5) +\n  labs(\n    title = \"Observed vs. Expected Moran's I\",\n    subtitle = \"Orange line = observed | Gray = random permutations\",\n    x = \"Moran's I\",\n    y = \"Count\"\n  ) +\n  theme_minimal()"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#what-morans-i-tells-you",
+    "href": "weekly-notes/week-07-notes.html#what-morans-i-tells-you",
+    "title": "MUSA 5080 Notes #7",
+    "section": "What Moran’s I Tells You",
+    "text": "What Moran’s I Tells You\nDecision Framework:\nIf Moran’s I is high (errors clustered):\n\nAdd more spatial features\n\nTry different buffer sizes\nInclude more amenities/disamenities\nCreate neighborhood-specific variables\n\nTry spatial fixed effects\n\nNeighborhood dummies\nGrid cell dummies\n\nConsider spatial regression models\n\nSpatial lag model\nSpatial error model\n(Advanced topic, not covered today)\n\n\nIf Moran’s I ≈ 0 (random errors):\n✅ Your model adequately captures spatial relationships!"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#why-not-spatial-lag-models-for-prediction",
+    "href": "weekly-notes/week-07-notes.html#why-not-spatial-lag-models-for-prediction",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Why Not Spatial Lag Models for Prediction?",
+    "text": "Why Not Spatial Lag Models for Prediction?\nThe Problems with Spatial Lag for Prediction:\n1. Simultaneity Problem - Including \\(WY\\) (neighbor prices) creates circular logic - My price affects neighbors → neighbors affect me - OLS estimates are biased and inconsistent\n2. Prediction Paradox - Need neighbors’ prices to predict my price - But for new developments or future periods, those prices don’t exist yet - Can’t generalize to truly new areas\n3. Data Leakage in CV - Geographic CV holds out spatial regions - Spatial lag “leaks” information from test set - Artificially good performance that won’t hold"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#our-solution-spatial-features-of-x-not-y",
+    "href": "weekly-notes/week-07-notes.html#our-solution-spatial-features-of-x-not-y",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Our Solution: Spatial Features of X (Not Y)",
+    "text": "Our Solution: Spatial Features of X (Not Y)\nInstead of modeling dependence in Y (prices), model proximity in X (predictors)\n\n\n\n❌ Spatial Lag\n✅ Our Approach\n\n\n\n\n“Near expensive houses”\n“Near low crime areas”\n\n\nUses neighbor prices\nUses neighbor characteristics\n\n\nCircular logic\nCausal mechanism\n\n\nCan’t predict new areas\nGeneralizes well\n\n\n\nIf Moran’s I shows clustered errors:\n✅ Add more spatial features (different buffers, more amenities)\n✅ Try neighborhood fixed effects\n✅ Use spatial cross-validation\n❌ Don’t add spatial lag of Y for prediction purposes\nThe Bottom Line: Both approaches are valid for different goals! Match method to purpose: inference → spatial lag/error models; prediction → spatial features."
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#understanding-bias-vs.-inconsistency",
+    "href": "weekly-notes/week-07-notes.html#understanding-bias-vs.-inconsistency",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Understanding Bias vs. Inconsistency",
+    "text": "Understanding Bias vs. Inconsistency\nBiased Estimator: - Definition: Expected value ≠ true parameter - \\(E[\\hat{\\beta}] \\neq \\beta\\) - On average, across all possible samples, your estimate is systematically wrong - More data doesn’t fix it\nInconsistent Estimator: - Definition: Doesn’t converge to true value as n → ∞ - \\(\\hat{\\beta} \\not\\to \\beta \\text{ as } n \\to \\infty\\) - Even with infinite data, you won’t get the right answer - The problem doesn’t go away with bigger samples"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#spatial-diagnostics-skills",
+    "href": "weekly-notes/week-07-notes.html#spatial-diagnostics-skills",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Spatial Diagnostics Skills",
+    "text": "Spatial Diagnostics Skills\n\nError Visualization: Map residuals to identify spatial patterns\nSpatial Lag: Calculate average of neighbors’ values\nMoran’s I: Measure spatial autocorrelation in errors\nInterpretation: High I = clustering = need more spatial features\nIterative Improvement: Diagnose → Engineer features → Re-test → Repeat"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#model-improvement-strategy",
+    "href": "weekly-notes/week-07-notes.html#model-improvement-strategy",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Model Improvement Strategy",
+    "text": "Model Improvement Strategy\nIf Moran’s I shows clustering:\n\nAdd more spatial features\n\nDifferent buffer sizes\nMore amenities/disamenities\nNeighborhood-specific variables\n\nTry spatial fixed effects\n\nNeighborhood dummies\nGrid cell dummies\n\nDocument what you try!\n\nIf Moran’s I ≈ 0:\n✅ Your model adequately captures spatial relationships!"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#common-pitfalls",
+    "href": "weekly-notes/week-07-notes.html#common-pitfalls",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Common Pitfalls",
+    "text": "Common Pitfalls\n\nIgnoring spatial patterns in errors: Always check for clustering\nUsing spatial lag of Y for prediction: Creates circular logic and can’t generalize\nNot visualizing errors: Maps reveal patterns that statistics miss\nForgetting to suppress progress bars: Makes rendered documents look unprofessional"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#best-practices",
+    "href": "weekly-notes/week-07-notes.html#best-practices",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Best Practices",
+    "text": "Best Practices\n\nAlways suppress progress bars in rendered documents\nVisualize errors spatially before calculating statistics\nUse Moran’s I as a diagnostic, not just a test\nIterate: Diagnose → Improve → Re-test\nDocument your process: Keep track of what features you try"
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html#next-steps",
+    "href": "weekly-notes/week-07-notes.html#next-steps",
+    "title": "MUSA 5080 Notes #7",
+    "section": "Next Steps",
+    "text": "Next Steps\n\nPractice calculating Moran’s I on your own models\nExperiment with different neighbor definitions (k-NN, distance, contiguity)\nLearn about local indicators of spatial association (LISA)\nApply spatial diagnostics to your assignments\nConsider spatial cross-validation for geographic data"
+  },
+  {
     "objectID": "weekly-notes/week-05-notes.html",
     "href": "weekly-notes/week-05-notes.html",
     "title": "MUSA 5080 Notes #5",
@@ -1118,5 +1503,453 @@
     "title": "MUSA 5080 Notes #4",
     "section": "Next Steps",
     "text": "Next Steps\n\nPractice with real datasets\nLearn to create maps with ggplot2 and geom_sf()\nUnderstand spatial autocorrelation and its implications\nApply spatial analysis to your research questions"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html",
+    "href": "weekly-notes/week-06-notes.html",
+    "title": "MUSA 5080 Notes #6",
+    "section": "",
+    "text": "Note\n\n\n\nWeek 6: Spatial Machine Learning & Advanced Regression\nDate: 10/13/2025"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#key-learning-objectives",
+    "href": "weekly-notes/week-06-notes.html#key-learning-objectives",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Key Learning Objectives",
+    "text": "Key Learning Objectives\n\nUnderstand how to incorporate categorical variables (dummy variables) in regression\nLearn to model interaction effects when relationships vary by group\nMaster polynomial terms for non-linear relationships\nCreate spatial features using buffers, k-NN, and distance calculations\nApply fixed effects to control for unmeasured neighborhood characteristics\nHandle categorical variables in cross-validation properly"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#categorical-variables-dummy-variables",
+    "href": "weekly-notes/week-06-notes.html#categorical-variables-dummy-variables",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Categorical Variables (Dummy Variables)",
+    "text": "Categorical Variables (Dummy Variables)\n\nUnderstanding Dummy Variables\nWhen you include a categorical variable in a model, R automatically creates binary indicators:\n# Ensure name is a factor\nboston.sf &lt;- boston.sf %&gt;%\n  mutate(name = as.factor(name))\n\n# Fit model with neighborhood fixed effects\nmodel_neighborhoods &lt;- lm(SalePrice ~ LivingArea + name, \n                          data = boston.sf)\nHow R handles this: - Creates binary indicators: nameBack_Bay, nameBeacon_Hill, etc. - Each is 1 if that neighborhood, 0 otherwise - One neighborhood is automatically chosen as reference category (omitted)\n\n\nThe (n-1) Rule\nImportant: R picks one category as the reference (usually first alphabetically)\n\nAll other coefficients are interpreted relative to the reference\nReference category gets the intercept\nOther categories get intercept + their coefficient\n\n\n\nInterpreting Neighborhood Dummies\nExample coefficients: - Intercept (Allston): Base price in reference neighborhood - nameBack_Bay: +\\(X premium vs. Allston (all else equal)\n- **nameRoxbury**: -\\)Y discount vs. Allston (all else equal)\nKey point: These capture ALL unmeasured neighborhood characteristics (schools, prestige, amenities, etc.)"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#interaction-effects",
+    "href": "weekly-notes/week-06-notes.html#interaction-effects",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Interaction Effects",
+    "text": "Interaction Effects\n\nWhen Relationships Depend on Other Variables\nThe Question: Does the effect of one variable depend on the level of another variable?\nExample: Does square footage matter more in wealthy neighborhoods?\nMathematical Form:\nSalePrice = β₀ + β₁(LivingArea) + β₂(WealthyNeighborhood) + \n            β₃(LivingArea × WealthyNeighborhood) + ε\n\n\nCreating Interaction Terms\n# Define wealthy neighborhoods\nwealthy_hoods &lt;- c(\"Back Bay\", \"Beacon Hill\", \"South End\", \"Bay Village\")\n\n# Create binary indicator\nboston.sf &lt;- boston.sf %&gt;%\n  mutate(\n    wealthy_neighborhood = ifelse(name %in% wealthy_hoods, \n                                   \"Wealthy\", \"Not Wealthy\"),\n    wealthy_neighborhood = as.factor(wealthy_neighborhood)\n  )\n\n# Model without interaction (parallel slopes)\nmodel_no_interact &lt;- lm(SalePrice ~ LivingArea + wealthy_neighborhood, \n                        data = boston.sf)\n\n# Model with interaction (different slopes)\nmodel_interact &lt;- lm(SalePrice ~ LivingArea * wealthy_neighborhood, \n                     data = boston.sf)\nWhat the interaction allows: - Living area can have different effects in different neighborhoods - Both intercept AND slope differ - Non-parallel lines on a plot\n\n\nInterpreting Interaction Coefficients\nCoefficient breakdown: - Intercept (Not Wealthy): Base price in non-wealthy areas - LivingArea (Not Wealthy): $/sq ft in non-wealthy areas - wealthy_neighborhoodWealthy: Premium intercept in wealthy areas - LivingArea:wealthy_neighborhoodWealthy: Extra $/sq ft in wealthy areas\nKey insight: The interaction term tells us how much MORE each sq ft is worth in wealthy neighborhoods!\n\n\nWhen NOT to Use Interactions\n\nSmall samples: Need sufficient data in each group\nOverfitting: Too many interactions make models unstable\nNo theoretical reason: Don’t add interactions just because you can"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#polynomial-terms-non-linear-relationships",
+    "href": "weekly-notes/week-06-notes.html#polynomial-terms-non-linear-relationships",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Polynomial Terms: Non-Linear Relationships",
+    "text": "Polynomial Terms: Non-Linear Relationships\n\nWhen Straight Lines Don’t Fit\nSigns of non-linearity: - Curved residual plots - Diminishing returns - U-shaped or inverted-U patterns - Theoretical reasons for non-linear relationships\nExample: House age - depreciation then vintage premium\n\n\nCreating Polynomial Terms\n# Calculate age from year built\nboston.sf &lt;- boston.sf %&gt;%\n  mutate(Age = 2025 - YR_BUILT) %&gt;%\n  filter(Age &lt; 2000)  # Remove outliers\n\n# Linear model (baseline)\nmodel_age_linear &lt;- lm(SalePrice ~ Age + LivingArea, data = boston.sf)\n\n# Quadratic model (polynomial)\nmodel_age_quad &lt;- lm(SalePrice ~ Age + I(Age^2) + LivingArea, \n                     data = boston.sf)\nThe I() Function: - Why I(Age^2) instead of just Age^2? - In R formulas, ^ has special meaning - I() tells R: “interpret this literally, compute Age²”\n\n\nInterpreting Polynomial Coefficients\nModel equation:\nPrice = β₀ + β₁×Age + β₂×Age² + β₃×LivingArea\n⚠️ Can’t interpret coefficients directly!\nWith Age², the effect of age is no longer constant. You need to calculate the marginal effect:\nMarginal effect of Age = β₁ + 2×β₂×Age\nThis means the effect changes at every age!\n\n\nComparing Linear vs. Quadratic\nUse F-test to compare:\nanova(model_age_linear, model_age_quad)\nIf quadratic is significant: - Non-linear relationship exists - Quadratic model fits better - R² improvement shows how much better"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#toblers-first-law-of-geography",
+    "href": "weekly-notes/week-06-notes.html#toblers-first-law-of-geography",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Tobler’s First Law of Geography",
+    "text": "Tobler’s First Law of Geography\n\n“Everything is related to everything else, but near things are more related than distant things” - Waldo Tobler, 1970\n\n\nWhat This Means for House Prices\n\nCrime nearby matters more than crime across the city\nParks within walking distance affect value\nYour immediate neighborhood defines your market\n\nThe Challenge: How do we quantify “nearbyness” in a way our regression model can use?\nAnswer: Create spatial features that measure proximity to amenities/disamenities"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#hedonic-model-framework",
+    "href": "weekly-notes/week-06-notes.html#hedonic-model-framework",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Hedonic Model Framework",
+    "text": "Hedonic Model Framework\nHedonic models decompose the price of a good into its characteristics:\nPrice = f(structural features, location features, neighborhood features)\nComponents: - Structural: Size, age, condition, bedrooms, bathrooms - Location: Distance to downtown, transit, amenities - Neighborhood: Crime, schools, prestige, demographics"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#three-approaches-to-spatial-features",
+    "href": "weekly-notes/week-06-notes.html#three-approaches-to-spatial-features",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Three Approaches to Spatial Features",
+    "text": "Three Approaches to Spatial Features\n\n1️⃣ Buffer Aggregation\nCount or sum events within a defined distance\nExample: Number of crimes within 500 feet\n# Create buffer features\nboston.sf &lt;- boston.sf %&gt;%\n  mutate(\n    crimes_500ft = lengths(st_intersects(\n      st_buffer(geometry, 500),  # 500 feet buffer\n      crimes.sf\n    )),\n    crimes_660ft = lengths(st_intersects(\n      st_buffer(geometry, 660),  # 660 feet buffer\n      crimes.sf\n    ))\n  )\nInterpretation: crimes_500ft = 5 means 5 crimes occurred within 500 feet of this house\n\n\n2️⃣ k-Nearest Neighbors (kNN)\nAverage distance to k closest events\nExample: Average distance to 3 nearest violent crimes\n# Calculate distance matrix\ndist_matrix &lt;- st_distance(boston.sf, crimes.sf)\n\n# Function to get mean distance to k nearest neighbors\nget_knn_distance &lt;- function(dist_matrix, k) {\n  apply(dist_matrix, 1, function(distances) {\n    mean(as.numeric(sort(distances)[1:k]))\n  })\n}\n\n# Create multiple kNN features\nboston.sf &lt;- boston.sf %&gt;%\n  mutate(\n    crime_nn1 = get_knn_distance(dist_matrix, k = 1),\n    crime_nn3 = get_knn_distance(dist_matrix, k = 3),\n    crime_nn5 = get_knn_distance(dist_matrix, k = 5)\n  )\nInterpretation: crime_nn3 = 83.29 means the average distance to the 3 nearest crimes is 83.29 feet\nWhich k value to use? Check correlation with price to find the relevant “zone of influence”\n\n\n3️⃣ Distance to Specific Points\nStraight-line distance to important locations\nExample: Distance to downtown, nearest T station\n# Define downtown Boston (Boston Common)\ndowntown &lt;- st_sfc(st_point(c(-71.0656, 42.3551)), crs = \"EPSG:4326\") %&gt;%\n  st_transform('ESRI:102286')\n\n# Calculate distance from each house to downtown\nboston.sf &lt;- boston.sf %&gt;%\n  mutate(\n    dist_downtown_ft = as.numeric(st_distance(geometry, downtown)),\n    dist_downtown_mi = dist_downtown_ft / 5280\n  )\nInterpretation: dist_downtown_mi = 2.5 means 2.5 miles from downtown"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#model-comparison-adding-spatial-features",
+    "href": "weekly-notes/week-06-notes.html#model-comparison-adding-spatial-features",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Model Comparison: Adding Spatial Features",
+    "text": "Model Comparison: Adding Spatial Features\n# Model 1: Structural only\nmodel_structural &lt;- lm(SalePrice ~ LivingArea + R_BDRMS + Age, \n                       data = boston.sf)\n\n# Model 2: Add spatial features\nmodel_spatial &lt;- lm(SalePrice ~ LivingArea + R_BDRMS + Age +\n                    crimes_500ft + crime_nn3 + dist_downtown_mi,\n                    data = boston.sf)\n\n# Compare R²\nsummary(model_structural)$r.squared\nsummary(model_spatial)$r.squared\nExpected improvement: Spatial features typically add 5-15% to R²"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#what-are-fixed-effects",
+    "href": "weekly-notes/week-06-notes.html#what-are-fixed-effects",
+    "title": "MUSA 5080 Notes #6",
+    "section": "What Are Fixed Effects?",
+    "text": "What Are Fixed Effects?\nFixed Effects = Categorical variables that capture all unmeasured characteristics of a group\nIn hedonic models: - Each neighborhood gets its own dummy variable - Captures everything unique about that neighborhood we didn’t explicitly measure - School quality, prestige, walkability, job access, cultural amenities\n\nThe Code\n# Add neighborhood fixed effects\nreg5 &lt;- lm(\n  SalePrice ~ LivingArea + Age + \n              crimes_500ft + \n              as.factor(name),  # Fixed Effects\n  data = boston.sf\n)\nBehind the scenes, R creates dummies: - is_BackBay = 1 if Back Bay, 0 otherwise - is_Beacon = 1 if Beacon Hill, 0 otherwise - … (R drops one as reference category)\n\n\nWhy Use Fixed Effects?\nDramatically Improve Prediction\nModel Comparison (R²): - Structural only: 0.58 - + Spatial features: 0.67 - + Fixed Effects: 0.81 ✓\nWhy such a big jump? - Neighborhoods bundle many unmeasured factors - School districts, job access, amenities, “cool factor”\nTrade-off: FE are powerful but they’re a black box - we don’t know WHY Back Bay commands a premium"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#the-problem-sparse-categories",
+    "href": "weekly-notes/week-06-notes.html#the-problem-sparse-categories",
+    "title": "MUSA 5080 Notes #6",
+    "section": "⚠️ The Problem: Sparse Categories",
+    "text": "⚠️ The Problem: Sparse Categories\n\nWhen CV Fails with Categorical Variables\nYou might see this error:\nError in model.frame.default: \n  factor 'name' has new level 'West End'\nWhat happened? 1. Random split created 10 folds 2. All “West End” sales ended up in ONE fold (the test fold) 3. Training folds never saw “West End” 4. Model can’t predict for a category it never learned\nThe Issue: When neighborhoods have very few sales (&lt;10), random CV splits can put all instances in the same fold, breaking the model.\n\n\nCheck Your Data First!\nALWAYS run this before CV with categorical variables:\n# Check category sizes\ncategory_check &lt;- boston.sf %&gt;%\n  st_drop_geometry() %&gt;%\n  count(name) %&gt;%\n  arrange(n)\n\nprint(category_check)\nRule of Thumb: Categories with n &lt; 10 will likely cause CV problems"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#solution-group-small-neighborhoods",
+    "href": "weekly-notes/week-06-notes.html#solution-group-small-neighborhoods",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Solution: Group Small Neighborhoods",
+    "text": "Solution: Group Small Neighborhoods\nMost practical approach:\n# Step 1: Add count column\nboston.sf &lt;- boston.sf %&gt;%\n  add_count(name)\n\n# Step 2: Group small neighborhoods\nboston.sf &lt;- boston.sf %&gt;%\n  mutate(\n    name_cv = if_else(\n      n &lt; 10,                       # If fewer than 10 sales\n      \"Small_Neighborhoods\",        # Group them\n      as.character(name)            # Keep original\n    ),\n    name_cv = as.factor(name_cv)\n  )\n\n# Step 3: Use grouped version in CV\nlibrary(caret)\nctrl &lt;- trainControl(method = \"cv\", number = 10)\n\ncv_model_fe &lt;- train(\n  SalePrice ~ LivingArea + Age + crimes_500ft + \n              as.factor(name_cv),   # Use name_cv, not name!\n  data = boston.sf,\n  method = \"lm\",\n  trControl = ctrl\n)\nTrade-off: Lose granularity for small neighborhoods, but avoid CV crashes"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#full-model-comparison-with-cv",
+    "href": "weekly-notes/week-06-notes.html#full-model-comparison-with-cv",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Full Model Comparison with CV",
+    "text": "Full Model Comparison with CV\nlibrary(caret)\n\n# Prep data\nboston.sf &lt;- boston.sf %&gt;%\n  add_count(name) %&gt;%\n  mutate(\n    name_cv = if_else(n &lt; 10, \"Small_Neighborhoods\", as.character(name)),\n    name_cv = as.factor(name_cv)\n  )\n\nctrl &lt;- trainControl(method = \"cv\", number = 10)\n\n# Compare models\ncv_structural &lt;- train(\n  SalePrice ~ LivingArea + Age + R_FULL_BTH,\n  data = boston.sf, method = \"lm\", trControl = ctrl\n)\n\ncv_spatial &lt;- train(\n  SalePrice ~ LivingArea + Age + R_FULL_BTH + crimes_500ft + crime_nn3,\n  data = boston.sf, method = \"lm\", trControl = ctrl\n)\n\ncv_fixedeffects &lt;- train(\n  SalePrice ~ LivingArea + Age + R_FULL_BTH + crimes_500ft + crime_nn3 + \n              as.factor(name_cv),\n  data = boston.sf, method = \"lm\", trControl = ctrl\n)\n\n# Results\ndata.frame(\n  Model = c(\"Structural\", \"+ Spatial\", \"+ Fixed Effects\"),\n  RMSE = c(cv_structural$results$RMSE, \n           cv_spatial$results$RMSE, \n           cv_fixedeffects$results$RMSE)\n)"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#expected-results",
+    "href": "weekly-notes/week-06-notes.html#expected-results",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Expected Results",
+    "text": "Expected Results\nTypical pattern:\nModel              RMSE      Interpretation\nStructural        $533,331   Baseline - just house characteristics\n+ Spatial         $500,422   Adding location features helps!\n+ Fixed Effects   $347,261   Neighborhoods capture a LOT\nKey Insight: Each layer improves out-of-sample prediction, with fixed effects providing the biggest boost"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#advanced-regression-skills",
+    "href": "weekly-notes/week-06-notes.html#advanced-regression-skills",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Advanced Regression Skills",
+    "text": "Advanced Regression Skills\n\nCategorical Variables: Use as.factor() to create dummy variables automatically\nInteractions: Use * to allow relationships to vary by group\nPolynomial Terms: Use I(x^2) for non-linear relationships\nSpatial Features: Create proximity measures using buffers, k-NN, and distance\nFixed Effects: Control for unmeasured group characteristics\nCV with Categories: Always check category sizes and group sparse ones"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#model-building-strategy",
+    "href": "weekly-notes/week-06-notes.html#model-building-strategy",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Model Building Strategy",
+    "text": "Model Building Strategy\nProgressive approach: 1. Start with structural variables (baseline) 2. Add spatial features (location matters!) 3. Add fixed effects (neighborhoods matter a lot!) 4. Consider interactions and polynomials (if theoretically justified) 5. Validate with cross-validation"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#common-pitfalls",
+    "href": "weekly-notes/week-06-notes.html#common-pitfalls",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Common Pitfalls",
+    "text": "Common Pitfalls\n\nSparse categories in CV: Always check and group small categories\nIgnoring spatial relationships: Location is crucial for housing prices\nOverfitting with interactions: Only add if you have theory and data\nWrong CRS for distance calculations: Always transform to projected CRS\nNot handling outliers: Check distributions and consider transformations"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#model-performance-insights",
+    "href": "weekly-notes/week-06-notes.html#model-performance-insights",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Model Performance Insights",
+    "text": "Model Performance Insights\n\nStructural variables: Explain ~50-60% of variation\nSpatial features: Add 5-15% improvement\nFixed effects: Add 10-20% improvement (biggest boost!)\nCombined: Can reach 80%+ R² for housing price models"
+  },
+  {
+    "objectID": "weekly-notes/week-06-notes.html#next-steps",
+    "href": "weekly-notes/week-06-notes.html#next-steps",
+    "title": "MUSA 5080 Notes #6",
+    "section": "Next Steps",
+    "text": "Next Steps\n\nPractice building comprehensive hedonic models\nExperiment with different spatial feature definitions\nLearn about spatial autocorrelation and its implications\nExplore regularization techniques (Ridge, Lasso) for feature selection\nApply these techniques to your own research questions"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html",
+    "href": "weekly-notes/week-09-notes.html",
+    "title": "MUSA 5080 Notes #9",
+    "section": "",
+    "text": "Note\n\n\n\nWeek 9: Critical Perspectives on Predictive Policing\nDate: 11/03/2025"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#key-learning-objectives",
+    "href": "weekly-notes/week-09-notes.html#key-learning-objectives",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Key Learning Objectives",
+    "text": "Key Learning Objectives\n\nUnderstand the technical methods used in predictive policing (count regression, KDE, spatial features)\nCritically evaluate the “dirty data” problem and its implications\nLearn Local Moran’s I for identifying hotspots\nUnderstand Poisson and Negative Binomial regression for count data\nApply spatial cross-validation for geographic data\nDevelop frameworks for ethical evaluation of predictive systems"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#opening-thought",
+    "href": "weekly-notes/week-09-notes.html#opening-thought",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Opening Thought",
+    "text": "Opening Thought\n\n“A statistically ‘good’ model can still be socially harmful.” - Richardson, Schultz & Crawford (2019)\n\nBefore we discuss HOW to build predictive policing systems, we need to ask: SHOULD we?"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#todays-critical-questions",
+    "href": "weekly-notes/week-09-notes.html#todays-critical-questions",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Today’s Critical Questions",
+    "text": "Today’s Critical Questions\nTechnical Questions: - How do we model crime counts? - What spatial features predict crime? - How do we validate predictions? - Can we outperform baseline methods?\nCritical Questions: - Whose data? Whose crimes? - What if the data is “dirty”? - Who benefits? Who is harmed? - What feedback loops are created? - Can technical solutions fix social problems?\nToday’s Approach: We will learn the technical methods AND critically interrogate their use. Both skills are essential for ethical data science."
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#what-is-dirty-data",
+    "href": "weekly-notes/week-09-notes.html#what-is-dirty-data",
+    "title": "MUSA 5080 Notes #9",
+    "section": "What Is “Dirty Data”?",
+    "text": "What Is “Dirty Data”?\nTraditional definition (data mining): - Missing data - Incorrect data - Non-standardized formats\nExtended definition (Richardson et al. 2019):\n\n“Data derived from or influenced by corrupt, biased, and unlawful practices, including data that has been intentionally manipulated or ‘juked,’ as well as data that is distorted by individual and societal biases.”"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#the-many-forms-of-dirty-data",
+    "href": "weekly-notes/week-09-notes.html#the-many-forms-of-dirty-data",
+    "title": "MUSA 5080 Notes #9",
+    "section": "The Many Forms of Dirty Data",
+    "text": "The Many Forms of Dirty Data\n1. Fabricated/Manipulated Data - False arrests (planted evidence) - Downgraded crime classifications to “juke the stats” - Pressuring victims not to file reports\n2. Systematically Biased Data - Over-policing of certain communities → more recorded “crime” - Under-policing of white-collar crime → appears less common - Racial profiling → disproportionate stops/arrests\n3. Missing/Incomplete Data - Unreported crimes (especially in over-policed areas with low police trust) - Ignored complaints - Incomplete records\n4. Proxy Problems - Arrests ≠ crimes committed - Calls for service ≠ actual need - Gang database ≠ actual gang membership"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#case-study-juking-the-stats---baltimore",
+    "href": "weekly-notes/week-09-notes.html#case-study-juking-the-stats---baltimore",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Case Study: “Juking the Stats” - Baltimore",
+    "text": "Case Study: “Juking the Stats” - Baltimore\nFrom TV to Reality:\nThe Wire (2004): “If the crime rate doesn’t fall, you most certainly will”\nBaltimore Reality (2008-2018): - 14,000+ serious assaults misrecorded as minor offenses - Extensive Gun Trace Task Force corruption - Officers robbing residents, planting evidence - False arrests, fabricated reports - Data manipulation to show “success”\nResult: 55+ potential lawsuits, thousands of convictions questioned\nQuestion: What happens when this data trains a predictive algorithm?"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#the-feedback-loop",
+    "href": "weekly-notes/week-09-notes.html#the-feedback-loop",
+    "title": "MUSA 5080 Notes #9",
+    "section": "The Feedback Loop",
+    "text": "The Feedback Loop\nThe Confirmation Bias Loop: - Algorithm learns: “Crime happens in neighborhood X” - Police sent to neighborhood X - More arrests in neighborhood X (regardless of actual crime) - Algorithm “confirmed”: “We were right about neighborhood X!” - Cycle intensifies"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#the-impossibility-of-neutral-crime-data",
+    "href": "weekly-notes/week-09-notes.html#the-impossibility-of-neutral-crime-data",
+    "title": "MUSA 5080 Notes #9",
+    "section": "The Impossibility of Neutral Crime Data",
+    "text": "The Impossibility of Neutral Crime Data\nCrime data is ALWAYS:\n\nSocially constructed - Societies define what counts as “crime”\nSelectively enforced - More resources to some neighborhoods\nOrganizationally filtered - Police priorities, department culture\nPolitically shaped - “Tough on crime” eras, moral panics\nTechnically mediated - 911 systems, CAD software, databases\n\nThere is no “view from nowhere”\nCrime data doesn’t reveal “crime” - it reveals policing patterns"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#what-gets-policed-vs.-what-gets-committed",
+    "href": "weekly-notes/week-09-notes.html#what-gets-policed-vs.-what-gets-committed",
+    "title": "MUSA 5080 Notes #9",
+    "section": "What Gets Policed vs. What Gets Committed",
+    "text": "What Gets Policed vs. What Gets Committed\n\n\n\nType\nFrequency\nPolicing Intensity\nIn Predictive Models?\n\n\n\n\nViolent Crime\nModerate\nHigh\n✓ Yes\n\n\nProperty Crime\nHigh\nHigh\n✓ Yes\n\n\nDrug Offenses\nVery High\nRacially Disparate\nSome exclude\n\n\nWhite-Collar Crime\nVery High\nVery Low\n✗ Rarely\n\n\nWage Theft\nExceeds all robbery\nAlmost None\n✗ Never\n\n\nCorporate Fraud\n$300B+ annually\nMinimal\n✗ Never\n\n\n\nQuestion: What would predictive policing look like if we predicted white-collar crime with the same intensity?"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#the-missing-data-problem",
+    "href": "weekly-notes/week-09-notes.html#the-missing-data-problem",
+    "title": "MUSA 5080 Notes #9",
+    "section": "The Missing Data Problem",
+    "text": "The Missing Data Problem\nWhat crime data DOESN’T capture: - Less than half of violent crimes reported to police (DOJ estimates) - Even fewer property crimes reported - Groups with less favorable views of police less likely to report - Crimes in areas with low police presence go unrecorded\nIf you can’t trust the labels, you can’t trust the model."
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#who-bears-the-costs",
+    "href": "weekly-notes/week-09-notes.html#who-bears-the-costs",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Who Bears the Costs?",
+    "text": "Who Bears the Costs?\nFalse Positives (Predicted High Risk, No Crime Occurs)\nCost to individuals: - Increased police presence/harassment - Stops, searches without cause - Trauma, stress - Missed opportunities\nCost to communities: - Broken trust with police - Reduced reporting of actual crimes - Economic harm (businesses avoid area) - Quality of life degradation\nFalse Negatives (Predicted Low Risk, Crime Occurs)\nCost to individuals: - Inadequate police response - Victimization - Property loss - Safety concerns\nCost to communities: - Unequal protection - Perception of being “written off” - Actual under-policing\nWho experiences each? - FP: Predominantly Black/Brown communities - FN: Also often Black/Brown communities (just different ones)"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#modeling-workflow",
+    "href": "weekly-notes/week-09-notes.html#modeling-workflow",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Modeling Workflow",
+    "text": "Modeling Workflow\n1. Setup & Data Preparation - Load burglaries (point data) - Load abandoned cars (311 calls) - Create fishnet (500m × 500m grid) - Aggregate burglaries to cells\n2. Baseline Comparison - Kernel Density Estimation (KDE) - Simple spatial smoothing - What we need to beat!\n3. Feature Engineering - Count in each cell - k-Nearest Neighbors (mean distance to 3 nearest) - LISA (Local Moran’s I - identify hot spots) - Distance to hot spots (significant clusters)\n4. Count Regression Models - Fit Poisson regression - Test for overdispersion - Fit Negative Binomial (if needed)\n5. Spatial Cross-Validation - Leave-One-Group-Out (LOGO) - Train on n-1 districts - Test on held-out district\n6. Model Comparison - Compare to KDE baseline - Map predictions vs. actual - Analyze errors spatially"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#global-vs.-local-spatial-autocorrelation",
+    "href": "weekly-notes/week-09-notes.html#global-vs.-local-spatial-autocorrelation",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Global vs. Local Spatial Autocorrelation",
+    "text": "Global vs. Local Spatial Autocorrelation\nGlobal Measures (Moran’s I) - One value for entire study area - Question: “Is there spatial clustering overall?” - Limitation: Doesn’t tell us WHERE clusters are\nLocal Measures (Local Moran’s I) - One value per location - Question: “Where are the clusters? Which specific locations?” - Advantage: Maps showing WHERE patterns exist"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#spatial-weights-matrix",
+    "href": "weekly-notes/week-09-notes.html#spatial-weights-matrix",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Spatial Weights Matrix",
+    "text": "Spatial Weights Matrix\nBefore calculating spatial autocorrelation, we need to define “neighbors”\nSpatial weights matrix (W): - \\(w_{ij}\\) = weight between locations \\(i\\) and \\(j\\) - If \\(i\\) and \\(j\\) are neighbors: \\(w_{ij} &gt; 0\\) - If not neighbors: \\(w_{ij} = 0\\)\nCommon approaches: 1. Contiguity: Share a border? (Queen vs. Rook) 2. Distance: Within threshold distance? 3. K-nearest neighbors: Closest k locations"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#queen-vs.-rook-contiguity",
+    "href": "weekly-notes/week-09-notes.html#queen-vs.-rook-contiguity",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Queen vs. Rook Contiguity",
+    "text": "Queen vs. Rook Contiguity\nQueen Contiguity: Neighbors share edge OR vertex (corner)\n[A][B][C]\n[D][E][F]\n[G][H][I]\nCell E’s Queen neighbors: B, D, F, H (edges) + A, C, G, I (corners) = 8 neighbors\nRook Contiguity: Neighbors share only edges\nCell E’s Rook neighbors: B, D, F, H = 4 neighbors"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#local-morans-i-in-r",
+    "href": "weekly-notes/week-09-notes.html#local-morans-i-in-r",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Local Moran’s I in R",
+    "text": "Local Moran’s I in R\nlibrary(spdep)\n\n# Step 1: Create spatial object\nfishnet_sp &lt;- as_Spatial(fishnet)\n\n# Step 2: Define neighbors (Queen contiguity)\nneighbors &lt;- poly2nb(fishnet_sp, queen = TRUE)\n\n# Step 3: Create spatial weights (row-standardized)\nweights &lt;- nb2listw(neighbors, style = \"W\", zero.policy = TRUE)\n\n# Step 4: Calculate Local Moran's I\nlocal_moran &lt;- localmoran(\n  fishnet$abandoned_cars,  # Variable of interest\n  weights,                  # Spatial weights\n  zero.policy = TRUE       # Handle cells with no neighbors\n)\n\n# Step 5: Extract components\nfishnet$local_I &lt;- local_moran[, \"Ii\"]      # Local I statistic\nfishnet$p_value &lt;- local_moran[, \"Pr(z != E(Ii))\"]  # P-value\nfishnet$z_score &lt;- local_moran[, \"Z.Ii\"]    # Z-score"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#identifying-high-high-clusters-hotspots",
+    "href": "weekly-notes/week-09-notes.html#identifying-high-high-clusters-hotspots",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Identifying High-High Clusters (Hotspots)",
+    "text": "Identifying High-High Clusters (Hotspots)\n# Standardize the variable for quadrant classification\nfishnet$standardized_value &lt;- scale(fishnet$abandoned_cars)\n\n# Calculate spatial lag (weighted mean of neighbors)\nfishnet$spatial_lag &lt;- lag.listw(weights, fishnet$abandoned_cars)\nfishnet$standardized_lag &lt;- scale(fishnet$spatial_lag)\n\n# Identify High-High clusters\nfishnet$hotspot &lt;- 0  # Default: not a hotspot\n\n# Criteria: \n# 1. Value above mean (standardized &gt; 0)\n# 2. Neighbors above mean (spatial lag &gt; 0)\n# 3. Statistically significant (p &lt; 0.05)\n\nfishnet$hotspot[\n  fishnet$standardized_value &gt; 0 & \n  fishnet$standardized_lag &gt; 0 & \n  fishnet$p_value &lt; 0.05\n] &lt;- 1"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#critical-interpretation-of-hotspots",
+    "href": "weekly-notes/week-09-notes.html#critical-interpretation-of-hotspots",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Critical Interpretation of Hotspots",
+    "text": "Critical Interpretation of Hotspots\nWhat you’ve identified: Statistically significant clusters of high abandoned car reports\nWhat this MIGHT mean: 1. Actual concentrations of abandoned cars 2. Areas where residents report more (higher civic engagement?) 3. Areas with more 311 system awareness 4. Areas with more code enforcement presence 5. Gentrifying areas with new residents calling on existing conditions\nCritical question: Are these “high abandoned car” areas or “high reporting” areas?"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#why-count-regression-the-problem-with-ols",
+    "href": "weekly-notes/week-09-notes.html#why-count-regression-the-problem-with-ols",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Why Count Regression? The Problem with OLS",
+    "text": "Why Count Regression? The Problem with OLS\nOur outcome: Burglary counts per grid cell (0, 1, 2, 3, …)\nLinear regression assumes: - Can predict negative values (impossible for counts) - Assumes constant variance (counts often have variance ≠ mean) - Assumes continuous outcome (counts are discrete) - Assumes normal errors (count data is skewed)"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#the-poisson-distribution",
+    "href": "weekly-notes/week-09-notes.html#the-poisson-distribution",
+    "title": "MUSA 5080 Notes #9",
+    "section": "The Poisson Distribution",
+    "text": "The Poisson Distribution\nAppropriate for count data:\n\\[P(Y = k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}\\]\nWhere: - \\(Y\\) = count outcome (0, 1, 2, …) - \\(\\lambda\\) = expected count (mean = variance) - \\(k\\) = observed count\nKey property: Mean = Variance = \\(\\lambda\\)"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#poisson-regression-model",
+    "href": "weekly-notes/week-09-notes.html#poisson-regression-model",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Poisson Regression Model",
+    "text": "Poisson Regression Model\nLink \\(\\lambda\\) to predictors via log link:\n\\[\\log(\\lambda_i) = \\beta_0 + \\beta_1 X_{1i} + \\beta_2 X_{2i} + ... + \\beta_p X_{pi}\\]\nEquivalently:\n\\[\\lambda_i = \\exp(\\beta_0 + \\beta_1 X_{1i} + \\beta_2 X_{2i} + ... + \\beta_p X_{pi})\\]\nWhy log link? - Ensures \\(\\lambda_i &gt; 0\\) (counts can’t be negative) - Linear relationship on log scale - Multiplicative effects on count scale"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#interpreting-poisson-coefficients",
+    "href": "weekly-notes/week-09-notes.html#interpreting-poisson-coefficients",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Interpreting Poisson Coefficients",
+    "text": "Interpreting Poisson Coefficients\nOn log scale: \\(\\beta_1\\) = change in log(expected count) per unit increase in \\(X_1\\)\nOn count scale (exponentiate): \\(\\exp(\\beta_1)\\) = multiplicative effect on expected count\nExamples:\n\n\n\n\\(\\beta\\)\n\\(\\exp(\\beta)\\)\nInterpretation\n\n\n\n\n0.14\n1.15\n15% increase per unit of X\n\n\n-0.22\n0.80\n20% decrease per unit of X\n\n\n0.00\n1.00\nNo effect\n\n\n0.69\n2.00\nDoubling per unit of X"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#poisson-regression-in-r",
+    "href": "weekly-notes/week-09-notes.html#poisson-regression-in-r",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Poisson Regression in R",
+    "text": "Poisson Regression in R\n# Fit Poisson model\nmodel_poisson &lt;- glm(\n  countBurglaries ~ Abandoned_Cars + Abandoned_Cars.nn + abandoned.isSig.dist,\n  data = fishnet,\n  family = poisson(link = \"log\")\n)\n\n# View results\nsummary(model_poisson)\n\n# Exponentiate coefficients for interpretation\nexp(coef(model_poisson))"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#the-overdispersion-problem",
+    "href": "weekly-notes/week-09-notes.html#the-overdispersion-problem",
+    "title": "MUSA 5080 Notes #9",
+    "section": "The Overdispersion Problem",
+    "text": "The Overdispersion Problem\nPoisson assumption: Variance = Mean\nReality with crime data: Variance &gt; Mean (often MUCH larger)\nWhy overdispersion occurs: 1. Unobserved heterogeneity: Some areas have unmeasured crime attractors 2. Contagion effects: One crime leads to others (not independent) 3. Measurement error: Counting issues, data quality 4. Model misspecification: Missing important variables\nCheck for overdispersion:\n\\[\\text{Dispersion} = \\frac{\\text{Residual Deviance}}{\\text{Degrees of Freedom}}\\]\n\nIf ≈ 1: Poisson is fine\nIf &gt; 1: Overdispersion (common!)\nIf &gt; 2-3: Serious overdispersion → Use Negative Binomial"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#negative-binomial-regression",
+    "href": "weekly-notes/week-09-notes.html#negative-binomial-regression",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Negative Binomial Regression",
+    "text": "Negative Binomial Regression\nRelaxes the variance = mean assumption\nAdds dispersion parameter (\\(\\alpha\\)):\n\\[\\text{Var}(Y_i) = \\mu_i + \\alpha \\mu_i^2\\]\nWhere: - \\(\\mu_i\\) = expected count (same as Poisson) - \\(\\alpha\\) = dispersion parameter\nIf \\(\\alpha = 0\\): Reduces to Poisson\nIf \\(\\alpha &gt; 0\\): Allows extra variance (overdispersion)\nInterpretation: Coefficients interpreted same way as Poisson!"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#negative-binomial-in-r",
+    "href": "weekly-notes/week-09-notes.html#negative-binomial-in-r",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Negative Binomial in R",
+    "text": "Negative Binomial in R\nlibrary(MASS)\n\n# Fit Negative Binomial model\nmodel_nb &lt;- glm.nb(\n  countBurglaries ~ Abandoned_Cars + Abandoned_Cars.nn + abandoned.isSig.dist,\n  data = fishnet\n)\n\n# View results\nsummary(model_nb)\n\n# Compare to Poisson\nAIC(model_pois)  # e.g., 8234.5\nAIC(model_nb)    # e.g., 6721.3\n\n# Lower AIC = better fit\n# If NegBin AIC much lower → use NegBin"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#comparing-poisson-vs.-negative-binomial",
+    "href": "weekly-notes/week-09-notes.html#comparing-poisson-vs.-negative-binomial",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Comparing Poisson vs. Negative Binomial",
+    "text": "Comparing Poisson vs. Negative Binomial\n\n\n\n\n\n\n\n\nAspect\nPoisson\nNegative Binomial\n\n\n\n\nVariance assumption\nVar = Mean\nVar = μ + αμ²\n\n\nOverdispersion\nCannot handle\nAccommodates\n\n\nStandard errors\nUnderestimated if overdispersed\nCorrectly estimated\n\n\nWhen to use\nCount data, no overdispersion\nCount data with overdispersion\n\n\nCrime data\nRarely appropriate\nUsually better"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#why-standard-cross-validation-fails-for-spatial-data",
+    "href": "weekly-notes/week-09-notes.html#why-standard-cross-validation-fails-for-spatial-data",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Why Standard Cross-Validation Fails for Spatial Data",
+    "text": "Why Standard Cross-Validation Fails for Spatial Data\nStandard k-fold CV: - Randomly split data into k folds - Training set includes cells adjacent to test cells - Spatial leakage: Model learns from neighbors of test set - Overly optimistic performance estimates\nSolution: Spatial cross-validation"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#leave-one-group-out-cross-validation-logo-cv",
+    "href": "weekly-notes/week-09-notes.html#leave-one-group-out-cross-validation-logo-cv",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Leave-One-Group-Out Cross-Validation (LOGO-CV)",
+    "text": "Leave-One-Group-Out Cross-Validation (LOGO-CV)\nPrinciple: Hold out entire spatial groups, not individual cells\nProcess: 1. Divide study area into groups (e.g., police districts) 2. Hold out all cells in District 1 3. Train model on Districts 2-N 4. Predict for District 1 5. Repeat for each district\nWhy better: - Tests generalization to truly new areas - No spatial leakage between train/test - More realistic deployment scenario - Conservative performance estimates"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#logo-cv-implementation",
+    "href": "weekly-notes/week-09-notes.html#logo-cv-implementation",
+    "title": "MUSA 5080 Notes #9",
+    "section": "LOGO-CV Implementation",
+    "text": "LOGO-CV Implementation\n# Get unique districts\ndistricts &lt;- unique(fishnet$District)\n\n# Initialize results\ncv_results &lt;- list()\n\n# Loop through districts\nfor (dist in districts) {\n  # Split data\n  train_data &lt;- fishnet %&gt;% filter(District != dist)\n  test_data &lt;- fishnet %&gt;% filter(District == dist)\n  \n  # Fit model on training data\n  model_cv &lt;- glm.nb(\n    countBurglaries ~ Abandoned_Cars + Abandoned_Cars.nn + abandoned.isSig.dist,\n    data = train_data\n  )\n  \n  # Predict on test data\n  test_data$prediction &lt;- predict(model_cv, test_data, type = \"response\")\n  \n  # Store results\n  cv_results[[dist]] &lt;- test_data\n}\n\n# Combine all predictions\nall_predictions &lt;- bind_rows(cv_results)"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#evaluating-cv-performance",
+    "href": "weekly-notes/week-09-notes.html#evaluating-cv-performance",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Evaluating CV Performance",
+    "text": "Evaluating CV Performance\nCommon metrics for count models:\nMean Absolute Error (MAE): \\[MAE = \\frac{1}{n}\\sum_i |y_i - \\hat{y}_i|\\]\nRoot Mean Squared Error (RMSE): \\[RMSE = \\sqrt{\\frac{1}{n}\\sum_i (y_i - \\hat{y}_i)^2}\\]\nMean Error (Bias): \\[ME = \\frac{1}{n}\\sum_i (y_i - \\hat{y}_i)\\]\n# Calculate metrics by district\ncv_metrics &lt;- all_predictions %&gt;%\n  group_by(District) %&gt;%\n  summarize(\n    MAE = mean(abs(countBurglaries - prediction)),\n    RMSE = sqrt(mean((countBurglaries - prediction)^2)),\n    ME = mean(countBurglaries - prediction)\n  )"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#why-compare-to-kernel-density-estimation",
+    "href": "weekly-notes/week-09-notes.html#why-compare-to-kernel-density-estimation",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Why Compare to Kernel Density Estimation?",
+    "text": "Why Compare to Kernel Density Estimation?\nKDE is the simplest spatial prediction method: - Place smooth “bump” over each crime location - Sum all bumps to create risk surface - No predictors, no model, just past locations\nBenefits of comparison: 1. Benchmark: Does our complex model beat a simple baseline? 2. Value added: What do spatial features contribute? 3. Practical: KDE is computationally simpler 4. Critical: Maybe spatial patterns alone explain everything?\nIf our model doesn’t beat KDE, we’re wasting complexity"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#kernel-density-estimation-explained",
+    "href": "weekly-notes/week-09-notes.html#kernel-density-estimation-explained",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Kernel Density Estimation Explained",
+    "text": "Kernel Density Estimation Explained\nConceptually: Imagine placing a “hill” over each crime location: - Peak at the crime location - Height decreases with distance - Controlled by bandwidth parameter\nMathematical:\n\\[\\hat{f}(s) = \\frac{1}{n\\tau^2}\\sum_{i=1}^n K\\left(\\frac{d(s, s_i)}{\\tau}\\right)\\]\nWhere: - \\(s\\) = location where we estimate density - \\(s_i\\) = location of crime \\(i\\) - \\(\\tau\\) = bandwidth (smoothing parameter) - \\(K\\) = kernel function (usually Gaussian) - \\(d(s, s_i)\\) = distance between \\(s\\) and \\(s_i\\)"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#calculating-kde-in-r",
+    "href": "weekly-notes/week-09-notes.html#calculating-kde-in-r",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Calculating KDE in R",
+    "text": "Calculating KDE in R\nlibrary(spatstat)\n\n# Step 1: Convert to point pattern (ppp) object\nburglary_ppp &lt;- as.ppp(\n  X = st_coordinates(burglaries),\n  W = as.owin(st_bbox(chicago_boundary))\n)\n\n# Step 2: Calculate KDE\nkde_surface &lt;- density.ppp(\n  burglary_ppp,\n  sigma = 1000,  # Bandwidth in meters\n  edge = TRUE    # Edge correction\n)\n\n# Step 3: Extract values to fishnet cells\nfishnet$kde_risk &lt;- raster::extract(\n  raster(kde_surface),\n  st_centroid(fishnet)\n)"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#the-hit-rate-evaluation",
+    "href": "weekly-notes/week-09-notes.html#the-hit-rate-evaluation",
+    "title": "MUSA 5080 Notes #9",
+    "section": "The Hit Rate Evaluation",
+    "text": "The Hit Rate Evaluation\nGoal: Capture maximum crimes with minimum resources\nIdeal result: If we patrol the highest-risk 20% of cells (Category 5): - Model: Captures 55% of 2018 burglaries - KDE: Captures 48% of 2018 burglaries\nInterpretation: - Model is better (55% &gt; 48%) - But still imperfect (missing 45% of burglaries) - Spatial features add value over location alone\nRandom patrol: Would capture ~20% (by chance)"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#critical-interpretation-of-performance",
+    "href": "weekly-notes/week-09-notes.html#critical-interpretation-of-performance",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Critical Interpretation of Performance",
+    "text": "Critical Interpretation of Performance\nStatistical Success: ✓ Model beats KDE\n✓ Better than random\n✓ Statistically significant difference\nBut ask: 1. Which neighborhoods are classified as “highest risk”? 2. What happens when police patrol those areas? 3. Who experiences increased surveillance? 4. Are we predicting crime or policing patterns? 5. Does “better prediction” = “better public safety”?\nA technically superior model can still be ethically problematic"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#questions-to-ask-about-any-predictive-policing-system",
+    "href": "weekly-notes/week-09-notes.html#questions-to-ask-about-any-predictive-policing-system",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Questions to Ask About Any Predictive Policing System",
+    "text": "Questions to Ask About Any Predictive Policing System\n\n1. Data Provenance\n\nWhat time period does training data cover?\nWere there civil rights investigations during that period?\nWere there documented cases of data manipulation?\nWhat evidence exists that data is accurate?\n\n\n\n2. Variable Selection\n\nWhat specific variables are used?\nHow might each variable embed bias?\nWhat’s excluded and why?\nWho made these choices?\n\n\n\n3. Validation\n\nHow is accuracy measured?\nWhat counts as “success”?\nAre error rates reported by neighborhood?\nWho experiences false positives vs. false negatives?\n\n\n\n4. Deployment\n\nHow do predictions translate to action?\nWhat discretion do officers have?\nAre social services actually offered?\nWhat are the measurable outcomes?\n\n\n\n5. Transparency & Accountability\n\nIs the methodology public?\nCan community members access their own “risk scores”?\nIs there a process to challenge predictions?\nWho monitors for disparate impact?\n\n\n\n6. Alternatives\n\nWhat non-punitive interventions were considered?\nCould these resources address root causes instead?\nWhat would actual community safety investment look like?"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#the-fundamental-question",
+    "href": "weekly-notes/week-09-notes.html#the-fundamental-question",
+    "title": "MUSA 5080 Notes #9",
+    "section": "The Fundamental Question",
+    "text": "The Fundamental Question\nBefore Asking “Does It Work?”, Ask:\n“Should we be doing this at all?”\nConsider: - A system that accurately predicts where over-policing will occur is “accurate” - A system that reinforces existing inequalities can be “validated” - A system that efficiently targets marginalized communities is “effective”\nBut: - Is it just? - Is it equitable? - Does it make communities safer? - Does it address root causes? - Or does it just manage inequality more efficiently?"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#what-if-we-predicted-differently",
+    "href": "weekly-notes/week-09-notes.html#what-if-we-predicted-differently",
+    "title": "MUSA 5080 Notes #9",
+    "section": "What If We Predicted Differently?",
+    "text": "What If We Predicted Differently?\nInstead of: - Where will crimes occur? → Deploy police\nConsider: - Where is social services need highest? → Deploy resources - Where is community trust lowest? → Invest in legitimacy - Where is opportunity lowest? → Economic development - Where is housing instability highest? → Stabilize residents\nSame technical methods, different normative goal"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#technical-skills",
+    "href": "weekly-notes/week-09-notes.html#technical-skills",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Technical Skills",
+    "text": "Technical Skills\n\nLocal Moran’s I: Identify spatial clusters and hotspots\nCount Regression: Poisson and Negative Binomial for crime counts\nSpatial Cross-Validation: LOGO-CV for geographic data\nKDE Baseline: Simple spatial smoothing for comparison\nSpatial Features: Distance to nearest, distance to hotspots"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#critical-thinking-skills",
+    "href": "weekly-notes/week-09-notes.html#critical-thinking-skills",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Critical Thinking Skills",
+    "text": "Critical Thinking Skills\n\nData Provenance: Always question where data comes from\nBias Recognition: Understand how data reflects policing, not just crime\nFeedback Loops: Recognize how predictions become self-fulfilling\nEthical Evaluation: Ask “should we?” not just “can we?”\nAlternatives: Consider non-punitive uses of predictive models"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#remember",
+    "href": "weekly-notes/week-09-notes.html#remember",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Remember",
+    "text": "Remember\n\nAll crime data is socially constructed - It reflects policing, not just crime\nHistorical harms persist in data - Dirty data trains biased systems\nVendors are not accountable - Black boxes prevent oversight\nFeedback loops amplify inequality - Predictions become self-fulfilling\nTechnical accuracy ≠ social justice - A “good” model can be ethically terrible\nAlternatives exist - We could predict need instead of threat\nYour choices matter - How you build models has real consequences"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#common-pitfalls",
+    "href": "weekly-notes/week-09-notes.html#common-pitfalls",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Common Pitfalls",
+    "text": "Common Pitfalls\n\nIgnoring data provenance: Always investigate where data comes from\nAssuming data is “clean”: All crime data reflects bias\nFocusing only on accuracy: Ethical considerations matter more\nNot considering alternatives: Prediction can serve justice, not just policing\nIgnoring feedback loops: Models can reinforce the problems they claim to solve"
+  },
+  {
+    "objectID": "weekly-notes/week-09-notes.html#next-steps",
+    "href": "weekly-notes/week-09-notes.html#next-steps",
+    "title": "MUSA 5080 Notes #9",
+    "section": "Next Steps",
+    "text": "Next Steps\n\nPractice calculating Local Moran’s I\nFit count regression models on your own data\nApply the critical evaluation framework to real systems\nConsider how predictive models could serve justice instead of punishment\nDocument data provenance and limitations in all your work"
   }
 ]

@@ -1,0 +1,468 @@
+---
+title: "MUSA 5080 Notes #7"
+subtitle: "Week 7: Model Diagnostics & Spatial Autocorrelation"
+author: "Fan Yang"
+date: "October 20, 2025"
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-location: left
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+::: {.callout-note}
+**Week 7: Model Diagnostics & Spatial Autocorrelation**  
+**Date:** 10/20/2025
+:::
+
+# Overview
+
+This week we learned how to diagnose spatial patterns in model errors and understand spatial autocorrelation. We explored Moran's I as a diagnostic tool to identify when our models are missing important spatial relationships, and learned best practices for handling progress bars in rendered documents.
+
+## Key Learning Objectives
+
+- Understand spatial patterns in model errors
+- Learn to calculate and interpret Moran's I
+- Visualize error patterns spatially
+- Understand when spatial autocorrelation indicates model problems
+- Apply spatial diagnostics to improve model specification
+
+# Part 1: Homework Feedback & Best Practices
+
+## Suppressing Progress Bars in Rendered Output
+
+**Problem:** When using `tigris` or `tidycensus` functions, progress bars appear in rendered HTML documents, making them look unprofessional.
+
+**Solution 1: Add to each function call**
+
+```r
+# Add progress = FALSE to EVERY tigris/tidycensus call
+tracts <- get_acs(
+  geography = "tract",
+  variables = "B01003_001",
+  state = "PA",
+  geometry = TRUE,
+  progress = FALSE  # <-- Add this!
+)
+
+roads <- roads(state = "PA", 
+               county = "Philadelphia",
+               progress = FALSE)  # <-- Add this!
+```
+
+**Solution 2: Set globally (Recommended)**
+
+```r
+# Add this near the top of your .qmd after loading libraries
+options(tigris_use_cache = TRUE)
+options(tigris_progress = FALSE)  # Suppress tigris progress bars
+```
+
+**Action Required:** Always suppress progress bars in your rendered documents for professional output.
+
+# Part 2: Understanding Spatial Patterns in Errors
+
+## What Are Model Errors?
+
+**Prediction error** for observation *i*:
+
+$$e_i = \hat{y}_i - y_i$$
+
+Where:
+- $\hat{y}_i$ = predicted value
+- $y_i$ = actual value
+
+**In R:**
+
+```r
+# Calculate errors
+boston_test <- boston %>%
+  mutate(
+    predicted = predict(model, boston),
+    error = predicted - SalePrice,
+    abs_error = abs(error),
+    pct_error = abs(error) / SalePrice
+  )
+```
+
+## Good Errors vs. Bad Errors
+
+**Random errors (good):**
+- No systematic pattern
+- Scattered across space
+- Prediction equally good everywhere
+- Model captures key relationships
+
+**Clustered errors (bad):**
+- Spatial pattern visible
+- Under/over-predict in specific areas
+- Model misses something about location
+- Need more spatial features!
+
+## Tobler's First Law (Revisited)
+
+> *"Everything is related to everything else, but near things are more related than distant things."*
+> - Waldo Tobler (1970)
+
+**Applied to model errors:**
+- If nearby houses have similar errors...
+- ...our model is missing a spatial pattern!
+- Need to add more spatial features or fixed effects
+
+## Visualizing Error Patterns
+
+**Map your errors to see patterns:**
+
+```r
+# Convert to spatial data
+boston_test <- boston_test %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform('ESRI:102286')
+
+# Map errors
+ggplot(boston_test) +
+  geom_sf(aes(fill = error),
+          shape = 21,
+          size = 1,
+          alpha = 0.6,
+          stroke = 0.2) +
+  scale_fill_gradient2(
+    low = "blue",
+    mid = "white",
+    high = "red",
+    midpoint = 0,
+    limits = c(-300000, 300000),
+    oob = scales::squish
+  ) +
+  theme_void()
+```
+
+**What to look for:**
+- Blue clusters (we under-predict)
+- Red clusters (we over-predict)
+- Random scatter (good!)
+
+## Scatter Plot: Spatial Lag of Errors
+
+**Create the spatial lag:**
+
+```r
+library(spdep)
+
+# Define neighbors (5 nearest)
+coords <- st_coordinates(boston_test)
+neighbors <- knn2nb(knearneigh(coords, k=5))
+weights <- nb2listw(neighbors, style="W")
+
+# Calculate spatial lag of errors
+boston_test$error_lag <- lag.listw(weights, boston_test$error)
+```
+
+**Then plot:**
+
+```r
+ggplot(boston_test, aes(x=error_lag, y=error)) +
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm", color="red") +
+  labs(title="Is my error correlated with neighbors' errors?",
+       x="Avg error of 5 nearest neighbors",
+       y="My error")
+```
+
+**Interpretation:**
+- Positive slope = errors cluster (bad)
+- No slope = random errors (good)
+
+# Part 3: Moran's I
+
+## What is Moran's I?
+
+**Moran's I** measures spatial autocorrelation
+
+**Range:** -1 to +1
+
+- **+1** = Perfect positive correlation (clustering)
+- **0** = Random spatial pattern
+- **-1** = Perfect negative correlation (dispersion)
+
+**Formula:**
+
+$$I = \frac{n \sum_i \sum_j w_{ij}(x_i - \bar{x})(x_j - \bar{x})}{\sum_i \sum_j w_{ij} \sum_i (x_i - \bar{x})^2}$$
+
+Where $w_{ij}$ = spatial weight between locations *i* and *j*
+
+## The Intuition Behind Moran's I
+
+**The formula is really just asking:**
+
+> *"When I'm above/below average, are my neighbors also above/below average?"*
+
+**Breaking it down:**
+
+1. $(x_i - \bar{x})$ = How far is my house's error from the mean?
+2. $(x_j - \bar{x})$ = How far is my neighbor's error from the mean?
+3. **Multiply them:**
+   - If both positive or both negative → **positive product** (similar)
+   - If opposite signs → **negative product** (dissimilar)
+4. **Sum across all neighbor pairs** and normalize
+
+**Result:**
+- Lots of positive products → **High Moran's I** (clustering)
+- Products near zero → **Low Moran's I** (random)
+- Negative products → **Negative Moran's I** (rare with errors)
+
+## Defining "Neighbors"
+
+**Different ways to define spatial relationships:**
+
+**Contiguity:**
+- Polygons that share a border
+- Queen vs. Rook
+
+**Distance:**
+- All within X meters
+- Fixed threshold
+
+**k-Nearest:**
+- Closest k points
+- Adaptive distance
+
+**For point data (houses), use k-nearest neighbors:**
+
+```r
+# Create 5-nearest neighbors
+coords <- st_coordinates(boston_test)
+nb <- knn2nb(knearneigh(coords, k=5))
+weights <- nb2listw(nb, style="W")
+```
+
+## Calculating Spatial Lag
+
+**Spatial lag** = average value of neighbors
+
+**Example: 5 houses**
+
+| House | Sale Price | 2 Nearest | Spatial Lag |
+|-------|-----------|-----------|-------------|
+| A     | $200k     | B, C      | $275k       |
+| B     | $250k     | A, C      | $250k       |
+| C     | $300k     | B, D      | $275k       |
+| D     | $350k     | C, E      | $350k       |
+| E     | $400k     | D         | $350k       |
+
+**In R:**
+
+```r
+boston$price_lag <- lag.listw(weights, boston$SalePrice)
+```
+
+## Computing Moran's I
+
+**Calculate Moran's I for your errors:**
+
+```r
+# Test for spatial autocorrelation in errors
+moran_test <- moran.mc(
+  boston_test$error,        # Your errors
+  weights,                  # Spatial weights matrix
+  nsim = 999                # Number of permutations
+)
+
+# View results
+moran_test$statistic         # Moran's I value
+moran_test$p.value          # Is it significant?
+```
+
+**Interpretation:**
+- **I > 0** and *p* < 0.05 → Significant clustering
+- **I ≈ 0** → Random pattern (good!)
+- **I < 0** → Dispersion (rare with errors)
+
+## Visualizing Significance
+
+**Compare observed I to random permutations:**
+
+```r
+library(ggplot2)
+
+moran_df <- data.frame(sim_I = moran_test$res[1:999])
+
+ggplot(moran_df, aes(x = sim_I)) +
+  geom_histogram(binwidth = 0.01, fill = "gray70", color = "white") +
+  geom_vline(aes(xintercept = moran_test$statistic), 
+             color = "#FA7800", linewidth = 1.5) +
+  labs(
+    title = "Observed vs. Expected Moran's I",
+    subtitle = "Orange line = observed | Gray = random permutations",
+    x = "Moran's I",
+    y = "Count"
+  ) +
+  theme_minimal()
+```
+
+## What Moran's I Tells You
+
+**Decision Framework:**
+
+**If Moran's I is high (errors clustered):**
+
+1. Add more spatial features
+   - Try different buffer sizes
+   - Include more amenities/disamenities
+   - Create neighborhood-specific variables
+
+2. Try spatial fixed effects
+   - Neighborhood dummies
+   - Grid cell dummies
+
+3. Consider spatial regression models
+   - Spatial lag model
+   - Spatial error model
+   - (Advanced topic, not covered today)
+
+**If Moran's I ≈ 0 (random errors):**
+
+✅ Your model adequately captures spatial relationships!
+
+# Part 4: Spatial Lag Models vs. Spatial Features
+
+## Why Not Spatial Lag Models for Prediction?
+
+**The Problems with Spatial Lag for Prediction:**
+
+**1. Simultaneity Problem**
+- Including $WY$ (neighbor prices) creates circular logic
+- My price affects neighbors → neighbors affect me
+- OLS estimates are **biased and inconsistent**
+
+**2. Prediction Paradox**
+- Need neighbors' prices to predict my price
+- But for new developments or future periods, those prices **don't exist yet**
+- Can't generalize to truly new areas
+
+**3. Data Leakage in CV**
+- Geographic CV holds out spatial regions
+- Spatial lag "leaks" information from test set
+- Artificially good performance that won't hold
+
+## Our Solution: Spatial Features of X (Not Y)
+
+Instead of modeling dependence in **Y** (prices), model proximity in **X** (predictors)
+
+| ❌ Spatial Lag | ✅ Our Approach |
+|----------------|-----------------|
+| "Near expensive houses" | "Near low crime areas" |
+| Uses neighbor **prices** | Uses neighbor **characteristics** |
+| Circular logic | Causal mechanism |
+| Can't predict new areas | Generalizes well |
+
+**If Moran's I shows clustered errors:**
+
+✅ **Add more spatial features** (different buffers, more amenities)  
+✅ **Try neighborhood fixed effects**  
+✅ **Use spatial cross-validation**
+
+❌ Don't add spatial lag of Y for prediction purposes
+
+**The Bottom Line:** Both approaches are valid for different goals! Match method to purpose: **inference** → spatial lag/error models; **prediction** → spatial features.
+
+## Understanding Bias vs. Inconsistency
+
+**Biased Estimator:**
+- Definition: Expected value ≠ true parameter
+- $E[\hat{\beta}] \neq \beta$
+- On average, across all possible samples, your estimate is **systematically wrong**
+- More data doesn't fix it
+
+**Inconsistent Estimator:**
+- Definition: Doesn't converge to true value as n → ∞
+- $\hat{\beta} \not\to \beta \text{ as } n \to \infty$
+- Even with **infinite data**, you won't get the right answer
+- The problem doesn't go away with bigger samples
+
+# The Regression Workflow (Updated)
+
+**Building the model:**
+
+1. Visualize relationships
+2. Engineer features
+3. Fit the model
+4. Evaluate performance (RMSE, R²)
+5. Check assumptions
+
+**NEW: Spatial diagnostics:**
+
+6. **Are errors random or clustered?**
+7. **Do we predict better in some areas?**
+8. **Is there remaining spatial structure?**
+
+**Why This Matters:**
+
+If errors cluster spatially, it suggests:
+- Missing spatial variables
+- Misspecified relationships
+- Non-stationarity (relationships vary across space)
+
+# Key Takeaways
+
+## Spatial Diagnostics Skills
+
+1. **Error Visualization**: Map residuals to identify spatial patterns
+2. **Spatial Lag**: Calculate average of neighbors' values
+3. **Moran's I**: Measure spatial autocorrelation in errors
+4. **Interpretation**: High I = clustering = need more spatial features
+5. **Iterative Improvement**: Diagnose → Engineer features → Re-test → Repeat
+
+## Model Improvement Strategy
+
+**If Moran's I shows clustering:**
+
+1. Add more spatial features
+   - Different buffer sizes
+   - More amenities/disamenities
+   - Neighborhood-specific variables
+
+2. Try spatial fixed effects
+   - Neighborhood dummies
+   - Grid cell dummies
+
+3. Document what you try!
+
+**If Moran's I ≈ 0:**
+
+✅ Your model adequately captures spatial relationships!
+
+## Common Pitfalls
+
+- **Ignoring spatial patterns in errors**: Always check for clustering
+- **Using spatial lag of Y for prediction**: Creates circular logic and can't generalize
+- **Not visualizing errors**: Maps reveal patterns that statistics miss
+- **Forgetting to suppress progress bars**: Makes rendered documents look unprofessional
+
+## Best Practices
+
+- **Always suppress progress bars** in rendered documents
+- **Visualize errors spatially** before calculating statistics
+- **Use Moran's I as a diagnostic**, not just a test
+- **Iterate**: Diagnose → Improve → Re-test
+- **Document your process**: Keep track of what features you try
+
+## Next Steps
+
+- Practice calculating Moran's I on your own models
+- Experiment with different neighbor definitions (k-NN, distance, contiguity)
+- Learn about local indicators of spatial association (LISA)
+- Apply spatial diagnostics to your assignments
+- Consider spatial cross-validation for geographic data
+
+# Resources
+
+- **spdep package**: https://r-spatial.github.io/spdep/
+- **Spatial autocorrelation tutorial**: https://mgimond.github.io/Spatial/spatial-autocorrelation.html
+- **Moran's I explanation**: Understanding the formula and interpretation
+- **Spatial weights**: Different ways to define neighbors
+

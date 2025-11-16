@@ -1,0 +1,524 @@
+---
+title: "MUSA 5080 Notes #10"
+subtitle: "Week 10: Logistic Regression for Binary Outcomes"
+author: "Fan Yang"
+date: "November 10, 2025"
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-location: left
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+::: {.callout-note}
+**Week 10: Logistic Regression for Binary Outcomes**  
+**Date:** 11/10/2025
+:::
+
+# Overview
+
+This week we learned about logistic regression, a method for predicting binary outcomes (yes/no, 0/1). We explored how it differs from linear regression, how to interpret coefficients, how to evaluate binary predictions using confusion matrices and ROC curves, and the critical importance of threshold selection and equity considerations.
+
+## Key Learning Objectives
+
+- Understand when and why to use logistic regression instead of linear regression
+- Learn to fit and interpret logistic regression models
+- Master confusion matrices and classification metrics (sensitivity, specificity, precision)
+- Understand ROC curves and AUC
+- Learn to choose appropriate thresholds for binary classification
+- Recognize equity considerations in binary prediction models
+
+# Part 1: Introduction to Logistic Regression
+
+## Where We've Been
+
+**Weeks 1-7: Linear regression**
+- Predicting **continuous outcomes**: home prices, income, population
+- Y = β₀ + β₁X₁ + β₂X₂ + ... + ε
+- Used RMSE to evaluate predictions
+
+**Last week: Poisson regression**
+- Predicting **count outcomes**: number of crimes
+- Different distribution, but still predicting quantities
+
+**Today: A fundamentally different question**
+- Not "how much?" but "**will it happen?**"
+- Binary outcomes: yes/no, 0/1, success/failure
+- This requires a completely different approach
+
+## What Makes Binary Outcomes Different?
+
+**The problem with linear regression for binary outcomes:**
+
+**Problems:**
+- Predictions can be > 1 or < 0 (makes no sense for probability!)
+- Assumes constant effect across range (not realistic)
+- Violates regression assumptions (errors aren't normal)
+
+**Example:** Predicting whether a student passes (1) or fails (0) an exam based on study hours
+- Linear regression might predict probability > 1 for high study hours
+- Linear regression might predict probability < 0 for low study hours
+- Neither makes sense!
+
+## Enter: Logistic Regression
+
+**The solution:** Transform the problem!
+
+Instead of predicting Y directly, predict the **probability** that Y = 1
+
+**The logistic function** constrains predictions between 0 and 1:
+
+$$p(X) = \frac{1}{1+e^{-(\beta_0 + \beta_1X_1 + ... + \beta_kX_k)}}$$
+
+**Key properties:**
+- Always outputs values between 0 and 1
+- S-shaped curve (sigmoid)
+- Approaches 1 but never exceeds it
+- Approaches 0 but never goes negative
+
+## When Do We Use Logistic Regression?
+
+**Perfect for binary classification problems in policy:**
+
+**Criminal Justice:**
+- Will someone reoffend? (recidivism)
+- Will someone appear for court? (flight risk)
+
+**Health:**
+- Will patient develop disease? (risk assessment)
+- Will treatment be successful? (outcome prediction)
+
+**Economics:**
+- Will loan default? (credit risk)
+- Will person get hired? (employment prediction)
+
+**Urban Planning:**
+- Will building be demolished? (blight prediction)
+- Will household participate in program? (uptake prediction)
+
+## The Logit Transformation
+
+**Behind the scenes:** We work with **log-odds**, not probabilities directly
+
+**Odds:** $\text{Odds} = \frac{p}{1-p}$
+
+**Log-Odds (Logit):** $\text{logit}(p) = \ln\left(\frac{p}{1-p}\right)$
+
+**This creates a linear relationship:**
+$$\ln\left(\frac{p}{1-p}\right) = \beta_0 + \beta_1X_1 + \beta_2X_2 + ...$$
+
+**Why this matters:**
+- Coefficients are log-odds (like linear regression!)
+- But we interpret as **odds ratios** when exponentiated: $e^{\beta}$
+- OR > 1: predictor increases odds of outcome
+- OR < 1: predictor decreases odds of outcome
+
+# Part 2: Building Our First Logistic Model
+
+## Example: Email Spam Detection
+
+**Goal:** Predict whether email is spam (1) or legitimate (0)
+
+**Predictors:**
+- Number of exclamation marks
+- Contains word "free"
+- Email length
+
+```r
+# Create example spam detection data
+set.seed(123)
+n_emails <- 1000
+
+spam_data <- data.frame(
+  exclamation_marks = c(rpois(100, 5), rpois(900, 0.5)),  # Spam has more !
+  contains_free = c(rbinom(100, 1, 0.8), rbinom(900, 1, 0.1)),  # Spam mentions "free"
+  length = c(rnorm(100, 200, 50), rnorm(900, 500, 100)),  # Spam is shorter
+  is_spam = c(rep(1, 100), rep(0, 900))
+)
+```
+
+## Fitting the Logistic Model
+
+**In R, we use `glm()` with `family = "binomial"`**
+
+```r
+# Fit logistic regression
+spam_model <- glm(
+  is_spam ~ exclamation_marks + contains_free + length,
+  data = spam_data,
+  family = "binomial"  # This specifies logistic regression
+)
+
+# View results
+summary(spam_model)
+```
+
+## Interpreting Coefficients
+
+```r
+# Extract coefficients
+coefs <- coef(spam_model)
+
+# Convert to odds ratios
+odds_ratios <- exp(coefs)
+```
+
+**Interpretation:**
+- `exclamation_marks`: Each additional ! multiplies odds of spam by the odds ratio
+- `contains_free`: Having "free" multiplies odds by the odds ratio
+- `length`: Each additional character multiplies odds by the odds ratio (shorter = more likely spam)
+
+**Example:**
+- If odds ratio = 1.15: 15% increase in odds per unit
+- If odds ratio = 0.80: 20% decrease in odds per unit
+- If odds ratio = 2.00: Doubling of odds per unit
+
+## Making Predictions
+
+**The model outputs probabilities:**
+
+```r
+# Predict probability for a new email
+new_email <- data.frame(
+  exclamation_marks = 3,
+  contains_free = 1,
+  length = 150
+)
+
+predicted_prob <- predict(spam_model, newdata = new_email, type = "response")
+```
+
+**But now what?**
+- If probability = 0.723, is this spam or not?
+- We need to choose a **threshold** (cutoff)
+- Threshold = 0.5 is common default, but is it the right choice?
+
+**The answer depends on:**
+- Cost of false positives (marking legitimate email as spam)
+- Cost of false negatives (missing actual spam)
+- **These costs are rarely equal!**
+
+# Part 3: Evaluating Binary Predictions
+
+## From Probabilities to Decisions
+
+**We now have a model that predicts probabilities.**
+
+But policy decisions require binary choices: spam/not spam, approve/deny, intervene/don't intervene.
+
+**This requires two steps:**
+1. Choose a threshold to convert probabilities → binary predictions
+2. Evaluate how good those predictions are
+
+**The confusion matrix helps us with step 2**
+
+## The Four Outcomes
+
+When we make binary predictions, four things can happen:
+
+**Model says "Yes":**
+- **True Positive (TP):** Correct! ✓
+- **False Positive (FP):** Wrong - Type I error
+
+**Model says "No":**
+- **True Negative (TN):** Correct! ✓
+- **False Negative (FN):** Wrong - Type II error
+
+**Remember:** The model predicts probabilities. WE choose the threshold that converts probabilities to yes/no predictions.
+
+## Calculating Performance Metrics
+
+From the confusion matrix, we derive metrics that emphasize different trade-offs:
+
+**Sensitivity (Recall, True Positive Rate):**
+$$\text{Sensitivity} = \frac{TP}{TP + FN}$$
+*"Of all actual positives, how many did we catch?"*
+
+**Specificity (True Negative Rate):**
+$$\text{Specificity} = \frac{TN}{TN + FP}$$
+*"Of all actual negatives, how many did we correctly identify?"*
+
+**Precision (Positive Predictive Value):**
+$$\text{Precision} = \frac{TP}{TP + FP}$$
+*"Of all our positive predictions, how many were correct?"*
+
+**Accuracy:**
+$$\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}$$
+*"What proportion of all predictions were correct?"*
+
+## Example: COVID Testing
+
+**Scenario:** Testing for COVID-19
+
+| True Status | Test Result | Outcome | Consequence |
+|-------------|-------------|---------|-------------|
+| Positive | Positive | True Positive (TP) | Quarantine (correct) |
+| Positive | Negative | False Negative (FN) | Goes to work, spreads virus |
+| Negative | Positive | False Positive (FP) | Quarantines unnecessarily |
+| Negative | Negative | True Negative (TN) | Goes to work (correct) |
+
+**Which error is worse?**
+- False Negative → Virus spreads
+- False Positive → Unnecessary quarantine
+
+**The answer depends on context!** (And changes our threshold choice)
+
+# Part 4: The Threshold Decision
+
+## Why Threshold Choice Matters
+
+**Remember:** The model gives us probabilities. We decide what probability triggers action.
+
+**Threshold = 0.3** (low bar)
+- More emails marked as spam
+- Higher sensitivity (catch more spam)
+- Lower specificity (more false alarms)
+
+**Threshold = 0.7** (high bar)
+- Fewer emails marked as spam
+- Lower sensitivity (miss some spam)
+- Higher specificity (fewer false alarms)
+
+**There is no "right" answer - it depends on the costs of each type of error**
+
+## The Great Sensitivity-Specificity Trade-off
+
+**As threshold increases:**
+- Sensitivity decreases (we catch fewer positives)
+- Specificity increases (we have fewer false alarms)
+- Precision increases (when we do predict positive, we're more often right)
+
+**As threshold decreases:**
+- Sensitivity increases (we catch more positives)
+- Specificity decreases (we have more false alarms)
+- Precision decreases (more of our positive predictions are wrong)
+
+**This is a fundamental trade-off - you can't maximize both simultaneously!**
+
+## Two Policy Scenarios
+
+**Scenario A: Rare, deadly disease screening**
+- Disease is rare but fatal if untreated
+- Treatment is safe with minor side effects
+- **Goal:** Don't miss any cases (high sensitivity)
+- **Acceptable:** Some false positives (low threshold)
+
+**Scenario B: Identifying "high-risk" individuals for intervention**
+- Limited intervention slots
+- False positives waste resources
+- False negatives miss opportunities to help
+- **Goal:** Use resources efficiently (high precision)
+- **Decision depends on:** Cost of intervention vs. cost of missed case
+
+# Part 5: ROC Curves
+
+## The ROC Curve: Visualizing All Thresholds
+
+**ROC = Receiver Operating Characteristic**
+
+(Originally developed for radar signal detection in WWII)
+
+**What it shows:**
+- Every possible threshold
+- Trade-off between True Positive Rate (Sensitivity) and False Positive Rate (1 - Specificity)
+- Overall model discrimination ability
+
+**How to read it:**
+- X-axis: False Positive Rate (1 - Specificity)
+- Y-axis: True Positive Rate (Sensitivity)
+- Diagonal line: Random guessing
+- Top-left corner: Perfect prediction
+
+## Creating an ROC Curve
+
+```r
+library(pROC)
+
+# Create ROC curve
+roc_obj <- roc(actual_outcome, predicted_probability)
+
+# Plot it
+ggroc(roc_obj) +
+  geom_abline(slope = 1, intercept = 1, linetype = "dashed", color = "gray50") +
+  labs(title = "ROC Curve",
+       x = "1 - Specificity (False Positive Rate)",
+       y = "Sensitivity (True Positive Rate)") +
+  theme_minimal()
+
+# Calculate AUC
+auc_value <- auc(roc_obj)
+```
+
+## Interpreting AUC
+
+**AUC (Area Under the Curve)** summarizes overall model performance:
+
+- **AUC = 1.0:** Perfect classifier
+- **AUC = 0.9-1.0:** Excellent
+- **AUC = 0.8-0.9:** Good
+- **AUC = 0.7-0.8:** Acceptable
+- **AUC = 0.6-0.7:** Poor
+- **AUC = 0.5:** No better than random guessing
+- **AUC < 0.5:** Worse than random (your model is backwards!)
+
+**Important limitations:**
+- AUC doesn't tell us which threshold to use
+- AUC doesn't account for class imbalance
+- AUC doesn't show us equity implications
+
+# Part 6: Equity Considerations
+
+## The Core Problem: Disparate Impact
+
+**A model can be "accurate" overall but perform very differently across groups**
+
+**Example metrics from a recidivism model:**
+
+| Group | Sensitivity | Specificity | False Positive Rate |
+|-------|-------------|-------------|---------------------|
+| Overall | 0.72 | 0.68 | 0.32 |
+| Group A | 0.78 | 0.74 | 0.26 |
+| Group B | 0.64 | 0.58 | 0.42 |
+
+**Group B experiences:**
+- Lower sensitivity (more people who will reoffend are missed)
+- Lower specificity (more people who won't reoffend are flagged)
+- Higher false positive rate (more unjust interventions)
+
+**This is algorithmic bias in action**
+
+## Real-World Case: COMPAS
+
+**COMPAS:** Commercial algorithm used in criminal justice to predict recidivism
+
+**ProPublica investigation (2016) found:**
+- Similar overall accuracy for Black and White defendants
+- BUT: False positive rates differed dramatically
+  - Black defendants: 45% false positive rate
+  - White defendants: 23% false positive rate
+- Black defendants twice as likely to be incorrectly labeled "high risk"
+
+**Result:**
+- Different threshold needed for different groups to achieve equity
+- But single-threshold systems are the norm
+- **Key insight:** Overall accuracy masks disparate impact
+
+# Part 7: How to Choose a Threshold
+
+## Framework for Threshold Selection
+
+**Step 1: Understand the consequences**
+- What happens with a false positive?
+- What happens with a false negative?
+- Are costs symmetric or asymmetric?
+
+**Step 2: Consider stakeholder perspectives**
+- Who is affected by each type of error?
+- Do all groups experience consequences equally?
+
+**Step 3: Choose your metric priority**
+- Maximize sensitivity? (catch all positives)
+- Maximize specificity? (minimize false alarms)
+- Balance precision and recall? (F1 score)
+- Equalize across groups?
+
+**Step 4: Test multiple thresholds**
+- Evaluate performance across thresholds
+- Look at group-wise performance
+- Consider sensitivity analysis
+
+## Cost-Benefit Analysis Approach
+
+**Assign concrete costs to errors:**
+
+**Example: Disease screening**
+- True Positive: Treatment cost $1000, prevent $50,000 in complications
+- False Positive: Unnecessary treatment $1000
+- True Negative: No cost
+- False Negative: Miss disease, $50,000 in complications later
+
+**Calculate expected cost at each threshold:**
+$$E[\text{Cost}] = C_{FP} \times FP + C_{FN} \times FN$$
+
+**Choose threshold that minimizes expected cost**
+
+*Note: This assumes we can quantify all costs, which is often impossible for justice/equity concerns*
+
+## Practical Recommendations
+
+1. **Report multiple metrics** - not just accuracy
+2. **Show the ROC curve** - demonstrates trade-offs
+3. **Test multiple thresholds** - document your choice
+4. **Evaluate by sub-group** - check for disparate impact
+5. **Document assumptions** - explain why you chose your threshold
+6. **Consider context** - what are the real-world consequences?
+7. **Provide uncertainty** - confidence intervals, not just point estimates
+8. **Enable recourse** - can predictions be challenged?
+
+**Most importantly: Be transparent about limitations and potential harms**
+
+# Key Takeaways
+
+## Logistic Regression Skills
+
+1. **When to use**: Binary outcomes (yes/no, 0/1)
+2. **Model fitting**: `glm()` with `family = "binomial"`
+3. **Coefficient interpretation**: Odds ratios (exponentiate coefficients)
+4. **Predictions**: Probabilities between 0 and 1
+5. **Threshold selection**: Critical decision with real consequences
+
+## Evaluation Metrics
+
+1. **Sensitivity (Recall)**: Of all positives, how many did we catch?
+2. **Specificity**: Of all negatives, how many did we correctly identify?
+3. **Precision**: Of our positive predictions, how many were correct?
+4. **ROC Curve**: Visualizes all threshold trade-offs
+5. **AUC**: Overall discrimination ability (but has limitations)
+
+## Critical Considerations
+
+1. **Threshold choice matters**: No single "right" threshold
+2. **Costs are asymmetric**: False positives and false negatives have different consequences
+3. **Equity matters**: Models can perform differently across groups
+4. **Overall accuracy can mask bias**: Always check group-wise performance
+5. **Transparency is essential**: Document your choices and assumptions
+
+## Common Pitfalls
+
+- **Using linear regression for binary outcomes**: Predictions outside [0,1] range
+- **Defaulting to 0.5 threshold**: May not be appropriate for your context
+- **Only reporting accuracy**: Doesn't show the full picture
+- **Ignoring class imbalance**: Can lead to misleading metrics
+- **Not checking for disparate impact**: Overall performance can hide group differences
+- **Not considering real-world costs**: Statistical metrics don't capture all consequences
+
+## Best Practices
+
+- **Always visualize**: ROC curves show trade-offs clearly
+- **Test multiple thresholds**: Don't assume 0.5 is right
+- **Evaluate by subgroup**: Check for equity concerns
+- **Document your choices**: Explain why you chose your threshold
+- **Consider context**: What are the real-world consequences?
+- **Be transparent**: Acknowledge limitations and potential harms
+
+## Next Steps
+
+- Practice fitting logistic regression models on your own data
+- Experiment with different thresholds and see how metrics change
+- Learn about F1 score and other composite metrics
+- Explore calibration plots (predicted vs. actual probabilities)
+- Study real-world cases of algorithmic bias in binary classification
+- Consider how to implement group-specific thresholds for equity
+
+# Resources
+
+- **Logistic regression tutorial**: Understanding the logit transformation
+- **ROC curves**: Visualizing classification performance
+- **COMPAS case study**: ProPublica investigation of algorithmic bias
+- **Threshold selection**: Framework for choosing cutoffs
+- **Equity in ML**: Fairness considerations in binary classification
+

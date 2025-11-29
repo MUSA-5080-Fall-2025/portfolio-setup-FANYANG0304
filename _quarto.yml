@@ -46,6 +46,8 @@ website:
             text: "Assignment 2: Spatial Analysis and Visualization"
           - href: assignments/assignment_4/Fan_Yang_Assignment4.qmd
             text: "Assignment 4: Spatial Predictive Analysis"
+          - href: assignments/assignment_5/assignment5.qmd
+            text: "Assignment 5: Space-Time Prediction of Bike Share Demand"
 format:
   html:
     theme: cosmo

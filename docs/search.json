@@ -1061,7 +1061,7 @@
     "href": "assignments/assignment_5/assignment5.html#set-census-api-key",
     "title": "Space-Time Prediction of Bike Share Demand: Philadelphia Indego - Q2 2024",
     "section": "Set Census API Key",
-    "text": "Set Census API Key\n\n\nCode\n# Replace with your own Census API key\ncensus_api_key(\"API_KEY\", overwrite = TRUE, install = TRUE)"
+    "text": "Set Census API Key\n\n\nCode\ncensus_api_key(\"API_KEY\", overwrite = TRUE, install = TRUE)"
   },
   {
     "objectID": "assignments/assignment_5/assignment5.html#load-indego-trip-data-q2-2024",

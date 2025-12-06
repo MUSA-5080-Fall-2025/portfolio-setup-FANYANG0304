@@ -21,713 +21,210 @@ execute:
 
 # Overview
 
-This week we critically examined predictive policing systems, learning both the technical methods used and the ethical concerns they raise. We explored the "dirty data" problem, learned count regression models for crime prediction, and discussed frameworks for evaluating whether such systems should be deployed at all.
+This week we critically examined predictive policing systems, learning both the technical methods (count regression, KDE, spatial features) and the ethical concerns they raise. We explored the "dirty data" problem, learned Local Moran's I for identifying hotspots, and discussed frameworks for evaluating whether such systems should be deployed.
 
 ## Key Learning Objectives
 
-- Understand the technical methods used in predictive policing (count regression, KDE, spatial features)
-- Critically evaluate the "dirty data" problem and its implications
+- Understand technical methods: count regression, KDE, spatial features
+- Critically evaluate the "dirty data" problem
 - Learn Local Moran's I for identifying hotspots
-- Understand Poisson and Negative Binomial regression for count data
-- Apply spatial cross-validation for geographic data
-- Develop frameworks for ethical evaluation of predictive systems
+- Understand Poisson and Negative Binomial regression
+- Apply spatial cross-validation (LOGO-CV)
+- Develop frameworks for ethical evaluation
 
-# Part 1: The Critical Question
+# The Critical Question
 
-## Opening Thought
+> *"A statistically 'good' model can still be socially harmful."* - Richardson, Schultz & Crawford (2019)
 
-> *"A statistically 'good' model can still be socially harmful."*
-> - Richardson, Schultz & Crawford (2019)
+**Before asking HOW to build predictive policing systems, ask: SHOULD we?**
 
-**Before we discuss HOW to build predictive policing systems, we need to ask: SHOULD we?**
-
-## Today's Critical Questions
-
-**Technical Questions:**
-- How do we model crime counts?
-- What spatial features predict crime?
-- How do we validate predictions?
-- Can we outperform baseline methods?
-
-**Critical Questions:**
-- Whose data? Whose crimes?
-- What if the data is "dirty"?
-- Who benefits? Who is harmed?
-- What feedback loops are created?
-- Can technical solutions fix social problems?
-
-**Today's Approach:** We will learn the technical methods AND critically interrogate their use. Both skills are essential for ethical data science.
-
-# Part 2: The Dirty Data Problem
+# The Dirty Data Problem
 
 ## What Is "Dirty Data"?
 
-**Traditional definition** (data mining):
-- Missing data
-- Incorrect data
-- Non-standardized formats
-
 **Extended definition** (Richardson et al. 2019):
-
 > "Data derived from or influenced by **corrupt, biased, and unlawful practices**, including data that has been intentionally manipulated or 'juked,' as well as data that is distorted by individual and societal biases."
 
-## The Many Forms of Dirty Data
-
-**1. Fabricated/Manipulated Data**
-- False arrests (planted evidence)
-- Downgraded crime classifications to "juke the stats"
-- Pressuring victims not to file reports
-
-**2. Systematically Biased Data**
-- Over-policing of certain communities → more recorded "crime"
-- Under-policing of white-collar crime → appears less common
-- Racial profiling → disproportionate stops/arrests
-
-**3. Missing/Incomplete Data**
-- Unreported crimes (especially in over-policed areas with low police trust)
-- Ignored complaints
-- Incomplete records
-
-**4. Proxy Problems**
-- Arrests ≠ crimes committed
-- Calls for service ≠ actual need
-- Gang database ≠ actual gang membership
-
-## Case Study: "Juking the Stats" - Baltimore
-
-**From TV to Reality:**
-
-*The Wire* (2004): "If the crime rate doesn't fall, you most certainly will"
-
-**Baltimore Reality (2008-2018):**
-- 14,000+ serious assaults misrecorded as minor offenses
-- Extensive Gun Trace Task Force corruption
-- Officers robbing residents, planting evidence
-- False arrests, fabricated reports
-- Data manipulation to show "success"
-
-**Result:** 55+ potential lawsuits, thousands of convictions questioned
-
-**Question:** What happens when this data trains a predictive algorithm?
+**Forms:**
+1. **Fabricated/Manipulated:** False arrests, downgraded classifications
+2. **Systematically Biased:** Over-policing → more recorded "crime"
+3. **Missing/Incomplete:** Unreported crimes, ignored complaints
+4. **Proxy Problems:** Arrests ≠ crimes, calls ≠ actual need
 
 ## The Feedback Loop
 
-**The Confirmation Bias Loop:**
+**Confirmation Bias Loop:**
 - Algorithm learns: "Crime happens in neighborhood X"
-- Police sent to neighborhood X
-- More arrests in neighborhood X (regardless of actual crime)
-- Algorithm "confirmed": "We were right about neighborhood X!"
+- Police sent to X → More arrests in X
+- Algorithm "confirmed": "We were right!"
 - Cycle intensifies
 
-# Part 3: Why "Cleaning" Data Isn't Enough
-
-## The Impossibility of Neutral Crime Data
+## Why "Cleaning" Data Isn't Enough
 
 **Crime data is ALWAYS:**
+- Socially constructed
+- Selectively enforced
+- Organizationally filtered
+- Politically shaped
+- Technically mediated
 
-1. **Socially constructed** - Societies define what counts as "crime"
-2. **Selectively enforced** - More resources to some neighborhoods
-3. **Organizationally filtered** - Police priorities, department culture
-4. **Politically shaped** - "Tough on crime" eras, moral panics
-5. **Technically mediated** - 911 systems, CAD software, databases
+**There is no "view from nowhere"** - Crime data reveals **policing patterns**, not just crime
 
-**There is no "view from nowhere"**
-
-Crime data doesn't reveal "crime" - it reveals **policing patterns**
-
-## What Gets Policed vs. What Gets Committed
-
-| Type | Frequency | Policing Intensity | In Predictive Models? |
-|------|-----------|-------------------|---------------------|
-| **Violent Crime** | Moderate | High | ✓ Yes |
-| **Property Crime** | High | High | ✓ Yes |
-| **Drug Offenses** | Very High | Racially Disparate | Some exclude |
-| **White-Collar Crime** | **Very High** | **Very Low** | ✗ Rarely |
-| **Wage Theft** | **Exceeds all robbery** | **Almost None** | ✗ Never |
-| **Corporate Fraud** | **$300B+ annually** | **Minimal** | ✗ Never |
-
-**Question:** What would predictive policing look like if we predicted white-collar crime with the same intensity?
-
-## The Missing Data Problem
-
-**What crime data DOESN'T capture:**
-- Less than **half** of violent crimes reported to police (DOJ estimates)
-- Even fewer property crimes reported
-- Groups with less favorable views of police **less likely to report**
-- Crimes in areas with low police presence go unrecorded
-
-**If you can't trust the labels, you can't trust the model.**
-
-# Part 4: Consequences and Harms
-
-## Who Bears the Costs?
-
-**False Positives (Predicted High Risk, No Crime Occurs)**
-
-**Cost to individuals:**
-- Increased police presence/harassment
-- Stops, searches without cause
-- Trauma, stress
-- Missed opportunities
-
-**Cost to communities:**
-- Broken trust with police
-- Reduced reporting of actual crimes
-- Economic harm (businesses avoid area)
-- Quality of life degradation
-
-**False Negatives (Predicted Low Risk, Crime Occurs)**
-
-**Cost to individuals:**
-- Inadequate police response
-- Victimization
-- Property loss
-- Safety concerns
-
-**Cost to communities:**
-- Unequal protection
-- Perception of being "written off"
-- Actual under-policing
-
-**Who experiences each?**
-- FP: Predominantly Black/Brown communities
-- FN: Also often Black/Brown communities (just different ones)
-
-# Part 5: Technical Foundations
+# Technical Foundations
 
 ## Modeling Workflow
 
-**1. Setup & Data Preparation**
-- Load burglaries (point data)
-- Load abandoned cars (311 calls)
-- **Create fishnet** (500m × 500m grid)
-- Aggregate burglaries to cells
+1. **Setup:** Create fishnet (500m × 500m grid), aggregate burglaries
+2. **Baseline:** Kernel Density Estimation (KDE)
+3. **Features:** Count, k-NN, Local Moran's I, distance to hotspots
+4. **Models:** Poisson → Negative Binomial (if overdispersed)
+5. **Validation:** Spatial cross-validation (LOGO-CV)
+6. **Comparison:** Model vs. KDE baseline
 
-**2. Baseline Comparison**
-- **Kernel Density Estimation (KDE)**
-- Simple spatial smoothing
-- What we need to beat!
+# Local Moran's I
 
-**3. Feature Engineering**
-- **Count** in each cell
-- **k-Nearest Neighbors** (mean distance to 3 nearest)
-- **LISA** (Local Moran's I - identify hot spots)
-- **Distance to hot spots** (significant clusters)
+## Global vs. Local
 
-**4. Count Regression Models**
-- Fit **Poisson regression**
-- Test for **overdispersion**
-- Fit **Negative Binomial** (if needed)
+**Global Moran's I:** One value for entire area (doesn't tell WHERE)
 
-**5. Spatial Cross-Validation**
-- **Leave-One-Group-Out (LOGO)**
-- Train on n-1 districts
-- Test on held-out district
+**Local Moran's I:** One value per location (shows WHERE clusters are)
 
-**6. Model Comparison**
-- Compare to KDE baseline
-- Map predictions vs. actual
-- Analyze errors spatially
-
-# Part 6: Local Spatial Autocorrelation
-
-## Global vs. Local Spatial Autocorrelation
-
-**Global Measures (Moran's I)**
-- One value for entire study area
-- Question: "Is there spatial clustering overall?"
-- Limitation: Doesn't tell us WHERE clusters are
-
-**Local Measures (Local Moran's I)**
-- One value per location
-- Question: "Where are the clusters? Which specific locations?"
-- Advantage: Maps showing WHERE patterns exist
-
-## Spatial Weights Matrix
-
-**Before calculating spatial autocorrelation, we need to define "neighbors"**
-
-**Spatial weights matrix (W):**
-- $w_{ij}$ = weight between locations $i$ and $j$
-- If $i$ and $j$ are neighbors: $w_{ij} > 0$
-- If not neighbors: $w_{ij} = 0$
-
-**Common approaches:**
-1. **Contiguity:** Share a border? (Queen vs. Rook)
-2. **Distance:** Within threshold distance?
-3. **K-nearest neighbors:** Closest k locations
-
-## Queen vs. Rook Contiguity
-
-**Queen Contiguity:** Neighbors share edge OR vertex (corner)
-
-```
-[A][B][C]
-[D][E][F]
-[G][H][I]
-```
-
-**Cell E's Queen neighbors:** B, D, F, H (edges) + A, C, G, I (corners) = 8 neighbors
-
-**Rook Contiguity:** Neighbors share only edges
-
-**Cell E's Rook neighbors:** B, D, F, H = 4 neighbors
-
-## Local Moran's I in R
+## Implementation
 
 ```r
 library(spdep)
 
-# Step 1: Create spatial object
-fishnet_sp <- as_Spatial(fishnet)
-
-# Step 2: Define neighbors (Queen contiguity)
+# Create spatial weights (Queen contiguity)
 neighbors <- poly2nb(fishnet_sp, queen = TRUE)
+weights <- nb2listw(neighbors, style = "W")
 
-# Step 3: Create spatial weights (row-standardized)
-weights <- nb2listw(neighbors, style = "W", zero.policy = TRUE)
+# Calculate Local Moran's I
+local_moran <- localmoran(fishnet$abandoned_cars, weights, zero.policy = TRUE)
 
-# Step 4: Calculate Local Moran's I
-local_moran <- localmoran(
-  fishnet$abandoned_cars,  # Variable of interest
-  weights,                  # Spatial weights
-  zero.policy = TRUE       # Handle cells with no neighbors
+# Identify High-High clusters (hotspots)
+fishnet$hotspot <- ifelse(
+  standardized_value > 0 & 
+  standardized_lag > 0 & 
+  p_value < 0.05, 1, 0
 )
-
-# Step 5: Extract components
-fishnet$local_I <- local_moran[, "Ii"]      # Local I statistic
-fishnet$p_value <- local_moran[, "Pr(z != E(Ii))"]  # P-value
-fishnet$z_score <- local_moran[, "Z.Ii"]    # Z-score
 ```
 
-## Identifying High-High Clusters (Hotspots)
+**Critical interpretation:** Are these "high crime" areas or "high reporting" areas?
 
+# Count Regression
+
+## Why Not OLS?
+
+**Problems with linear regression for counts:**
+- Can predict negative values (impossible!)
+- Assumes constant variance (counts don't)
+- Assumes continuous (counts are discrete)
+
+## Poisson Regression
+
+**Model:**
+$$\log(\lambda_i) = \beta_0 + \beta_1 X_{1i} + ...$$
+
+**Key assumption:** Mean = Variance = $\lambda$
+
+**In R:**
 ```r
-# Standardize the variable for quadrant classification
-fishnet$standardized_value <- scale(fishnet$abandoned_cars)
-
-# Calculate spatial lag (weighted mean of neighbors)
-fishnet$spatial_lag <- lag.listw(weights, fishnet$abandoned_cars)
-fishnet$standardized_lag <- scale(fishnet$spatial_lag)
-
-# Identify High-High clusters
-fishnet$hotspot <- 0  # Default: not a hotspot
-
-# Criteria: 
-# 1. Value above mean (standardized > 0)
-# 2. Neighbors above mean (spatial lag > 0)
-# 3. Statistically significant (p < 0.05)
-
-fishnet$hotspot[
-  fishnet$standardized_value > 0 & 
-  fishnet$standardized_lag > 0 & 
-  fishnet$p_value < 0.05
-] <- 1
+model_pois <- glm(countBurglaries ~ Abandoned_Cars + ..., 
+                  data = fishnet, family = poisson(link = "log"))
 ```
 
-## Critical Interpretation of Hotspots
+## Overdispersion
 
-**What you've identified:**
-Statistically significant clusters of high abandoned car reports
+**Check:** Dispersion = Residual Deviance / DF
+- If > 1: Overdispersion (common with crime data!)
+- If > 2-3: Use Negative Binomial
 
-**What this MIGHT mean:**
-1. **Actual concentrations** of abandoned cars
-2. **Areas where residents report more** (higher civic engagement?)
-3. **Areas with more 311 system awareness**
-4. **Areas with more code enforcement presence**
-5. **Gentrifying areas** with new residents calling on existing conditions
+## Negative Binomial
 
-**Critical question:** Are these "high abandoned car" areas or "high reporting" areas?
-
-# Part 7: Count Regression Fundamentals
-
-## Why Count Regression? The Problem with OLS
-
-**Our outcome:** Burglary counts per grid cell (0, 1, 2, 3, ...)
-
-**Linear regression assumes:**
-- Can predict **negative values** (impossible for counts)
-- Assumes **constant variance** (counts often have variance ≠ mean)
-- Assumes **continuous** outcome (counts are discrete)
-- Assumes **normal errors** (count data is skewed)
-
-## The Poisson Distribution
-
-**Appropriate for count data:**
-
-$$P(Y = k) = \frac{\lambda^k e^{-\lambda}}{k!}$$
-
-**Where:**
-- $Y$ = count outcome (0, 1, 2, ...)
-- $\lambda$ = expected count (mean = variance)
-- $k$ = observed count
-
-**Key property:** Mean = Variance = $\lambda$
-
-## Poisson Regression Model
-
-**Link $\lambda$ to predictors via log link:**
-
-$$\log(\lambda_i) = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + ... + \beta_p X_{pi}$$
-
-**Equivalently:**
-
-$$\lambda_i = \exp(\beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + ... + \beta_p X_{pi})$$
-
-**Why log link?**
-- Ensures $\lambda_i > 0$ (counts can't be negative)
-- Linear relationship on log scale
-- Multiplicative effects on count scale
-
-## Interpreting Poisson Coefficients
-
-**On log scale:**
-$\beta_1$ = change in log(expected count) per unit increase in $X_1$
-
-**On count scale (exponentiate):**
-$\exp(\beta_1)$ = multiplicative effect on expected count
-
-**Examples:**
-
-| $\beta$ | $\exp(\beta)$ | Interpretation |
-|---------|---------------|----------------|
-| 0.14 | 1.15 | 15% increase per unit of X |
-| -0.22 | 0.80 | 20% decrease per unit of X |
-| 0.00 | 1.00 | No effect |
-| 0.69 | 2.00 | Doubling per unit of X |
-
-## Poisson Regression in R
-
-```r
-# Fit Poisson model
-model_poisson <- glm(
-  countBurglaries ~ Abandoned_Cars + Abandoned_Cars.nn + abandoned.isSig.dist,
-  data = fishnet,
-  family = poisson(link = "log")
-)
-
-# View results
-summary(model_poisson)
-
-# Exponentiate coefficients for interpretation
-exp(coef(model_poisson))
-```
-
-## The Overdispersion Problem
-
-**Poisson assumption:** Variance = Mean
-
-**Reality with crime data:** Variance > Mean (often MUCH larger)
-
-**Why overdispersion occurs:**
-1. **Unobserved heterogeneity:** Some areas have unmeasured crime attractors
-2. **Contagion effects:** One crime leads to others (not independent)
-3. **Measurement error:** Counting issues, data quality
-4. **Model misspecification:** Missing important variables
-
-**Check for overdispersion:**
-
-$$\text{Dispersion} = \frac{\text{Residual Deviance}}{\text{Degrees of Freedom}}$$
-
-- If ≈ 1: Poisson is fine
-- If > 1: Overdispersion (common!)
-- If > 2-3: Serious overdispersion → Use Negative Binomial
-
-## Negative Binomial Regression
-
-**Relaxes the variance = mean assumption**
-
-**Adds dispersion parameter ($\alpha$):**
-
+**Relaxes variance = mean assumption:**
 $$\text{Var}(Y_i) = \mu_i + \alpha \mu_i^2$$
 
-**Where:**
-- $\mu_i$ = expected count (same as Poisson)
-- $\alpha$ = dispersion parameter
-
-**If $\alpha = 0$:** Reduces to Poisson
-
-**If $\alpha > 0$:** Allows extra variance (overdispersion)
-
-**Interpretation:** Coefficients interpreted same way as Poisson!
-
-## Negative Binomial in R
-
+**In R:**
 ```r
 library(MASS)
-
-# Fit Negative Binomial model
-model_nb <- glm.nb(
-  countBurglaries ~ Abandoned_Cars + Abandoned_Cars.nn + abandoned.isSig.dist,
-  data = fishnet
-)
-
-# View results
-summary(model_nb)
-
-# Compare to Poisson
-AIC(model_pois)  # e.g., 8234.5
-AIC(model_nb)    # e.g., 6721.3
-
-# Lower AIC = better fit
-# If NegBin AIC much lower → use NegBin
+model_nb <- glm.nb(countBurglaries ~ Abandoned_Cars + ..., data = fishnet)
 ```
 
-## Comparing Poisson vs. Negative Binomial
+**Compare:** Lower AIC = better fit
 
-| Aspect | Poisson | Negative Binomial |
-|--------|---------|-------------------|
-| **Variance assumption** | Var = Mean | Var = μ + αμ² |
-| **Overdispersion** | Cannot handle | Accommodates |
-| **Standard errors** | Underestimated if overdispersed | Correctly estimated |
-| **When to use** | Count data, no overdispersion | Count data with overdispersion |
-| **Crime data** | Rarely appropriate | Usually better |
+# Spatial Cross-Validation
 
-# Part 8: Spatial Cross-Validation
+## Why Standard CV Fails
 
-## Why Standard Cross-Validation Fails for Spatial Data
+**Standard k-fold CV:** Training set includes cells adjacent to test → **spatial leakage**
 
-**Standard k-fold CV:**
-- Randomly split data into k folds
-- Training set includes cells adjacent to test cells
-- **Spatial leakage:** Model learns from neighbors of test set
-- Overly optimistic performance estimates
+## LOGO-CV (Leave-One-Group-Out)
 
-**Solution:** Spatial cross-validation
-
-## Leave-One-Group-Out Cross-Validation (LOGO-CV)
-
-**Principle:** Hold out entire spatial groups, not individual cells
-
-**Process:**
-1. Divide study area into groups (e.g., police districts)
-2. Hold out all cells in District 1
-3. Train model on Districts 2-N
-4. Predict for District 1
-5. Repeat for each district
-
-**Why better:**
-- Tests generalization to truly new areas
-- No spatial leakage between train/test
-- More realistic deployment scenario
-- Conservative performance estimates
-
-## LOGO-CV Implementation
+**Principle:** Hold out entire spatial groups (districts), not individual cells
 
 ```r
-# Get unique districts
-districts <- unique(fishnet$District)
-
-# Initialize results
-cv_results <- list()
-
-# Loop through districts
 for (dist in districts) {
-  # Split data
-  train_data <- fishnet %>% filter(District != dist)
-  test_data <- fishnet %>% filter(District == dist)
+  train <- fishnet %>% filter(District != dist)
+  test <- fishnet %>% filter(District == dist)
   
-  # Fit model on training data
-  model_cv <- glm.nb(
-    countBurglaries ~ Abandoned_Cars + Abandoned_Cars.nn + abandoned.isSig.dist,
-    data = train_data
-  )
-  
-  # Predict on test data
-  test_data$prediction <- predict(model_cv, test_data, type = "response")
-  
-  # Store results
-  cv_results[[dist]] <- test_data
+  model_cv <- glm.nb(countBurglaries ~ ..., data = train)
+  test$prediction <- predict(model_cv, test, type = "response")
 }
-
-# Combine all predictions
-all_predictions <- bind_rows(cv_results)
 ```
 
-## Evaluating CV Performance
+**Why better:** Tests generalization to truly new areas, no spatial leakage
 
-**Common metrics for count models:**
+# Comparison to KDE Baseline
 
-**Mean Absolute Error (MAE):**
-$$MAE = \frac{1}{n}\sum_i |y_i - \hat{y}_i|$$
+## Kernel Density Estimation
 
-**Root Mean Squared Error (RMSE):**
-$$RMSE = \sqrt{\frac{1}{n}\sum_i (y_i - \hat{y}_i)^2}$$
-
-**Mean Error (Bias):**
-$$ME = \frac{1}{n}\sum_i (y_i - \hat{y}_i)$$
-
-```r
-# Calculate metrics by district
-cv_metrics <- all_predictions %>%
-  group_by(District) %>%
-  summarize(
-    MAE = mean(abs(countBurglaries - prediction)),
-    RMSE = sqrt(mean((countBurglaries - prediction)^2)),
-    ME = mean(countBurglaries - prediction)
-  )
-```
-
-# Part 9: Comparison to Baseline (KDE)
-
-## Why Compare to Kernel Density Estimation?
-
-**KDE is the simplest spatial prediction method:**
-- Place smooth "bump" over each crime location
-- Sum all bumps to create risk surface
-- No predictors, no model, just past locations
-
-**Benefits of comparison:**
-1. **Benchmark:** Does our complex model beat a simple baseline?
-2. **Value added:** What do spatial features contribute?
-3. **Practical:** KDE is computationally simpler
-4. **Critical:** Maybe spatial patterns alone explain everything?
-
-**If our model doesn't beat KDE, we're wasting complexity**
-
-## Kernel Density Estimation Explained
-
-**Conceptually:**
-Imagine placing a "hill" over each crime location:
-- Peak at the crime location
-- Height decreases with distance
-- Controlled by **bandwidth** parameter
-
-**Mathematical:**
-
-$$\hat{f}(s) = \frac{1}{n\tau^2}\sum_{i=1}^n K\left(\frac{d(s, s_i)}{\tau}\right)$$
-
-Where:
-- $s$ = location where we estimate density
-- $s_i$ = location of crime $i$
-- $\tau$ = bandwidth (smoothing parameter)
-- $K$ = kernel function (usually Gaussian)
-- $d(s, s_i)$ = distance between $s$ and $s_i$
-
-## Calculating KDE in R
+**Simplest spatial prediction:** Place smooth "bump" over each crime location, sum all bumps
 
 ```r
 library(spatstat)
-
-# Step 1: Convert to point pattern (ppp) object
-burglary_ppp <- as.ppp(
-  X = st_coordinates(burglaries),
-  W = as.owin(st_bbox(chicago_boundary))
-)
-
-# Step 2: Calculate KDE
-kde_surface <- density.ppp(
-  burglary_ppp,
-  sigma = 1000,  # Bandwidth in meters
-  edge = TRUE    # Edge correction
-)
-
-# Step 3: Extract values to fishnet cells
-fishnet$kde_risk <- raster::extract(
-  raster(kde_surface),
-  st_centroid(fishnet)
-)
+kde_surface <- density.ppp(burglary_ppp, sigma = 1000)
 ```
 
-## The Hit Rate Evaluation
+**Why compare?** If our model doesn't beat KDE, we're wasting complexity
+
+## Hit Rate Evaluation
 
 **Goal:** Capture maximum crimes with minimum resources
 
-**Ideal result:**
-If we patrol the **highest-risk 20% of cells** (Category 5):
-- **Model:** Captures 55% of 2018 burglaries
-- **KDE:** Captures 48% of 2018 burglaries
+**Example:** Highest-risk 20% of cells
+- **Model:** Captures 55% of burglaries
+- **KDE:** Captures 48% of burglaries
+- **Random:** ~20% (by chance)
 
-**Interpretation:**
-- Model is better (55% > 48%)
-- But still imperfect (missing 45% of burglaries)
-- Spatial features add value over location alone
+**But ask:** Which neighborhoods are classified as "highest risk"? Who experiences increased surveillance?
 
-**Random patrol:** Would capture ~20% (by chance)
+# Critical Evaluation Framework
 
-## Critical Interpretation of Performance
+## Questions to Ask
 
-**Statistical Success:**
-✓ Model beats KDE  
-✓ Better than random  
-✓ Statistically significant difference
-
-**But ask:**
-1. **Which neighborhoods** are classified as "highest risk"?
-2. **What happens** when police patrol those areas?
-3. **Who experiences** increased surveillance?
-4. **Are we predicting crime or policing patterns?**
-5. **Does "better prediction" = "better public safety"?**
-
-**A technically superior model can still be ethically problematic**
-
-# Part 10: A Framework for Critical Evaluation
-
-## Questions to Ask About Any Predictive Policing System
-
-### 1. **Data Provenance**
-- What time period does training data cover?
-- Were there civil rights investigations during that period?
-- Were there documented cases of data manipulation?
-- What evidence exists that data is accurate?
-
-### 2. **Variable Selection**
-- What specific variables are used?
-- How might each variable embed bias?
-- What's excluded and why?
-- Who made these choices?
-
-### 3. **Validation**
-- How is accuracy measured?
-- What counts as "success"?
-- Are error rates reported by neighborhood?
-- Who experiences false positives vs. false negatives?
-
-### 4. **Deployment**
-- How do predictions translate to action?
-- What discretion do officers have?
-- Are social services actually offered?
-- What are the measurable outcomes?
-
-### 5. **Transparency & Accountability**
-- Is the methodology public?
-- Can community members access their own "risk scores"?
-- Is there a process to challenge predictions?
-- Who monitors for disparate impact?
-
-### 6. **Alternatives**
-- What non-punitive interventions were considered?
-- Could these resources address root causes instead?
-- What would actual community safety investment look like?
+1. **Data Provenance:** What time period? Any civil rights investigations? Data manipulation?
+2. **Variable Selection:** What's included/excluded? How might each embed bias?
+3. **Validation:** How is accuracy measured? Error rates by neighborhood?
+4. **Deployment:** How do predictions translate to action? What are outcomes?
+5. **Transparency:** Is methodology public? Can people challenge predictions?
+6. **Alternatives:** What non-punitive interventions were considered?
 
 ## The Fundamental Question
 
-**Before Asking "Does It Work?", Ask:**
+**Before "Does It Work?", Ask: "Should We Be Doing This At All?"**
 
-**"Should we be doing this at all?"**
-
-Consider:
 - A system that accurately predicts where over-policing will occur is "accurate"
-- A system that reinforces existing inequalities can be "validated"
-- A system that efficiently targets marginalized communities is "effective"
-
-**But:**
-- Is it just?
-- Is it equitable?
-- Does it make communities safer?
-- Does it address root causes?
-- Or does it just manage inequality more efficiently?
+- A system that reinforces inequalities can be "validated"
+- **But:** Is it just? Equitable? Does it make communities safer?
 
 ## What If We Predicted Differently?
 
-**Instead of:**
-- Where will crimes occur? → Deploy police
+**Instead of:** Where will crimes occur? → Deploy police
 
 **Consider:**
 - Where is social services need highest? → Deploy resources
 - Where is community trust lowest? → Invest in legitimacy
 - Where is opportunity lowest? → Economic development
-- Where is housing instability highest? → Stabilize residents
 
 **Same technical methods, different normative goal**
 
@@ -735,51 +232,22 @@ Consider:
 
 ## Technical Skills
 
-1. **Local Moran's I**: Identify spatial clusters and hotspots
-2. **Count Regression**: Poisson and Negative Binomial for crime counts
-3. **Spatial Cross-Validation**: LOGO-CV for geographic data
-4. **KDE Baseline**: Simple spatial smoothing for comparison
-5. **Spatial Features**: Distance to nearest, distance to hotspots
+1. **Local Moran's I:** Identify spatial clusters and hotspots
+2. **Count Regression:** Poisson and Negative Binomial for crime counts
+3. **Spatial Cross-Validation:** LOGO-CV for geographic data
+4. **KDE Baseline:** Simple spatial smoothing for comparison
 
-## Critical Thinking Skills
+## Critical Thinking
 
-1. **Data Provenance**: Always question where data comes from
-2. **Bias Recognition**: Understand how data reflects policing, not just crime
-3. **Feedback Loops**: Recognize how predictions become self-fulfilling
-4. **Ethical Evaluation**: Ask "should we?" not just "can we?"
-5. **Alternatives**: Consider non-punitive uses of predictive models
+1. **Data Provenance:** Always question where data comes from
+2. **Bias Recognition:** Data reflects policing, not just crime
+3. **Feedback Loops:** Predictions become self-fulfilling
+4. **Ethical Evaluation:** Ask "should we?" not just "can we?"
 
 ## Remember
 
-1. **All crime data is socially constructed** - It reflects policing, not just crime
-2. **Historical harms persist in data** - Dirty data trains biased systems
-3. **Vendors are not accountable** - Black boxes prevent oversight
-4. **Feedback loops amplify inequality** - Predictions become self-fulfilling
-5. **Technical accuracy ≠ social justice** - A "good" model can be ethically terrible
-6. **Alternatives exist** - We could predict need instead of threat
-7. **Your choices matter** - How you build models has real consequences
-
-## Common Pitfalls
-
-- **Ignoring data provenance**: Always investigate where data comes from
-- **Assuming data is "clean"**: All crime data reflects bias
-- **Focusing only on accuracy**: Ethical considerations matter more
-- **Not considering alternatives**: Prediction can serve justice, not just policing
-- **Ignoring feedback loops**: Models can reinforce the problems they claim to solve
-
-## Next Steps
-
-- Practice calculating Local Moran's I
-- Fit count regression models on your own data
-- Apply the critical evaluation framework to real systems
-- Consider how predictive models could serve justice instead of punishment
-- Document data provenance and limitations in all your work
-
-# Resources
-
-- **Richardson et al. (2019)**: "Dirty Data, Bad Predictions" - Critical analysis of predictive policing
-- **spdep package**: https://r-spatial.github.io/spdep/
-- **Count regression**: Poisson and Negative Binomial models
-- **Spatial cross-validation**: LOGO-CV for geographic data
-- **White Collar Crime Risk Zones**: Satirical map showing what predictive policing could look like
-
+- All crime data is socially constructed
+- Historical harms persist in data
+- Feedback loops amplify inequality
+- Technical accuracy ≠ social justice
+- Alternatives exist (predict need, not threat)

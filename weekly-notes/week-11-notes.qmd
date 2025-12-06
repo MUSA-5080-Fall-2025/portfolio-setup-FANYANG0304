@@ -1,0 +1,235 @@
+---
+title: "MUSA 5080 Notes #11"
+subtitle: "Week 11: Space-Time Prediction"
+author: "Fan Yang"
+date: "November 17, 2025"
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-location: left
+    theme: cosmo
+execute:
+  warning: false
+  message: false
+---
+
+::: {.callout-note}
+**Week 11: Space-Time Prediction**  
+**Date:** 11/17/2025
+:::
+
+# Overview
+
+This week we learned about space-time prediction using panel data, focusing on bike share demand forecasting. Key concepts include panel data structure, temporal lags, complete panel creation, temporal validation, and building models with both spatial and temporal features.
+
+## Key Learning Objectives
+
+- Understand panel data structure (unit × time period)
+- Create temporal lags for prediction
+- Build complete panels using `expand.grid()`
+- Apply temporal validation (train on past, test on future)
+- Build models with lags, spatial features, and fixed effects
+
+# Panel Data
+
+## What is Panel Data?
+
+**Definition:** Data that follows the same units over multiple time periods
+
+- **Cross-sectional:** Each row = one observation (one snapshot)
+- **Panel:** Each row = unit × time period (repeated observations)
+
+**Example:**
+```r
+# Panel: One row per station-hour
+Station_A, May_1_08:00, 12_trips
+Station_A, May_1_09:00, 15_trips
+Station_B, May_1_08:00,  5_trips
+```
+
+**Key insight:** Can see how demand changes WITHIN stations over time
+
+# Binning Temporal Data
+
+## Why Bin?
+
+**Problem:** Raw trip data has unique timestamps (can't aggregate)
+
+**Solution:** Group into uniform time intervals
+
+```r
+# Hourly binning
+dat <- dat %>%
+  mutate(interval60 = floor_date(ymd_hms(start_time), unit = "hour"))
+
+# Extract time features
+dat <- dat %>%
+  mutate(
+    week = week(interval60),
+    dotw = wday(interval60, label = TRUE),
+    hour = hour(interval60)
+  )
+```
+
+# Temporal Lags
+
+## Creating Lag Variables
+
+**Core idea:** Past demand predicts future demand
+
+```r
+study.panel <- study.panel %>%
+  arrange(from_station_id, interval60) %>%
+  group_by(from_station_id) %>%
+  mutate(
+    lag1Hour = lag(Trip_Count, 1),    # Previous hour
+    lag3Hours = lag(Trip_Count, 3),   # 3 hours ago
+    lag1day = lag(Trip_Count, 24)     # Yesterday same time
+  ) %>%
+  ungroup()
+```
+
+**Important:** Lags calculated WITHIN each station
+
+**Why multiple lags?**
+- `lag1Hour`: Short-term persistence
+- `lag3Hours`: Medium-term trends
+- `lag1day`: Daily periodicity
+
+# Creating Complete Panel
+
+## The Challenge: Missing Observations
+
+**Problem:** Not every station has trips every hour → lag calculations break
+
+**Solution:** Create complete panel with `expand.grid()`
+
+```r
+# Create every possible station-hour combination
+study.panel <- expand.grid(
+  interval60 = unique(dat_census$interval60),
+  from_station_id = unique(dat_census$from_station_id)
+)
+
+# Join to actual trip counts
+study.panel <- study.panel %>%
+  left_join(
+    dat_census %>%
+      group_by(interval60, from_station_id) %>%
+      summarize(Trip_Count = n()),
+    by = c("interval60", "from_station_id")
+  ) %>%
+  mutate(Trip_Count = replace_na(Trip_Count, 0))  # Fill missing with 0
+```
+
+**Now every station-hour exists**, even if Trip_Count = 0
+
+# Temporal Validation
+
+## Critical Rule
+
+**You CANNOT train on the future to predict the past!**
+
+**WRONG:**
+```r
+train <- data %>% filter(week >= 19)  # Later period
+test <- data %>% filter(week < 19)    # Earlier period
+```
+
+**CORRECT:**
+```r
+train <- data %>% filter(week < 19)   # Earlier period
+test <- data %>% filter(week >= 19)   # Later period
+```
+
+**Why:** Real-world scenario - you only have past data to predict future
+
+## Temporal Train/Test Split
+
+```r
+train <- study.panel %>% filter(week < 19)
+test <- study.panel %>% filter(week >= 19)
+
+model <- lm(Trip_Count ~ lag1Hour + lag1day + Temperature + weekend, 
+            data = train)
+predictions <- predict(model, newdata = test)
+```
+
+**Key difference from spatial CV:** Split by time, not space
+
+# Building Models
+
+## Model Progression
+
+1. **Baseline:** Time + Weather
+2. **+ Lags:** Add temporal lags
+3. **+ Spatial:** Add demographics
+4. **+ Fixed Effects:** Station dummies
+5. **+ Holidays:** Holiday indicators
+
+```r
+# Model 1: Baseline
+model1 <- lm(Trip_Count ~ hour + dotw + Temperature + Precipitation, data = train)
+
+# Model 2: + Lags
+model2 <- lm(Trip_Count ~ hour + dotw + Temperature + Precipitation +
+               lag1Hour + lag3Hours + lag1day, data = train)
+
+# Model 4: + Fixed Effects
+model4 <- lm(Trip_Count ~ ... + as.factor(from_station_id), data = train)
+```
+
+## Evaluation: MAE
+
+$$MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat{y}_i|$$
+
+**Interpretation:** "On average, predictions are off by X trips"
+
+**Example results:**
+- Baseline: 8.2 trips
+- + Lags: 6.5 trips (biggest improvement!)
+- + Fixed Effects: 5.3 trips
+
+# Error Analysis
+
+## Key Questions
+
+- **Spatial patterns:** Which stations have highest errors?
+- **Temporal patterns:** When are we most wrong?
+- **Equity:** Do errors vary by demographics?
+
+**Common patterns:**
+- Underpredicting peaks (rush hour)
+- Errors clustered in certain neighborhoods
+- Weekend vs. weekday differences
+
+# Key Takeaways
+
+## Panel Data Skills
+
+1. **Structure:** Each row = unit × time period
+2. **Binning:** Use `floor_date()` for time intervals
+3. **Lags:** Use `lag()` within groups
+4. **Complete panels:** Use `expand.grid()` + fill zeros
+5. **Fixed effects:** Use `as.factor()` for unit baselines
+
+## Temporal Validation
+
+- **Train on past → test on future:** Never use future data
+- **Temporal split:** Filter by time period, not random
+- **Prevents leakage:** Similar to spatial CV but for time
+
+## Common Pitfalls
+
+- Missing observations → must create complete panel
+- Temporal leakage → training on future data
+- Ignoring zeros → zero trips are valid observations
+- Not checking equity → overall accuracy can mask group differences
+
+## Best Practices
+
+- Always create complete panels with `expand.grid()`
+- Validate temporally (train on past, test on future)
+- Analyze errors spatially and temporally
+- Check equity by demographic groups

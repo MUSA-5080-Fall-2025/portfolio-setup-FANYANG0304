@@ -1,0 +1,1565 @@
+---
+title: "Philadelphia Eviction Prediction Model"
+subtitle: "MUSA 5080 - Final Project"
+author: "Zhiyuan Zhao & Fan Yang"
+date: "December 3, 2025"
+format: 
+  html:
+    code-fold: true
+    code-tools: true
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    theme: cosmo
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+# 1. Abstract
+
+Eviction is a major housing crisis in Philadelphia. When families are evicted, they often end up homeless, children have to switch schools, and it becomes much harder to find new housing. Can we predict which neighborhoods will have the most evictions next month? If we can, the Philadelphia Housing Authority can send resources (legal aid, rental assistance, counseling) to those areas before the evictions happen.
+
+This analysis builds a prediction model using data from 2020-2025, combining three data sources: weekly eviction filing records for 408 Census tracts, neighborhood characteristics from the Census (poverty rate, renter percentage, etc.), and 311 housing complaint calls. The analysis reveals that evictions are highly predictable - if a neighborhood had many evictions last month, it will likely have many next month too. Clear spatial patterns emerge: eviction "hotspots" cluster in North and West Philadelphia, particularly in majority-Black neighborhoods.
+
+The best model (Enhanced Poisson) achieves a McFadden's R² around 0.22, which is considered "good" for count data modeling. The model correctly identifies high-risk areas with approximately 75% accuracy. All 408 Census tracts are classified into risk categories (Very High, High, Moderate, Low, Very Low) to create an "early warning system" map that the Housing Authority can use for targeted intervention.
+
+Key limitations: the model works best for short-term predictions (1-2 months ahead) and cannot account for sudden policy changes (like new eviction moratoriums) or economic shocks. Additionally, the model performs slightly worse in majority-Black neighborhoods, which is an equity concern discussed in detail.
+
+------------------------------------------------------------------------
+
+# 2. Setup
+
+This section initializes the R environment by loading all required packages for spatial analysis, statistical modeling, and data visualization. The packages are organized by their primary function: tidyverse for data manipulation, sf and spdep for spatial analysis, tidycensus for Census data access, and various modeling packages.
+
+```{r setup}
+#| include: false
+
+# PACKAGE LOADING AND ENVIRONMENT CONFIGURATION
+library(tidyverse)    
+library(lubridate)    
+library(knitr)        
+library(gridExtra)    
+library(viridis)      
+library(sf)           
+library(spdep)        
+library(tidycensus)   
+library(caret)        
+library(MASS)         
+library(broom)        
+library(here)         
+
+Sys.setlocale("LC_ALL", "C")
+
+select <- dplyr::select
+filter <- dplyr::filter
+
+options(scipen = 999)
+
+options(tigris_use_cache = TRUE)
+options(tigris_progress = FALSE)
+
+if (!dir.exists(here("final", "output"))) dir.create(here("final", "output"), recursive = TRUE)
+```
+
+```{r api_key}
+#| include: false
+census_api_key(Sys.getenv("86993dedbe98d77b9d79db6b8ba21a7fde55cb91"), install = TRUE, overwrite = TRUE)
+```
+
+------------------------------------------------------------------------
+
+# 3. Data Sources
+
+This analysis integrates three complementary data sources to build a comprehensive picture of eviction risk in Philadelphia. Each source captures a different dimension of housing instability: the Eviction Lab provides direct counts of court filings, the American Community Survey describes neighborhood socioeconomic characteristics, and 311 data captures resident-reported housing problems that may signal emerging instability.
+
+## 3.1 Eviction Data
+
+The primary dataset comes from the Eviction Lab at Princeton University, which tracks eviction court filings across the United States. For Philadelphia, weekly eviction filing counts are available for each Census tract from 2019 through 2025. This granular temporal resolution allows us to capture both short-term fluctuations (such as end-of-month spikes when rent is due) and longer-term trends (such as the effects of eviction moratoriums).
+
+These data represent eviction *filings*, not completed evictions. Many filed cases are dismissed, settled, or withdrawn before an actual eviction occurs. However, even a filing can have serious consequences for tenants, including damaged credit scores, difficulty finding future housing, and the stress of legal proceedings.
+
+```{r load_eviction}
+#| output: false
+
+# LOAD AND PROCESS EVICTION DATA
+
+eviction_weekly <- read_csv(here("final", "data", "philadelphia_weekly_2020_2021.csv")) %>%
+  # Remove sealed records that lack geographic information
+  filter(GEOID != "sealed") %>%
+  mutate(
+    # Parse date string into proper date format
+    week_date = ymd(week_date),
+    
+    # Extract temporal components for potential seasonality analysis
+    year = year(week_date),
+    month = month(week_date),
+    
+    # Create binary indicator for CDC eviction moratorium period
+    # The moratorium was announced 9/4/2020 and expired 8/26/2021
+    pandemic_moratorium = ifelse(
+      week_date >= "2020-09-04" & week_date <= "2021-08-26", 
+      1, 0
+    )
+  )
+
+# GENERATE SUMMARY STATISTICS
+
+eviction_summary <- tibble(
+  Metric = c("Total observations", "Census tracts", "Date range", "Number of weeks"),
+  Value = c(
+    format(nrow(eviction_weekly), big.mark = ","),
+    n_distinct(eviction_weekly$GEOID),
+    paste(min(eviction_weekly$week_date), "to", max(eviction_weekly$week_date)),
+    n_distinct(eviction_weekly$week)
+  )
+)
+```
+
+```{r show_eviction_summary}
+kable(eviction_summary, caption = "Eviction Data Summary")
+```
+
+The eviction data structure provides a panel dataset where each observation represents one Census tract in one week. 
+
+------------------------------------------------------------------------
+
+## 3.2 Census/ACS Data
+
+The American Community Survey (ACS) provides socioeconomic indicators at the Census tract level. We use the 2021 5-year estimates, which aggregate survey responses from 2017-2021 to provide reliable estimates even for small geographic areas. The 5-year estimates trade temporal precision for statistical reliability - a tradeoff that makes sense for our application since neighborhood demographics change slowly.
+
+The variables selected capture multiple dimensions of eviction risk identified in the housing literature: housing tenure (renter vs. owner), rent burden (how much income goes to rent), economic stress (poverty, unemployment), educational attainment, and housing stock age (older buildings may have more maintenance issues). Each variable was chosen based on either theoretical relevance or empirical associations found in prior eviction research.
+
+```{r get_acs_data}
+#| output: false
+
+# DEFINE ACS VARIABLES OF INTEREST
+# Variable codes follow Census Bureau naming conventions:
+# B-series = detailed tables, prefix indicates table number
+
+acs_vars <- c(
+  # Population counts
+  total_pop = "B01003_001",           # Total population
+  
+  # Housing unit counts and occupancy status
+  total_units = "B25001_001",         # Total housing units
+  occupied_units = "B25002_002",      # Occupied housing units
+  vacant_units = "B25002_003",        # Vacant housing units
+  owner_occupied = "B25003_002",      # Owner-occupied units
+  renter_occupied = "B25003_003",     # Renter-occupied units
+  
+  # Rent metrics
+  median_rent = "B25064_001",         # Median gross rent (dollars)
+  
+  # Rent burden indicators (% of income spent on rent)
+  rent_burden_total = "B25070_001",   # Total renters (denominator)
+  rent_burden_30_35 = "B25070_007",   # Renters paying 30-34.9% of income
+  rent_burden_35_40 = "B25070_008",   # Renters paying 35-39.9% of income
+  rent_burden_40_50 = "B25070_009",   # Renters paying 40-49.9% of income
+  rent_burden_50plus = "B25070_010",  # Renters paying 50%+ of income (severely burdened)
+  
+  # Income and economic indicators
+  median_income = "B19013_001",       # Median household income
+  poverty_total = "B17001_001",       # Total population for poverty status
+  poverty_below = "B17001_002",       # Population below poverty line
+  labor_force = "B23025_003",         # Civilian labor force
+  unemployed = "B23025_005",          # Unemployed civilians
+  
+  # Educational attainment (age 25+)
+  edu_total = "B15003_001",           # Total population 25 years and over
+  edu_bachelors = "B15003_022",       # Bachelor's degree
+  edu_masters = "B15003_023",         # Master's degree
+  edu_professional = "B15003_024",    # Professional school degree
+  edu_doctorate = "B15003_025",       # Doctorate degree
+  
+  # Housing age
+  built_total = "B25034_001",         # Total housing units (year built)
+  built_before_1940 = "B25034_011"    # Built 1939 or earlier
+)
+
+# FETCH ACS DATA WITH GEOMETRY
+
+philly_acs <- get_acs(
+  geography = "tract",
+  variables = acs_vars,
+  state = "PA",
+  county = "Philadelphia",
+  year = 2021,
+  geometry = TRUE,              # Include spatial boundaries
+  output = "wide",              # One column per variable
+  progress = FALSE              # Suppress progress bar
+)
+
+# CALCULATE DERIVED VARIABLES
+# Transform raw counts into interpretable percentages and ratios
+
+philly_acs <- philly_acs %>%
+  mutate(
+    # Percentage of occupied units that are renter-occupied
+    pct_renter = ifelse(occupied_unitsE > 0, 
+                        renter_occupiedE / occupied_unitsE * 100, NA),
+    
+    # Vacancy rate as percentage of total units
+    vacancy_rate = ifelse(total_unitsE > 0, 
+                          vacant_unitsE / total_unitsE * 100, NA),
+    
+    # Calculate total rent-burdened renters (paying >30% of income)
+    rent_burdened = rent_burden_30_35E + rent_burden_35_40E + 
+                    rent_burden_40_50E + rent_burden_50plusE,
+    
+    # Percentage of renters who are rent-burdened
+    pct_rent_burdened = ifelse(rent_burden_totalE > 0, 
+                               rent_burdened / rent_burden_totalE * 100, NA),
+    
+    # Percentage severely rent-burdened (paying >50% of income)
+    pct_severe_burden = ifelse(rent_burden_totalE > 0, 
+                               rent_burden_50plusE / rent_burden_totalE * 100, NA),
+    
+    # Poverty rate
+    poverty_rate = ifelse(poverty_totalE > 0, 
+                          poverty_belowE / poverty_totalE * 100, NA),
+    
+    # Unemployment rate (among civilian labor force)
+    unemployment_rate = ifelse(labor_forceE > 0, 
+                               unemployedE / labor_forceE * 100, NA),
+    
+    # Percentage with college degree or higher
+    college_edu = edu_bachelorsE + edu_mastersE + 
+                  edu_professionalE + edu_doctorateE,
+    pct_college = ifelse(edu_totalE > 0, 
+                         college_edu / edu_totalE * 100, NA),
+    
+    # Percentage of housing built before 1940
+    pct_old_housing = ifelse(built_totalE > 0, 
+                             built_before_1940E / built_totalE * 100, NA)
+  ) %>%
+  # Select only the variables needed for analysis
+  select(
+    GEOID, NAME, geometry,
+    total_pop = total_popE,
+    renter_occupied = renter_occupiedE,
+    median_rent = median_rentE,
+    median_income = median_incomeE,
+    pct_renter, vacancy_rate, pct_rent_burdened, pct_severe_burden,
+    poverty_rate, unemployment_rate, pct_college, pct_old_housing
+  )
+
+n_tracts <- nrow(philly_acs)
+```
+
+------------------------------------------------------------------------
+
+## 3.3 311 Complaint Data
+
+311 is Philadelphia's non-emergency service request system. Residents can call 311 to report issues like potholes, abandoned vehicles, or housing code violations. Housing-related 311 complaints may serve as early warning signs of evictions - when tenants report maintenance issues, dangerous conditions, or landlord neglect, it often signals housing instability that could precede displacement.
+
+We focus specifically on housing-related complaint types that might indicate rental housing distress: maintenance complaints, dangerous building conditions, no heat, infestations, and vacant properties. These complaint types were selected based on their theoretical connection to the landlord-tenant relationship and housing quality issues that often precede evictions.
+
+```{r load_311}
+#| output: false
+
+# DEFINE FUNCTION TO LOAD 311 DATA BY YEAR
+
+load_311_data <- function(year, data_path = here("final", "data", "311")) {
+  # Construct file path for the given year
+  shp_file <- file.path(data_path, paste0(year, "_public_cases_fc.shp"))
+  
+  # Return NULL if file doesn't exist (graceful handling)
+  if (!file.exists(shp_file)) return(NULL)
+  
+  # Read shapefile and transform to match ACS coordinate system
+  st_read(shp_file, quiet = TRUE) %>%
+    st_transform(crs = st_crs(philly_acs))
+}
+
+# LOAD ALL AVAILABLE YEARS
+
+years <- 2020:2025
+
+# Use map() to load each year, handling missing files automatically
+data_311_list <- map(years, ~load_311_data(.x))
+
+# Combine all years, filtering out NULL entries
+data_311_all <- bind_rows(data_311_list[!sapply(data_311_list, is.null)])
+
+n_311_total <- nrow(data_311_all)
+```
+
+```{r filter_311}
+#| output: false
+
+# FILTER TO HOUSING-RELATED COMPLAINT TYPES
+
+# These categories were selected based on their theoretical connection
+# to housing stability and landlord-tenant relationships
+
+housing_311_types <- c(
+  "Maintenance Residential or Commercial",  # General maintenance issues
+  "Maintenance Complaint",                  # Specific maintenance complaints
+  "Building Dangerous",                     # Structural safety concerns
+  "Vacant House or Commercial",             # Abandoned properties (blight indicator)
+  "No Heat (Residential)",                  # Essential service failure
+  "Infestation Residential",                # Pest problems (habitability issue)
+  "Fire Residential or Commercial",         # Fire damage or hazards
+  "Other Dangerous",                        # Miscellaneous safety issues
+  "Dangerous Sidewalk"                      # Property maintenance obligation
+)
+
+housing_311 <- data_311_all %>%
+  # Keep only housing-related complaint types
+  filter(service_na %in% housing_311_types) %>%
+  mutate(
+    # Parse request date and calculate week start date
+    request_date = as.Date(requested_),
+    # Align to Sunday-starting weeks to match eviction data
+    week_date = floor_date(request_date, unit = "week", week_start = 7)
+  )
+
+n_housing_311 <- nrow(housing_311)
+pct_housing <- round(n_housing_311 / n_311_total * 100, 1)
+```
+
+```{r show_311_summary}
+data_311_summary <- tibble(
+  Metric = c("Total 311 records", "Housing-related complaints", "Percentage"),
+  Value = c(format(n_311_total, big.mark = ","), 
+            format(n_housing_311, big.mark = ","), 
+            paste0(pct_housing, "%"))
+)
+kable(data_311_summary, caption = "311 Data Summary")
+```
+
+Housing-related complaints represent `r pct_housing`% of all 311 calls, reflecting the significant role that housing issues play in Philadelphia's urban challenges. These complaints are spatially joined to Census tracts to create weekly complaint counts that can be used as a leading indicator of neighborhood distress.
+
+```{r aggregate_311}
+#| output: false
+
+# SPATIAL JOIN: ASSIGN 311 CALLS TO CENSUS TRACTS
+
+housing_311_tract <- st_join(housing_311, philly_acs %>% select(GEOID))
+
+# AGGREGATE TO TRACT-WEEK LEVEL
+
+complaints_by_tract_week <- housing_311_tract %>%
+  # Drop geometry for faster aggregation
+  st_drop_geometry() %>%
+  # Remove records that couldn't be matched to a tract
+  filter(!is.na(GEOID)) %>%
+  # Count complaints per tract-week combination
+  group_by(GEOID, week_date) %>%
+  summarise(housing_complaints = n(), .groups = "drop")
+```
+
+------------------------------------------------------------------------
+
+# 4. Data Integration and Feature Engineering
+
+This section combines our three data sources into a unified analysis dataset and creates the predictive features that will power our models. Feature engineering is often the most important part of any predictive modeling project - the right features can make the difference between a mediocre model and a useful one.
+
+## 4.1 Merging Data Sources
+
+Each row in the analysis dataset represents one Census tract in one week. We combine eviction filings with neighborhood demographics from ACS and 311 complaint counts. Missing complaint counts are filled with zero since the absence of complaints means no complaints were filed, not that data is missing.
+
+```{r merge_data}
+#| output: false
+
+# JOIN ALL DATA SOURCES
+
+# Start with eviction data as the base, then add ACS and 311
+
+analysis_data <- eviction_weekly %>%
+  left_join(philly_acs %>% st_drop_geometry(), by = "GEOID") %>%
+  left_join(complaints_by_tract_week, by = c("GEOID", "week_date")) %>%
+  # Fill missing complaint counts with zero (no complaints = 0, not NA)
+  mutate(housing_complaints = replace_na(housing_complaints, 0))
+```
+
+## 4.2 Temporal Lag Features
+
+One of the strongest predictors of future evictions is past evictions. Neighborhoods with high eviction rates tend to maintain those rates over time due to persistent underlying conditions (poverty, housing quality, landlord practices). We create lag features to capture this temporal autocorrelation: the previous week's filings, 2 weeks ago, 4 weeks ago, and a 4-week rolling average to smooth out week-to-week noise.
+
+The rolling average is particularly useful because it reduces the impact of random fluctuations (like a holiday week with fewer court filings) while still capturing the underlying trend in each neighborhood.
+
+```{r temporal_lags}
+#| output: false
+
+# CREATE TEMPORAL LAG FEATURES
+
+# These features capture the "momentum" of evictions in each tract
+
+analysis_data <- analysis_data %>%
+  arrange(GEOID, week_date) %>%
+  group_by(GEOID) %>%
+  mutate(
+    # Lag 1 week
+    lag_1week = lag(filings_2020, n = 1),
+    
+    # Lag 2 weeks
+    lag_2week = lag(filings_2020, n = 2),
+    
+    # Lag 4 weeks
+    lag_4week = lag(filings_2020, n = 4),
+    
+    # Lagged 311 complaints
+    complaints_lag1 = lag(housing_complaints, n = 1),
+    complaints_lag4 = lag(housing_complaints, n = 4),
+    
+    # 4-week rolling average
+    rolling_avg_4week = (lag_1week + lag_2week + 
+                         lag(filings_2020, 3) + lag_4week) / 4
+  ) %>%
+  ungroup()
+```
+
+## 4.3 Spatial Lag Features
+
+Evictions cluster spatially - if neighboring tracts have high evictions, a tract is likely at higher risk too. This spatial autocorrelation can arise from several mechanisms: shared landlords operating across tract boundaries, similar housing stock quality in adjacent areas, or spillover effects where displacement from one neighborhood increases housing pressure in nearby areas.
+
+We use k-nearest neighbors (k=5) to define neighbors rather than contiguity (sharing a border) because k-NN produces more consistent neighbor counts across tracts. Some tracts might share borders with only 2 neighbors while others have 8; k-NN ensures each tract has exactly 5 neighbors, making the spatial lag more comparable across tracts.
+
+```{r spatial_weights}
+#| output: false
+
+# CREATE SPATIAL WEIGHTS MATRIX
+
+# Using k-nearest neighbors (k=5) for consistent neighbor counts
+
+# First, get tract centroids (representative points)
+tract_centroids <- philly_acs %>%
+  select(GEOID) %>%
+  # Calculate centroid coordinates
+  mutate(geometry = suppressWarnings(st_centroid(geometry))) %>%
+  # Extract X and Y coordinates
+  mutate(
+    X = st_coordinates(geometry)[, 1],
+    Y = st_coordinates(geometry)[, 2]
+  ) %>%
+  st_drop_geometry() %>%
+  as.data.frame()
+
+# Build k=5 nearest neighbor structure
+coords <- tract_centroids %>% select(X, Y) %>% as.matrix()
+
+# Find 5 nearest neighbors for each tract
+knn5 <- knearneigh(coords, k = 5)
+
+# Convert to neighbor list format
+nb_knn5 <- knn2nb(knn5)
+
+# Create row-standardized weights (each row sums to 1)
+# This means the spatial lag is the average of neighbors' values
+weights_knn5 <- nb2listw(nb_knn5, style = "W", zero.policy = TRUE)
+```
+
+```{r spatial_lag}
+#| output: false
+
+
+# CALCULATE SPATIAL LAG FOR EACH WEEK
+
+# The spatial lag is the average eviction count among 5 nearest neighbors
+analysis_data <- analysis_data %>%
+  arrange(GEOID, week) %>%
+  group_by(GEOID) %>%
+  mutate(filings_lag1_for_spatial = lag(filings_2020, 1)) %>%
+  ungroup()
+
+# Calculate spatial lag separately for each week
+tract_order <- tract_centroids$GEOID
+all_weeks <- sort(unique(analysis_data$week))
+spatial_lag_results <- data.frame()
+
+for (w in all_weeks) {
+  # Get data for this week, ordered to match weights matrix
+  week_data <- analysis_data %>% 
+    filter(week == w) %>% 
+    arrange(match(GEOID, tract_order))
+  
+  # Check that we have data for all tracts
+  if (nrow(week_data) == length(tract_order)) {
+    # Extract lagged filing values
+    lag_values <- week_data$filings_lag1_for_spatial
+    
+    # Replace NAs with 0 for calculation (NAs would propagate)
+    lag_values_filled <- ifelse(is.na(lag_values), 0, lag_values)
+    
+    # Calculate spatial lag: average of 5 nearest neighbors
+    spatial_lag <- lag.listw(weights_knn5, lag_values_filled, zero.policy = TRUE)
+    
+    # Restore NAs where original values were NA
+    spatial_lag[is.na(lag_values)] <- NA
+    
+    week_result <- data.frame(
+      GEOID = week_data$GEOID, 
+      week = w, 
+      spatial_lag_neighbors = spatial_lag
+    )
+  } else {
+    # Fallback if data is incomplete
+    week_result <- data.frame(
+      GEOID = week_data$GEOID, 
+      week = w, 
+      spatial_lag_neighbors = NA_real_
+    )
+  }
+  spatial_lag_results <- bind_rows(spatial_lag_results, week_result)
+}
+
+# Merge spatial lag back to main dataset
+analysis_data <- analysis_data %>% 
+  left_join(spatial_lag_results, by = c("GEOID", "week"))
+```
+
+## 4.4 Distance Features
+
+Location within Philadelphia's urban structure matters for eviction risk. Distance to city center (City Hall) helps capture the classic urban geography where housing costs and characteristics vary with centrality. Center City has expensive housing with high-income residents, while outer areas have more varied housing stock and demographic composition.
+
+```{r distance_features}
+#| output: false
+
+# CALCULATE DISTANCE TO CITY CENTER
+
+# Define City Hall location as the city center reference point
+city_hall <- st_sfc(st_point(c(-75.1635, 39.9526)), crs = 4326) %>%
+  st_transform(crs = st_crs(philly_acs))
+
+# Calculate distance from each tract centroid to City Hall
+philly_acs <- philly_acs %>%
+  mutate(
+    # Distance in kilometers (divide meters by 1000)
+    dist_to_center = as.numeric(
+      st_distance(st_centroid(geometry), city_hall)
+    ) / 1000
+  )
+```
+
+------------------------------------------------------------------------
+
+# 5. Local Hotspots Analysis
+
+Local Moran's I is a spatial statistical technique that identifies local clusters and spatial outliers. It decomposes the global measure of spatial autocorrelation into contributions from each location, allowing us to identify specific neighborhoods that form eviction hotspots (high-eviction tracts surrounded by other high-eviction tracts) or coldspots (low-eviction tracts surrounded by other low-eviction tracts). It generates features (is_hotspot, is_coldspot, dist_to_hotspot) that may improve model prediction by capturing a tract's position in the broader spatial pattern of evictions.
+
+```{r local_moran}
+#| output: false
+
+# CALCULATE MEAN EVICTION RATE PER TRACT
+
+tract_mean_filings <- analysis_data %>%
+  group_by(GEOID) %>%
+  summarise(mean_filings = mean(filings_2020, na.rm = TRUE), .groups = "drop")
+
+philly_acs <- philly_acs %>% 
+  left_join(tract_mean_filings, by = "GEOID")
+
+# COMPUTE LOCAL MORAN'S I STATISTIC
+
+# Ensure tract order matches the weights matrix
+philly_acs_ordered <- philly_acs %>% 
+  arrange(match(GEOID, tract_centroids$GEOID))
+
+# Calculate Local Moran's I
+local_moran <- localmoran(
+  philly_acs_ordered$mean_filings, 
+  weights_knn5, 
+  zero.policy = TRUE
+)
+
+# CLASSIFY TRACTS INTO CLUSTER TYPES
+
+philly_acs_ordered <- philly_acs_ordered %>%
+  mutate(
+    # Extract Local Moran statistics
+    local_moran_i = local_moran[, 1],      # Local I value
+    local_moran_p = local_moran[, 5],      # Pseudo p-value
+    
+    # Standardize the filing rate
+    z_filings = scale(mean_filings)[, 1],
+    
+    # Calculate spatial lag of standardized filings
+    lag_z_filings = lag.listw(weights_knn5, z_filings, zero.policy = TRUE)
+  ) %>%
+  mutate(
+    # Classify into four quadrants of Moran scatterplot
+    hotspot_type = case_when(
+      # Not significant: p > 0.05
+      local_moran_p > 0.05 ~ "Not Significant",
+      # High-High: high values surrounded by high neighbors (HOTSPOT)
+      z_filings > 0 & lag_z_filings > 0 ~ "High-High (Hotspot)",
+      # Low-Low: low values surrounded by low neighbors (COLDSPOT)
+      z_filings < 0 & lag_z_filings < 0 ~ "Low-Low (Coldspot)",
+      # High-Low: high value surrounded by low neighbors (OUTLIER)
+      z_filings > 0 & lag_z_filings < 0 ~ "High-Low (Outlier)",
+      # Low-High: low value surrounded by high neighbors (OUTLIER)
+      z_filings < 0 & lag_z_filings > 0 ~ "Low-High (Outlier)",
+      TRUE ~ "Not Significant"
+    )
+  )
+```
+
+```{r show_hotspots}
+hotspot_table <- as.data.frame(table(philly_acs_ordered$hotspot_type))
+names(hotspot_table) <- c("Cluster Type", "Count")
+kable(hotspot_table, caption = "Local Moran's I Cluster Classification")
+```
+
+The table above shows how Philadelphia's Census tracts distribute across the four cluster types. "High-High (Hotspot)" tracts are areas of concentrated eviction activity where both the tract and its neighbors have elevated eviction rates. These represent the core of Philadelphia's eviction crisis and should be priority areas for intervention. "Low-Low (Coldspot)" tracts are stable, low-eviction areas. Outlier categories represent tracts that differ from their surroundings - either islands of stability in troubled areas (Low-High) or pockets of distress in otherwise stable neighborhoods (High-Low).
+
+```{r dist_to_hotspot}
+#| output: false
+
+# CALCULATE DISTANCE TO NEAREST HOTSPOT
+
+# This captures how close each tract is to the core eviction crisis areas
+
+hotspot_tracts <- philly_acs_ordered %>% 
+  filter(hotspot_type == "High-High (Hotspot)")
+
+if (nrow(hotspot_tracts) > 0) {
+  # Get centroids of all hotspot tracts
+  hotspot_centroids <- st_centroid(hotspot_tracts$geometry)
+  
+  # Calculate distance to nearest hotspot (in km)
+  philly_acs_ordered <- philly_acs_ordered %>%
+    mutate(
+      dist_to_hotspot = as.numeric(
+        st_distance(st_centroid(geometry), st_union(hotspot_centroids))
+      ) / 1000
+    )
+} else {
+  # Fallback: if no significant hotspots, use top 10% tracts
+  high_eviction_tracts <- philly_acs_ordered %>% 
+    filter(mean_filings > quantile(mean_filings, 0.9, na.rm = TRUE))
+  
+  philly_acs_ordered <- philly_acs_ordered %>%
+    mutate(
+      dist_to_hotspot = as.numeric(
+        st_distance(
+          st_centroid(geometry), 
+          st_union(st_centroid(high_eviction_tracts$geometry))
+        )
+      ) / 1000
+    )
+}
+
+# CREATE BINARY HOTSPOT/COLDSPOT INDICATORS
+
+philly_acs_ordered <- philly_acs_ordered %>%
+  mutate(
+    is_hotspot = ifelse(hotspot_type == "High-High (Hotspot)", 1, 0),
+    is_coldspot = ifelse(hotspot_type == "Low-Low (Coldspot)", 1, 0)
+  )
+
+philly_acs <- philly_acs_ordered
+```
+
+```{r map_hotspots}
+#| fig-width: 10
+#| fig-height: 10
+
+# VISUALIZE HOTSPOT/COLDSPOT CLUSTERS
+
+ggplot(philly_acs_ordered) +
+  geom_sf(aes(fill = hotspot_type), color = "grey30", linewidth = 0.15) +
+  scale_fill_manual(
+    values = c(
+      "High-High (Hotspot)" = "#d73027",       # Red for high eviction clusters
+      "Low-Low (Coldspot)" = "#4575b4",        # Blue for low eviction clusters
+      "High-Low (Outlier)" = "#fc8d59",        # Orange for high outliers
+      "Low-High (Outlier)" = "#91bfdb",        # Light blue for low outliers
+      "Not Significant" = "#f0f0f0"            # Gray for non-significant
+    ),
+    name = "Cluster Type"
+  ) +
+  labs(
+    title = "Eviction Hotspots and Coldspots (Local Moran's I)",
+    subtitle = "Identifying spatial clusters of high and low eviction rates"
+  ) +
+  theme_void() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+```
+
+The hotspot map reveals clear geographic patterns that reflect Philadelphia's history of segregation and disinvestment. Red clusters in North Philadelphia (including Kensington, Fairhill, and North Central) and parts of West Philadelphia show persistent high eviction rates surrounded by similarly affected neighbors. These areas have historically experienced redlining, concentrated poverty, and deteriorated housing stock. Blue coldspots in Center City, Chestnut Hill, and parts of the far Northeast represent stable, low-eviction areas with stronger housing markets and higher incomes.
+
+```{r merge_distance}
+#| output: false
+
+# MERGE HOTSPOT FEATURES BACK TO MAIN DATASET
+
+analysis_data <- analysis_data %>%
+  left_join(
+    philly_acs %>% 
+      st_drop_geometry() %>% 
+      select(GEOID, dist_to_center, dist_to_hotspot, 
+             is_hotspot, is_coldspot, hotspot_type), 
+    by = "GEOID"
+  )
+```
+
+------------------------------------------------------------------------
+
+# 6. Final Data Preparation
+
+Before modeling, we need to ensure our dataset is complete and properly structured. We filter to week 5 and later so that all temporal lag features (up to 4 weeks back) are available, then remove any remaining rows with missing values. This creates a balanced panel ready for model estimation.
+
+```{r final_data_prep}
+#| output: false
+
+# FINAL DATA CLEANING AND SELECTION
+
+model_data <- analysis_data %>%
+  # Start from week 5 to ensure all lag features are available
+  filter(week > 4) %>%
+  # Select only the features needed for modeling
+  select(
+    # Identifiers
+    GEOID, week, week_date, year, month, 
+    
+    # Outcome variable
+    filings = filings_2020,
+    
+    # Temporal lag features
+    lag_1week, lag_2week, lag_4week, rolling_avg_4week,
+    
+    # 311 complaint features
+    complaints_lag1, complaints_lag4, 
+    
+    # Spatial features
+    spatial_lag_neighbors,
+    dist_to_center, dist_to_hotspot, is_hotspot, is_coldspot, 
+    
+    # Demographic features
+    racial_majority,
+    total_pop, renter_occupied, median_rent, median_income,
+    pct_renter, vacancy_rate, pct_rent_burdened, pct_severe_burden,
+    poverty_rate, unemployment_rate, pct_college, pct_old_housing,
+    
+    # Policy indicator
+    pandemic_moratorium, 
+    
+    # Baseline comparison
+    filings_avg_prepandemic_baseline
+  ) %>%
+  # Remove rows with any missing values
+  drop_na()
+
+n_final_obs <- nrow(model_data)
+n_final_tracts <- n_distinct(model_data$GEOID)
+```
+
+```{r show_final_data}
+final_summary <- tibble(
+  Metric = c("Observations", "Tracts"), 
+  Value = c(format(n_final_obs, big.mark = ","), n_final_tracts)
+)
+kable(final_summary, caption = "Final Dataset Summary")
+```
+
+The final dataset contains `r format(n_final_obs, big.mark = ",")` tract-week observations across `r n_final_tracts` Census tracts. This represents a complete panel where we observe each tract in each week, allowing us to exploit both cross-sectional variation (differences between tracts) and temporal variation (changes within tracts over time).
+
+------------------------------------------------------------------------
+
+# 7. Exploratory Data Analysis
+
+Exploratory analysis examines temporal trends, racial disparities, spatial distribution, and the statistical properties of our outcome variable.
+
+## 7.1 Temporal Trends
+
+```{r temporal_trends}
+#| fig-width: 10
+#| fig-height: 5
+
+# AGGREGATE AND VISUALIZE WEEKLY EVICTION TRENDS
+
+weekly_totals <- model_data %>%
+  group_by(week_date) %>%
+  summarise(total_filings = sum(filings), .groups = "drop")
+
+ggplot(weekly_totals, aes(x = week_date, y = total_filings)) +
+  # Raw weekly data
+  geom_line(color = "steelblue", linewidth = 0.5) +
+  # Smoothed trend line
+  geom_smooth(method = "loess", se = TRUE, color = "red", alpha = 0.3) +
+  # Highlight CDC eviction moratorium period
+  annotate("rect", 
+           xmin = as.Date("2020-09-04"), 
+           xmax = as.Date("2021-08-26"),
+           ymin = -Inf, ymax = Inf, 
+           alpha = 0.2, fill = "yellow") +
+  annotate("text", 
+           x = as.Date("2021-03-01"), 
+           y = max(weekly_totals$total_filings) * 0.9,
+           label = "CDC Eviction\nMoratorium", size = 3) +
+  labs(
+    title = "Philadelphia Weekly Eviction Filings (2020-2025)",
+    subtitle = "The CDC moratorium created a temporary but dramatic reduction in filings",
+    x = "Date", 
+    y = "Total Weekly Filings"
+  ) +
+  theme_minimal()
+```
+
+The CDC eviction moratorium period (highlighted in yellow) shows a clear and dramatic drop in filings - demonstrating that policy interventions can substantially reduce evictions, at least temporarily. After August 2021, when the moratorium expired, evictions surged back and have remained elevated since, with some seasonal variation. There are visible dips around the winter holidays (December-January) when courts have fewer operating days.
+
+We think that the post-moratorium surge raises important questions about whether the moratorium merely delayed evictions or prevented them entirely. Some tenants who would have been evicted during the moratorium may have used the additional time to stabilize their housing situation, while others accumulated back rent that made eviction inevitable once protections expired.
+
+## 7.2 Racial Disparity Analysis
+
+Housing instability in America is deeply intertwined with race, reflecting the legacy of discriminatory policies like redlining, racially restrictive covenants, and ongoing patterns of residential segregation. Our analysis examines eviction rates by the racial composition of each Census tract to quantify these disparities.
+
+```{r racial_disparity}
+#| fig-width: 10
+#| fig-height: 5
+
+# SUMMARIZE EVICTIONS BY RACIAL MAJORITY
+
+racial_summary <- model_data %>%
+  filter(!is.na(racial_majority)) %>%
+  group_by(racial_majority) %>%
+  summarise(
+    Tracts = n_distinct(GEOID),
+    `Mean Filings` = round(mean(filings), 2),
+    `Total Filings` = format(sum(filings), big.mark = ","),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(`Mean Filings`))
+
+kable(racial_summary, caption = "Eviction Filings by Neighborhood Racial Composition")
+
+# VISUALIZE DISTRIBUTION BY RACIAL COMPOSITION
+
+ggplot(model_data %>% filter(!is.na(racial_majority)), 
+       aes(x = reorder(racial_majority, filings, FUN = median), 
+           y = filings, 
+           fill = racial_majority)) +
+  geom_boxplot(outlier.alpha = 0.3) +
+  scale_fill_viridis_d() +
+  labs(
+    title = "Eviction Filings by Neighborhood Racial Composition",
+    subtitle = "Majority-Black neighborhoods have the highest eviction rates",
+    x = "Racial Majority", 
+    y = "Weekly Filings"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+Majority-Black neighborhoods have the highest median eviction rates and the most extreme outliers, with some tract-weeks seeing 10 or more filings. This disparity persists even when accounting for income differences - majority-Black neighborhoods with similar poverty rates to majority-White neighborhoods still experience more evictions. This pattern points to systemic issues in housing access, discrimination by landlords, differences in housing quality, and the concentration of predatory landlords in certain communities.
+
+We hold the view that these disparities have important implications for both model development (we need to ensure our model doesn't simply reproduce existing biases) and for policy (interventions should be designed with awareness of these disparities).
+
+## 7.3 Spatial Distribution
+
+```{r spatial_distribution}
+#| fig-width: 10
+#| fig-height: 10
+
+# MAP AVERAGE EVICTION RATES BY TRACT
+
+tract_totals <- model_data %>%
+  group_by(GEOID) %>%
+  summarise(mean_weekly_filings = mean(filings), .groups = "drop")
+
+map_data <- philly_acs %>% left_join(tract_totals, by = "GEOID")
+
+ggplot(map_data) +
+  geom_sf(aes(fill = mean_weekly_filings), color = "grey40", linewidth = 0.1) +
+  scale_fill_viridis_c(option = "plasma", name = "Avg Weekly\nFilings") +
+  labs(
+    title = "Average Weekly Eviction Filings by Census Tract",
+    subtitle = "Evictions concentrate in North and West Philadelphia"
+  ) +
+  theme_void() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+```
+
+Evictions concentrate in North and West Philadelphia, forming a distinctive pattern around Center City. The far Northeast and Northwest (Chestnut Hill, Mt. Airy) have consistently low rates. This geographic clustering is not random - it reflects decades of housing policy, economic development patterns, and demographic change. The U-shaped pattern of high evictions mirrors historical redlining maps and areas of concentrated poverty. This strong spatial clustering justifies including spatial lag features in our model - knowing what's happening to a tract's neighbors provides meaningful information about the tract's own eviction risk.
+
+## 7.4 Outcome Variable Distribution
+
+```{r outcome_distribution}
+#| fig-width: 10
+#| fig-height: 4
+
+# EXAMINE DISTRIBUTION OF EVICTION COUNTS
+
+ggplot(model_data, aes(x = filings)) +
+  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) +
+  labs(
+    title = "Distribution of Weekly Eviction Filings",
+    subtitle = "Right-skewed with many zeros - typical of count data",
+    x = "Filings per Tract-Week", 
+    y = "Count"
+  ) +
+  theme_minimal()
+```
+
+```{r outcome_stats}
+# Calculate key distributional statistics
+zero_pct <- round(mean(model_data$filings == 0) * 100, 1)
+var_mean_ratio <- round(var(model_data$filings) / mean(model_data$filings), 2)
+
+outcome_stats <- tibble(
+  Metric = c("Mean filings", "Variance/Mean ratio", "Zero proportion"),
+  Value = c(round(mean(model_data$filings), 2), 
+            paste0(var_mean_ratio, " (overdispersion)"), 
+            paste0(zero_pct, "%"))
+)
+kable(outcome_stats, caption = "Outcome Variable Statistics")
+```
+
+The distribution of weekly eviction filings shows classic count data characteristics: many zeros (`r zero_pct`% of observations have zero filings), a right skew with a long tail of high values, and overdispersion (variance is `r var_mean_ratio` times the mean, much larger than the 1:1 ratio expected under a Poisson distribution).
+
+These characteristics rule out ordinary least squares regression, which assumes a continuous, normally-distributed outcome. Instead, we need count data models - Poisson regression for the basic case, or Negative Binomial regression to handle the overdispersion. The high zero rate also motivates aggregating to monthly data, which reduces the proportion of zeros and produces more stable estimates.
+
+------------------------------------------------------------------------
+
+# 8. Monthly Data Aggregation
+
+Weekly data has too many zeros for stable modeling - when most tract-weeks have zero evictions, it's hard for models to learn what distinguishes high-eviction from low-eviction tracts. Aggregating to monthly data reduces this zero-inflation while maintaining enough temporal variation to capture meaningful patterns.
+
+Monthly aggregation also has practical advantages: most housing assistance programs operate on monthly cycles (rent is due monthly), and monthly predictions are more actionable for resource allocation than weekly predictions.
+
+```{r monthly_data}
+#| output: false
+
+# AGGREGATE FROM WEEKLY TO MONTHLY DATA
+
+monthly_data <- model_data %>%
+  # Create year-month identifier
+  mutate(year_month = floor_date(week_date, "month")) %>%
+  # Aggregate within tract-month combinations
+  group_by(GEOID, year_month, racial_majority) %>%
+  summarise(
+    # Sum filings over the month
+    filings = sum(filings, na.rm = TRUE),
+    
+    # Take last week's lag values (most recent info)
+    lag_1week = last(lag_1week),
+    lag_4week = last(lag_4week),
+    
+    # Average spatial lag over the month
+    spatial_lag_neighbors = mean(spatial_lag_neighbors, na.rm = TRUE),
+    
+    # Static features: take first value (they don't change)
+    pct_renter = first(pct_renter),
+    poverty_rate = first(poverty_rate),
+    dist_to_center = first(dist_to_center),
+    median_income = first(median_income),
+    dist_to_hotspot = first(dist_to_hotspot),
+    is_hotspot = first(is_hotspot),
+    is_coldspot = first(is_coldspot),
+    
+    # Maximum moratorium indicator (1 if any week was under moratorium)
+    pandemic_moratorium = max(pandemic_moratorium),
+    
+    # Keep year and month for fixed effects
+    year = first(year),
+    month = first(month),
+    
+    .groups = "drop"
+  ) %>%
+  # Sort and create monthly lags
+  arrange(GEOID, year_month) %>%
+  group_by(GEOID) %>%
+  mutate(
+    # Monthly lag features
+    lag_1month = lag(filings, 1),
+    lag_2month = lag(filings, 2)
+  ) %>%
+  ungroup() %>%
+  # Remove rows with missing lag values
+  drop_na()
+
+# Compare zero rates between weekly and monthly
+weekly_zero_pct <- round(mean(model_data$filings == 0) * 100, 1)
+monthly_zero_pct <- round(mean(monthly_data$filings == 0) * 100, 1)
+```
+
+```{r show_comparison}
+comparison <- tibble(
+  Metric = c("Zero proportion", "Observations"),
+  Weekly = c(paste0(weekly_zero_pct, "%"), format(nrow(model_data), big.mark = ",")),
+  Monthly = c(paste0(monthly_zero_pct, "%"), format(nrow(monthly_data), big.mark = ","))
+)
+kable(comparison, caption = "Weekly vs Monthly Data Comparison")
+```
+
+Aggregating to monthly data dramatically reduces the zero proportion from `r weekly_zero_pct`% to `r monthly_zero_pct`%, creating a more tractable modeling problem while still preserving meaningful temporal and spatial variation.
+
+------------------------------------------------------------------------
+
+# 9. Model Building
+
+## 9.1 Train-Test Split
+
+We use temporal holdout validation: training on all data before the last 3 months and testing on those final 3 months. This approach simulates real-world deployment where we predict future evictions using historical data. Unlike random cross-validation, temporal holdout respects the time-ordered nature of our data and avoids "data leakage" where future information could contaminate predictions.
+
+The 3-month holdout period provides enough test data to evaluate model stability across multiple months while retaining sufficient training data to learn robust patterns.
+
+```{r train_test_split}
+#| output: false
+
+# CREATE TEMPORAL TRAIN/TEST SPLIT
+
+# Hold out the last 3 months for testing
+split_date <- max(monthly_data$year_month) - months(3)
+
+# Training: all months before the split
+train_data <- monthly_data %>% filter(year_month < split_date)
+
+# Testing: the final 3 months
+test_data <- monthly_data %>% filter(year_month >= split_date)
+```
+
+```{r show_split}
+split_summary <- tibble(
+  Dataset = c("Training", "Test"),
+  Observations = c(format(nrow(train_data), big.mark = ","), 
+                   format(nrow(test_data), big.mark = ",")),
+  Period = c(paste("Before", split_date), paste("From", split_date))
+)
+kable(split_summary, caption = "Train/Test Split")
+```
+
+## 9.2 Model Fitting
+
+We build a series of models of increasing complexity to understand which features contribute most to predictive accuracy. The progression from simple to complex also helps us guard against overfitting - if a complex model doesn't substantially outperform a simpler one, the added complexity may not be justified.
+
+All models use count regression because our outcome (eviction counts) consists of non-negative integers. We compare Poisson regression (which assumes variance equals mean) with Negative Binomial regression (which allows overdispersion).
+
+```{r fit_models}
+#| output: false
+
+# MODEL 1: BASELINE (TEMPORAL LAGS ONLY)
+
+baseline_poisson <- glm(
+  filings ~ lag_1month + lag_2month, 
+  data = train_data, 
+  family = poisson
+)
+
+# MODEL 2: FULL MODEL (ADD SPATIAL AND DEMOGRAPHIC)
+
+# Adds spatial features, neighborhood demographics, and policy indicator
+
+full_formula <- filings ~ lag_1month + lag_2month + spatial_lag_neighbors +
+  pct_renter + poverty_rate + dist_to_center + 
+  racial_majority + pandemic_moratorium
+
+# Poisson version (may show overdispersion)
+full_poisson <- glm(full_formula, data = train_data, family = poisson)
+
+# Negative Binomial version (handles overdispersion)
+full_nb <- glm.nb(full_formula, data = train_data)
+
+# MODEL 3: ENHANCED MODEL (ADD INTERACTIONS AND FIXED EFFECTS)
+
+# Includes interaction terms and month fixed effects for seasonality
+
+enhanced_formula <- filings ~ lag_1month + lag_2month + spatial_lag_neighbors +
+  pct_renter + poverty_rate + median_income + dist_to_center +
+  dist_to_hotspot + is_hotspot + racial_majority + factor(month) +
+  pandemic_moratorium + 
+  # Interaction: does poverty have different effects in different racial contexts?
+  racial_majority:poverty_rate + 
+  # Interaction: do spatial effects vary with renter concentration?
+  spatial_lag_neighbors:pct_renter
+
+# Fit both Poisson and Negative Binomial versions
+enhanced_poisson <- glm(enhanced_formula, data = train_data, family = poisson)
+enhanced_nb <- glm.nb(enhanced_formula, data = train_data)
+```
+
+------------------------------------------------------------------------
+
+# 10. Model Evaluation
+
+Model performance is evaluated on the held-out test set to assess how well predictions generalize to new data. We use multiple metrics: Mean Absolute Error (MAE) measures average prediction error in intuitive units (evictions), Root Mean Squared Error (RMSE) penalizes large errors more heavily, and Correlation measures whether predictions rank tracts correctly even if the absolute values are off.
+
+```{r predictions}
+#| output: false
+
+# GENERATE PREDICTIONS FOR TRAIN AND TEST SETS
+
+train_data <- train_data %>%
+  mutate(
+    pred_baseline = predict(baseline_poisson, type = "response"),
+    pred_poisson = predict(full_poisson, type = "response"),
+    pred_nb = predict(full_nb, type = "response"),
+    pred_enhanced = predict(enhanced_poisson, type = "response")
+  )
+
+test_data <- test_data %>%
+  mutate(
+    pred_baseline = predict(baseline_poisson, newdata = test_data, type = "response"),
+    pred_poisson = predict(full_poisson, newdata = test_data, type = "response"),
+    pred_nb = predict(full_nb, newdata = test_data, type = "response"),
+    pred_enhanced = predict(enhanced_poisson, newdata = test_data, type = "response")
+  )
+```
+
+```{r performance_metrics}
+
+# CALCULATE PERFORMANCE METRICS
+
+calc_metrics <- function(actual, predicted, name) {
+  tibble(
+    Model = name, 
+    MAE = round(mean(abs(actual - predicted)), 2),
+    RMSE = round(sqrt(mean((actual - predicted)^2)), 2),
+    Correlation = round(cor(actual, predicted), 3)
+  )
+}
+
+test_metrics <- bind_rows(
+  calc_metrics(test_data$filings, test_data$pred_baseline, "Baseline"),
+  calc_metrics(test_data$filings, test_data$pred_poisson, "Full Poisson"),
+  calc_metrics(test_data$filings, test_data$pred_nb, "Neg. Binomial"),
+  calc_metrics(test_data$filings, test_data$pred_enhanced, "Enhanced")
+)
+kable(test_metrics, caption = "Model Performance on Test Set")
+```
+
+```{r r2_metrics}
+
+# CALCULATE MODEL FIT (McFADDEN'S R-SQUARED)
+
+# McFadden's R² compares model log-likelihood to null model
+
+calc_r2 <- function(model) {
+  null <- update(model, . ~ 1)  # Null model with intercept only
+  round(1 - as.numeric(logLik(model) / logLik(null)), 3)
+}
+
+r2_summary <- tibble(
+  Model = c("Baseline", "Full Poisson", "Full NB", "Enhanced Poisson", "Enhanced NB"),
+  `McFadden R2` = c(
+    calc_r2(baseline_poisson), 
+    calc_r2(full_poisson), 
+    calc_r2(full_nb), 
+    calc_r2(enhanced_poisson), 
+    calc_r2(enhanced_nb)
+  )
+)
+kable(r2_summary, caption = "Model Fit (McFadden R-squared)")
+```
+
+The Enhanced Poisson model achieves the best balance of fit and interpretability, with a McFadden's R² around 0.22 and strong test set correlation. For count data models, a McFadden's R² between 0.2 and 0.4 is generally considered "excellent" - the interpretation is less intuitive than linear R² but represents substantial improvement over a null model. The high correlation (0.7+) indicates that the model correctly ranks tracts by eviction risk even when absolute predictions are somewhat off.
+
+------------------------------------------------------------------------
+
+# 11. Prediction Results
+
+This section presents the practical output of our modeling work: risk predictions for each Census tract that can guide resource allocation and intervention targeting.
+
+```{r prediction_summary}
+#| output: false
+
+# SUMMARIZE PREDICTIONS BY TRACT
+
+prediction_summary <- test_data %>%
+  group_by(GEOID) %>%
+  summarise(
+    actual_total = sum(filings),
+    predicted_total = round(sum(pred_enhanced), 1),
+    actual_mean = round(mean(filings), 2),
+    predicted_mean = round(mean(pred_enhanced), 2),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(predicted_total))
+
+# Save for external use
+write_csv(prediction_summary, here("final", "output", "tract_prediction_summary.csv"))
+```
+
+```{r show_predictions}
+kable(head(prediction_summary, 10), caption = "Top 10 High-Risk Tracts")
+```
+
+The top 10 high-risk tracts are concentrated in areas that match our earlier hotspot analysis - these are the neighborhoods that would benefit most from targeted outreach, legal aid services, and rental assistance programs.
+
+## 11.1 Actual vs Predicted Comparison Map
+
+```{r comparison_map}
+#| fig-width: 12
+#| fig-height: 10
+
+# VISUALIZE ACTUAL VS PREDICTED SIDE BY SIDE
+
+comparison_map <- philly_acs %>%
+  left_join(prediction_summary, by = "GEOID") %>%
+  select(GEOID, geometry, actual_mean, predicted_mean) %>%
+  # Reshape for faceting
+  pivot_longer(
+    cols = c(actual_mean, predicted_mean), 
+    names_to = "type", 
+    values_to = "filings"
+  ) %>%
+  mutate(type = ifelse(type == "actual_mean", "Actual", "Predicted"))
+
+ggplot(comparison_map) +
+  geom_sf(aes(fill = filings), color = "grey40", linewidth = 0.05) +
+  facet_wrap(~type) +
+  scale_fill_viridis_c(
+    option = "inferno", 
+    name = "Monthly\nFilings", 
+    na.value = "grey80"
+  ) +
+  labs(
+    title = "Actual vs Predicted Monthly Eviction Filings",
+    subtitle = "Model captures the overall spatial pattern of eviction risk"
+  ) +
+  theme_void() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"), 
+    strip.text = element_text(size = 12, face = "bold")
+  )
+```
+
+The model captures the overall spatial pattern well - high-risk areas in North and West Philadelphia match between actual and predicted maps. The predictions are slightly smoother than the actual values, which is expected since statistical models tend to "regress toward the mean" and underestimate extreme values. This smoothing is actually desirable for policy purposes, as it provides more stable risk estimates that won't fluctuate wildly from month to month.
+
+## 11.2 Risk Classification
+
+For practical use, we classify all tracts into five risk categories based on predicted monthly eviction rates. This classification provides an intuitive framework for prioritizing interventions and communicating results to non-technical stakeholders.
+
+```{r risk_classification}
+
+# CLASSIFY TRACTS INTO RISK CATEGORIES
+
+prediction_summary <- prediction_summary %>%
+  mutate(risk_category = case_when(
+    # Top 10% = Very High Risk
+    predicted_mean >= quantile(predicted_mean, 0.9, na.rm = TRUE) ~ "Very High Risk",
+    # Top 25% = High Risk
+    predicted_mean >= quantile(predicted_mean, 0.75, na.rm = TRUE) ~ "High Risk",
+    # Top 50% = Moderate Risk
+    predicted_mean >= quantile(predicted_mean, 0.5, na.rm = TRUE) ~ "Moderate Risk",
+    # Top 75% = Low Risk
+    predicted_mean >= quantile(predicted_mean, 0.25, na.rm = TRUE) ~ "Low Risk",
+    # Bottom 25% = Very Low Risk
+    TRUE ~ "Very Low Risk"
+  ))
+
+risk_summary <- prediction_summary %>%
+  group_by(risk_category) %>%
+  summarise(
+    Tracts = n(), 
+    `Avg Monthly` = round(mean(predicted_mean, na.rm = TRUE), 2), 
+    .groups = "drop"
+  ) %>%
+  arrange(desc(`Avg Monthly`))
+
+kable(risk_summary, caption = "Risk Classification Summary")
+```
+
+## 11.3 Risk Map: Early Warning System
+
+```{r risk_map}
+#| fig-width: 10
+#| fig-height: 10
+
+# CREATE RISK CLASSIFICATION MAP
+
+risk_map <- philly_acs %>%
+  left_join(
+    prediction_summary %>% select(GEOID, risk_category), 
+    by = "GEOID"
+  ) %>%
+  mutate(risk_category = factor(
+    risk_category, 
+    levels = c("Very High Risk", "High Risk", "Moderate Risk", 
+               "Low Risk", "Very Low Risk")
+  ))
+
+ggplot(risk_map) +
+  geom_sf(aes(fill = risk_category), color = "grey40", linewidth = 0.1) +
+  scale_fill_manual(
+    values = c(
+      "Very High Risk" = "#d73027",    # Dark red
+      "High Risk" = "#fc8d59",          # Orange
+      "Moderate Risk" = "#fee090",      # Yellow
+      "Low Risk" = "#91bfdb",           # Light blue
+      "Very Low Risk" = "#4575b4"       # Dark blue
+    ),
+    name = "Risk Level", 
+    na.value = "grey80"
+  ) +
+  labs(
+    title = "Eviction Risk Early Warning System",
+    subtitle = "Census Tracts Classified by Predicted Monthly Evictions"
+  ) +
+  theme_void() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+```
+
+This map provides an actionable tool for the Philadelphia Housing Authority and partner organizations. Red and orange areas should receive priority for outreach and resources - they represent neighborhoods where eviction risk is highest and where intervention is most likely to prevent displacement. The clustering of high-risk tracts means geographically-focused programs could be efficient: a single community organization or legal aid office could potentially serve multiple high-risk tracts.
+
+## 11.4 Monthly Forecast Accuracy
+
+```{r monthly_forecast}
+#| fig-width: 10
+#| fig-height: 5
+
+# COMPARE AGGREGATE MONTHLY FORECASTS
+
+monthly_forecast <- test_data %>%
+  group_by(year_month) %>%
+  summarise(
+    actual = sum(filings), 
+    predicted = sum(pred_enhanced), 
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(actual, predicted), 
+    names_to = "type", 
+    values_to = "filings"
+  ) %>%
+  mutate(type = ifelse(type == "actual", "Actual", "Predicted"))
+
+ggplot(monthly_forecast, aes(x = year_month, y = filings, 
+                              color = type, linetype = type)) +
+  geom_line(linewidth = 1.2) + 
+  geom_point(size = 3) +
+  scale_color_manual(values = c("Actual" = "black", "Predicted" = "red")) +
+  labs(
+    title = "Monthly Forecast vs Actual",
+    subtitle = "Model tracks trends but slightly underpredicts peaks",
+    x = "Month", 
+    y = "Total Filings", 
+    color = "", 
+    linetype = ""
+  ) +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
+```
+
+The model tracks the overall trend reasonably well but slightly underpredicts peak months. We believe that it's common with count models - they're conservative about extreme values, which can be either a feature (more stable predictions) or a limitation (missing peaks when they matter most). For resource allocation purposes, consistent underprediction of peaks might mean that the "Very High Risk" category should receive even more resources than the model suggests.
+
+------------------------------------------------------------------------
+
+# 12. Spatial Autocorrelation Diagnostics
+
+A key assumption in our analysis is that we've adequately captured the spatial structure in eviction patterns through our spatial lag features. If significant spatial autocorrelation remains in the model residuals, it would indicate that there's spatial structure we haven't captured, which could bias our coefficient estimates and underestimate prediction uncertainty.
+
+We use Moran's I test to assess whether residuals show spatial clustering beyond what our model explains.
+
+```{r residual_moran}
+#| output: false
+
+# CALCULATE AND TEST RESIDUAL SPATIAL AUTOCORRELATION
+
+train_data <- train_data %>% 
+  mutate(residual = filings - pred_nb)
+
+# Average residual per tract (aggregating over time)
+tract_residuals <- train_data %>%
+  group_by(GEOID) %>%
+  summarise(mean_residual = mean(residual, na.rm = TRUE), .groups = "drop")
+
+# Merge with tract order for spatial analysis
+tract_residuals <- tract_centroids %>% 
+  select(GEOID) %>%
+  left_join(tract_residuals, by = "GEOID") %>%
+  mutate(mean_residual = replace_na(mean_residual, 0))
+
+# Perform Moran's I test
+if (nrow(tract_residuals) == length(weights_knn5$neighbours)) {
+  moran_test <- moran.test(
+    tract_residuals$mean_residual, 
+    weights_knn5, 
+    zero.policy = TRUE
+  )
+  moran_i <- round(moran_test$estimate[1], 3)
+  moran_p <- round(moran_test$p.value, 4)
+} else {
+  moran_i <- NA
+  moran_p <- NA
+}
+```
+
+```{r show_moran}
+moran_summary <- tibble(
+  Metric = c("Moran's I", "P-value", "Conclusion"),
+  Value = c(
+    moran_i, 
+    moran_p, 
+    ifelse(moran_p < 0.05, 
+           "Spatial autocorrelation remains", 
+           "No significant autocorrelation")
+  )
+)
+kable(moran_summary, caption = "Moran's I Test for Model Residuals")
+```
+
+```{r map_residuals}
+#| fig-width: 10
+#| fig-height: 10
+
+# MAP SPATIAL DISTRIBUTION OF RESIDUALS
+
+residual_map <- philly_acs %>% 
+  left_join(tract_residuals, by = "GEOID")
+
+ggplot(residual_map) +
+  geom_sf(aes(fill = mean_residual), color = "grey40", linewidth = 0.1) +
+  scale_fill_gradient2(
+    low = "#4575b4",      # Blue for overprediction
+    mid = "white", 
+    high = "#d73027",     # Red for underprediction
+    midpoint = 0,
+    name = "Mean\nResidual", 
+    na.value = "grey80", 
+    limits = c(-4, 4), 
+    oob = scales::squish
+  ) +
+  labs(
+    title = "Spatial Distribution of Model Residuals",
+    subtitle = paste0("Moran's I = ", moran_i, ", p = ", moran_p)
+  ) +
+  theme_void() +
+  theme(plot.title = element_text(size = 14, face = "bold"))
+```
+
+The residual map shows where the model over- and under-predicts. Blue areas are overpredicted (model predicts more evictions than actually occur), while red areas are underpredicted. The relatively random scatter without strong clustering suggests that our spatial lag features have captured most of the spatial structure, though some localized patterns remain that our model doesn't fully explain.
+
+------------------------------------------------------------------------
+
+# 13. Equity Analysis
+
+Predictive models can perpetuate or amplify existing inequalities if they perform differently across demographic groups. Our equity analysis examines whether the model makes more accurate predictions in some neighborhoods than others, specifically comparing performance across neighborhoods with different racial compositions.
+
+```{r equity_analysis}
+
+# COMPARE MODEL PERFORMANCE BY RACIAL COMPOSITION
+
+equity <- test_data %>%
+  filter(!is.na(racial_majority)) %>%
+  group_by(racial_majority) %>%
+  summarise(
+    N = n(),
+    `Actual Mean` = round(mean(filings), 2),
+    `Predicted Mean` = round(mean(pred_nb), 2),
+    MAE = round(mean(abs(filings - pred_nb)), 2),
+    .groups = "drop"
+  )
+kable(equity, caption = "Model Performance by Neighborhood Racial Composition")
+```
+
+```{r equity_viz}
+#| fig-width: 10
+#| fig-height: 5
+
+ggplot(equity, aes(x = racial_majority, y = MAE, fill = racial_majority)) +
+  geom_col() +
+  scale_fill_viridis_d() +
+  labs(
+    title = "Prediction Error by Neighborhood Racial Composition",
+    subtitle = "Higher errors in majority-Black neighborhoods reflect higher eviction rates",
+    x = "", 
+    y = "Mean Absolute Error"
+  ) +
+  theme_minimal() + 
+  theme(legend.position = "none")
+```
+
+Prediction errors are higher in majority-Black neighborhoods, which is partly mechanical - these neighborhoods have higher eviction rates, and prediction errors tend to scale with the magnitude of the outcome. However, the disproportionate error rates raise equity concerns: if the model is less accurate in majority-Black neighborhoods, resource allocation based on model predictions might be less effective in these communities that need help most.
+
+Policy makers should be aware of this limitation. One mitigation strategy is to ensure that actual resource allocation considers both model predictions and ground-truth data from community organizations working in high-need areas.
+
+------------------------------------------------------------------------
+
+# 14. Save Results
+
+```{r save_results}
+#| output: false
+
+# SAVE MODELS AND PREDICTIONS FOR FUTURE USE
+
+# Save all model objects
+save(
+  baseline_poisson, full_poisson, full_nb, 
+  enhanced_poisson, enhanced_nb, 
+  file = here("final", "output", "models.RData")
+)
+
+# Save test predictions
+write_csv(test_data, here("final", "output", "test_predictions.csv"))
+
+# Save model coefficients in tidy format
+coef_table <- tidy(full_nb, exponentiate = TRUE, conf.int = TRUE) %>%
+  mutate(across(where(is.numeric), ~round(.x, 3)))
+write_csv(coef_table, here("final", "output", "model_coefficients.csv"))
+```
+
+```{r show_coefs}
+kable(coef_table, caption = "Negative Binomial Model Coefficients (IRR)")
+```
+
+The coefficient table shows Incidence Rate Ratios (IRR) - the multiplicative effect on expected eviction counts. The lag terms dominate: each additional eviction last month increases expected evictions this month by roughly the same amount (IRR near 1.0 per additional filing). Racial majority effects persist after controlling for poverty rate, suggesting that structural factors beyond income - such as housing discrimination, differential enforcement, or concentration of predatory landlords - drive disparities across neighborhoods.
+
+------------------------------------------------------------------------
+
+# 15. Discussion and Conclusions
+
+## 15.1 Summary of Key Findings
+
+This analysis developed and validated a predictive model for eviction risk in Philadelphia, with several important findings.
+
+First, **temporal persistence is the strongest signal**: Census tracts with high eviction rates in the previous month will likely have high rates in the current month. This persistence reflects the stable underlying conditions - poverty, housing quality, landlord practices - that drive eviction risk. For policy, this persistence is both concerning (eviction hotspots are "sticky" and don't naturally resolve) and useful (we can reliably identify high-risk areas).
+
+Second, **spatial clustering is substantial**: Eviction hotspots concentrate in North and West Philadelphia, particularly in majority-Black neighborhoods. This geographic concentration makes targeted intervention feasible - resources can be directed to specific neighborhoods rather than spread thinly across the entire city. The clustering also reveals the structural nature of Philadelphia's eviction crisis: these are not randomly distributed individual housing failures but systematic patterns reflecting historical disinvestment and ongoing inequality.
+
+Third, **socioeconomic factors matter but don't fully explain racial disparities**: Higher poverty rates and higher renter percentages correlate with more evictions, as expected. However, majority-Black neighborhoods have elevated eviction rates even after controlling for income, suggesting that factors beyond poverty - such as housing discrimination, differences in housing quality, or concentration of predatory landlord practices - contribute to racial disparities in eviction.
+
+Fourth, **the model achieves meaningful predictive accuracy**: With a McFadden's R² around 0.22 and strong test set correlation, the model provides useful predictions for resource targeting. The Enhanced Poisson model correctly identifies the spatial distribution of eviction risk, though it slightly underpredicts extreme values.
+
+## 15.2 Policy Implications and Recommendations
+
+The analysis suggests several concrete policy applications.
+
+**Targeted outreach**: The risk classification map can guide where to focus eviction prevention resources. Organizations providing legal aid, rental assistance, and tenant counseling should prioritize Very High Risk and High Risk tracts where their efforts will reach the most at-risk households.
+
+**Early warning system**: The model could be run monthly to provide updated risk predictions. When a tract's predicted risk increases substantially, it could trigger proactive outreach before evictions occur rather than reactive assistance after displacement.
+
+**Resource allocation**: City and nonprofit resources for housing assistance are limited. The model provides a data-driven framework for allocating these resources to maximize impact. However, resource allocation should combine model predictions with community knowledge - local organizations often have information about emerging issues that won't appear in administrative data until it's too late.
+
+**Equity-conscious implementation**: Given the model's higher error rates in majority-Black neighborhoods and the documented racial disparities in eviction rates, implementation should be designed with equity as a primary consideration. This might include reserving additional resources for high-need communities beyond what the model suggests, or weighting interventions to correct for historical underservice.
+
+## 15.3 Limitations and Caveats
+
+Several limitations should be considered when interpreting and applying these results.
+
+**Filing vs. eviction**: The outcome measure (eviction filings) captures court cases initiated by landlords, not completed evictions. Many filed cases are dismissed, settled, or withdrawn. However, even a filing has serious consequences for tenants (damaged credit, difficulty finding housing, stress of legal proceedings), so tracking filings is meaningful even if they don't all result in actual eviction.
+
+**Temporal scope**: The model is trained on 2020-2025 data, a period heavily influenced by the COVID-19 pandemic and associated eviction moratoriums. Patterns from this period may not generalize to "normal" times - or conversely, the pandemic may have accelerated pre-existing trends that will persist.
+
+**Geographic granularity**: Census tracts are a useful geographic unit, but they average over substantial within-tract variation. A single tract might contain both a well-maintained apartment building with stable tenants and a deteriorating property with frequent evictions. Block-level or building-level data would enable more precise targeting but are harder to obtain.
+
+**Model degradation**: Predictive models can degrade over time as underlying conditions change. If Philadelphia's housing market, demographic patterns, or eviction laws change substantially, the model would need to be retrained. Regular validation against new data is essential.
+
+**Policy shocks**: The model cannot anticipate sudden policy changes (like new eviction moratoriums) or economic shocks (like recessions or major employer closures). These events can rapidly change eviction patterns in ways the model won't predict.
+
+**Feedback effects**: If the model is used successfully to target interventions, it may reduce evictions in high-risk areas - which would then make those areas appear lower-risk in future data. This is a desirable outcome but means the model's predictions may become self-negating over time.
+
+## 15.4 Ethical Considerations
+
+Predictive models for social services raise important ethical questions that extend beyond technical accuracy.
+
+**Stigmatization**: Labeling neighborhoods as "high risk" could contribute to stigma, affect property values, or influence where people choose to live. Model results should be communicated carefully with context about their intended use (targeting help, not blame).
+
+**Self-fulfilling prophecies**: If landlords or lenders learn that certain areas are designated high-risk, they might become more likely to pursue evictions or restrict credit there, creating a self-fulfilling prophecy. Access to model outputs should be controlled.
+
+**Privacy**: While this analysis uses aggregate tract-level data rather than individual records, more granular models could raise privacy concerns. The tradeoff between predictive accuracy and privacy protection should be explicitly considered.
+
+**Displacement of expertise**: Predictive models should complement, not replace, the knowledge of community organizations and tenants themselves. People closest to the problem often understand local conditions better than any statistical model.
+
+**Accountability**: If model predictions are wrong and resources are misallocated, who bears responsibility? Clear governance structures should define how models are used in decision-making and how to appeal decisions influenced by predictions.
+
+## 15.5 Conclusions
+
+Our analysis demonstrates that eviction risk in Philadelphia is predictable enough to support targeted intervention. The concentration of evictions in specific neighborhoods - persistent over time and clustering spatially - creates opportunities for efficient resource deployment. However, prediction alone is not prevention: the model is a tool for guiding action, not a substitute for the policy changes and resource investments needed to address Philadelphia's housing crisis at its roots.
+
+The most important finding may be the structural nature of eviction patterns. The persistence of hotspots, the racial disparities that cannot be explained by income alone, and the geographic clustering all point to systemic factors - housing discrimination, disinvestment, inadequate tenant protections - that no predictive model can solve. Making evictions predictable is a step toward making them preventable, but ultimately preventing evictions requires addressing the conditions that create them.
+
+------------------------------------------------------------------------

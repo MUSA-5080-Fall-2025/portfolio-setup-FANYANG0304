@@ -1,0 +1,161 @@
+---
+title: "Philadelphia Eviction Prediction Model"
+subtitle: "MUSA 5080 - Final Project README"
+author: "Zhiyuan Zhao & Fan Yang"
+date: "December 6, 2025"
+---
+
+# Philadelphia Eviction Prediction Model
+
+An early warning system for predicting eviction filings at the census tract level in Philadelphia, developed for MUSA 5080: Public Policy Analytics.
+
+## Authors
+
+- **Zhiyuan Zhao** - University of Pennsylvania
+- **Fan Yang** - University of Pennsylvania
+
+## Project Overview
+
+This project develops a predictive model to forecast monthly eviction filings across Philadelphia's 408 census tracts. The goal is to help the Philadelphia Housing Authority allocate prevention resources more effectively by identifying high-risk neighborhoods before evictions occur.
+
+### Policy Context
+
+Philadelphia experiences over 1,000 eviction filings per month, ranking among the highest eviction rates in the nation. Many evictions are preventable with timely intervention—legal aid, rental assistance, and tenant counseling. This model enables proactive resource deployment rather than reactive crisis response.
+
+### Key Findings
+
+1. **Evictions are predictable** - Past eviction patterns strongly predict future filings
+2. **Geographic clustering** - Hotspots concentrate in North, West, and Southwest Philadelphia
+3. **Racial disparities persist** - Majority-Black neighborhoods show elevated eviction rates even after controlling for income
+4. **Model performance** - Enhanced Poisson model achieves MAE of 1.78 and correlation of 0.44 on test data
+
+## Data Sources
+
+### Primary Data
+
+| Dataset | Source | Description | Link |
+|---------|--------|-------------|------|
+| Eviction Filings | Eviction Lab | Weekly eviction filing counts by census tract, 2020-2025 | [Eviction Lab Philadelphia Tracking](https://evictionlab.org/eviction-tracking/philadelphia-pa/) |
+
+### Secondary Data
+
+| Dataset | Source | Description | Link |
+|---------|--------|-------------|------|
+| Census Demographics | U.S. Census Bureau | ACS 5-year estimates: poverty rate, median income, race/ethnicity | [Census API](https://www.census.gov/data/developers/data-sets/acs-5year.html) |
+| Renter Population | U.S. Census Bureau | Tenure data (renter vs. owner occupied) by tract | [Census API](https://www.census.gov/data/developers/data-sets/acs-5year.html) |
+| 311 Service Requests | OpenDataPhilly | Housing-related complaints (no heat, dangerous buildings, infestations) | [OpenDataPhilly 311](https://opendataphilly.org/datasets/311-service-and-information-requests/) |
+| Census Tract Boundaries | U.S. Census Bureau | TIGER/Line Shapefiles for Philadelphia County | [Census TIGER](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html) |
+
+### Data Access Notes
+
+- **Eviction Lab data** requires download from their tracking page; select Philadelphia and export CSV
+- **Census data** accessed via `tidycensus` R package (API key required: [get key here](https://api.census.gov/data/key_signup.html))
+- **311 data** available as direct download or via API from OpenDataPhilly
+- **Shapefiles** accessed via `tigris` R package
+
+## Repository Structure
+
+```
+├── data/                              #Data used for this assignment
+├── output/                            #visualizations and tables
+├── slides/                            #presentation slides package
+  ├── eviction_presentation.qmd          # Presentation slides
+├── final_Zhiyuan_Fan.qmd              # Main analysis document
+├── README.md                          # This file
+└── .gitignore
+```
+
+## Methodology
+
+### Temporal Aggregation
+
+Weekly data aggregated to monthly to address zero-inflation (68% zeros at weekly level → 34% at monthly level).
+
+### Feature Engineering
+
+- **Temporal lags**: 1-month and 2-month lagged eviction counts
+- **Spatial lag**: Average evictions in k-nearest neighbors (k=5)
+- **Demographics**: Poverty rate, renter percentage, median income
+- **Distance features**: Distance to city center, distance to nearest hotspot
+- **Hotspot indicators**: Local Moran's I classification (High-High clusters)
+- **Interaction terms**: Poverty × racial composition, spatial lag × renter percentage
+
+### Models Tested
+
+| Model | Description | McFadden's R² |
+|-------|-------------|---------------|
+| Baseline Poisson | Temporal lags only | 0.14 |
+| Full Poisson | + Spatial lag, demographics, race | 0.23 |
+| Full Negative Binomial | Same as above, allows overdispersion | 0.22 |
+| **Enhanced Poisson** | + Hotspots, month effects, interactions | **0.24** |
+
+### Validation
+
+- Train/test split (80/20, temporal split)
+- Spatial autocorrelation check on residuals (Moran's I = 0.001, p = 0.33)
+- Equity analysis across neighborhood racial compositions
+
+## How to Reproduce
+
+### Requirements
+
+```r
+# R packages
+install.packages(c(
+  "tidyverse",
+  "sf",
+  "spdep",
+  "tidycensus",
+  "lubridate",
+  "MASS",
+  "knitr",
+  "ggplot2"
+))
+```
+
+### Steps
+
+1. Clone this repository
+2. Obtain Census API key and store in `.Renviron`:
+   ```
+   CENSUS_API_KEY=your_key_here
+   ```
+3. Download Eviction Lab data and place in `data/raw/`
+4. Download 311 data from OpenDataPhilly and place in `data/raw/`
+5. Open `eviction_prediction_enhanced.qmd` in RStudio
+6. Run all chunks to reproduce analysis
+
+## Key Outputs
+
+- **Risk Classification Map**: Census tracts classified as Very High / High / Moderate / Low risk
+- **Monthly Predictions**: Forecasted eviction counts by tract
+- **Equity Analysis**: Model performance comparison across neighborhood demographics
+
+## Limitations
+
+- **Filings ≠ Evictions**: Model predicts court filings, not completed evictions
+- **COVID-era training data**: 2020-2025 period heavily influenced by moratoriums
+- **Census tract granularity**: Cannot identify individual households at risk
+- **Equity concerns**: Higher prediction errors in majority-Black neighborhoods
+- **Policy shocks**: Cannot anticipate sudden policy changes
+
+## Ethical Considerations
+
+- Risk of stigmatizing neighborhoods labeled "high risk"
+- Model outputs should inform—not replace—human decision-making
+- Access to predictions should be restricted to prevent misuse
+- Implementation should include additional resources for historically underserved communities
+
+## License
+
+This project is for academic purposes (MUSA 5080, University of Pennsylvania).
+
+## Acknowledgments
+
+- Professor's guidance on spatial modeling techniques
+- Eviction Lab for making eviction data publicly accessible
+- OpenDataPhilly for municipal data infrastructure
+
+---
+
+*Last updated: December 2025*

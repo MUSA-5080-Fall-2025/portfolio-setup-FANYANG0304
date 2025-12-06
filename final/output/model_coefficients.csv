@@ -1,0 +1,12 @@
+term,estimate,std.error,statistic,p.value,conf.low,conf.high
+(Intercept),0.59,0.033,-16.161,0,0.553,0.63
+lag_1month,1.094,0.002,44.471,0,1.089,1.099
+lag_2month,1.072,0.002,34.149,0,1.067,1.077
+spatial_lag_neighbors,1.661,0.016,32.279,0,1.606,1.719
+pct_renter,1.008,0,19.469,0,1.007,1.009
+poverty_rate,1.003,0.001,5.239,0,1.002,1.005
+dist_to_center,1.025,0.002,16.207,0,1.022,1.028
+racial_majorityHispanic,0.888,0.031,-3.869,0,0.837,0.943
+racial_majorityOther,0.876,0.019,-7.091,0,0.845,0.909
+racial_majorityWhite,0.682,0.02,-19.392,0,0.657,0.709
+pandemic_moratorium,0.813,0.02,-10.412,0,0.782,0.845

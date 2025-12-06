@@ -1,0 +1,6 @@
+Model,McFadden_R2,Deviance_R2
+Baseline (Poisson),0.1445,0.2235
+Full (Poisson),0.2259,0.3494
+Full (Neg. Binomial),0.1066,NA
+Enhanced (Poisson),0.2356,0.3644
+Enhanced (Neg. Binomial),0.1122,NA

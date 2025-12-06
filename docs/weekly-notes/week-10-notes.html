@@ -203,6 +203,14 @@ window.Quarto = {
     <a class="dropdown-item" href="../weekly-notes/week-10-notes.html">
  <span class="dropdown-text">Week 10</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-11-notes.html">
+ <span class="dropdown-text">Week 11</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-12-notes.html">
+ <span class="dropdown-text">Week 12</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -251,6 +259,25 @@ window.Quarto = {
   </li>  
     </ul>
   </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-final" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Final</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-final">    
+        <li>
+    <a class="dropdown-item" href="../final/slides/eviction_presentation.html">
+ <span class="dropdown-text">Final Slides</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../final/final_Zhiyuan_Fan.html">
+ <span class="dropdown-text">Technical Appendix</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../final/README_final.html">
+ <span class="dropdown-text">README</span></a>
+  </li>  
+    </ul>
+  </li>
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -270,49 +297,41 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#key-learning-objectives" id="toc-key-learning-objectives" class="nav-link" data-scroll-target="#key-learning-objectives">Key Learning Objectives</a></li>
   </ul></li>
-  <li><a href="#part-1-introduction-to-logistic-regression" id="toc-part-1-introduction-to-logistic-regression" class="nav-link" data-scroll-target="#part-1-introduction-to-logistic-regression">Part 1: Introduction to Logistic Regression</a>
+  <li><a href="#introduction-to-logistic-regression" id="toc-introduction-to-logistic-regression" class="nav-link" data-scroll-target="#introduction-to-logistic-regression">Introduction to Logistic Regression</a>
   <ul class="collapse">
-  <li><a href="#where-weve-been" id="toc-where-weve-been" class="nav-link" data-scroll-target="#where-weve-been">Where We’ve Been</a></li>
   <li><a href="#what-makes-binary-outcomes-different" id="toc-what-makes-binary-outcomes-different" class="nav-link" data-scroll-target="#what-makes-binary-outcomes-different">What Makes Binary Outcomes Different?</a></li>
-  <li><a href="#enter-logistic-regression" id="toc-enter-logistic-regression" class="nav-link" data-scroll-target="#enter-logistic-regression">Enter: Logistic Regression</a></li>
-  <li><a href="#when-do-we-use-logistic-regression" id="toc-when-do-we-use-logistic-regression" class="nav-link" data-scroll-target="#when-do-we-use-logistic-regression">When Do We Use Logistic Regression?</a></li>
+  <li><a href="#the-logistic-function" id="toc-the-logistic-function" class="nav-link" data-scroll-target="#the-logistic-function">The Logistic Function</a></li>
   <li><a href="#the-logit-transformation" id="toc-the-logit-transformation" class="nav-link" data-scroll-target="#the-logit-transformation">The Logit Transformation</a></li>
   </ul></li>
-  <li><a href="#part-2-building-our-first-logistic-model" id="toc-part-2-building-our-first-logistic-model" class="nav-link" data-scroll-target="#part-2-building-our-first-logistic-model">Part 2: Building Our First Logistic Model</a>
+  <li><a href="#building-logistic-models" id="toc-building-logistic-models" class="nav-link" data-scroll-target="#building-logistic-models">Building Logistic Models</a>
   <ul class="collapse">
-  <li><a href="#example-email-spam-detection" id="toc-example-email-spam-detection" class="nav-link" data-scroll-target="#example-email-spam-detection">Example: Email Spam Detection</a></li>
-  <li><a href="#fitting-the-logistic-model" id="toc-fitting-the-logistic-model" class="nav-link" data-scroll-target="#fitting-the-logistic-model">Fitting the Logistic Model</a></li>
-  <li><a href="#interpreting-coefficients" id="toc-interpreting-coefficients" class="nav-link" data-scroll-target="#interpreting-coefficients">Interpreting Coefficients</a></li>
+  <li><a href="#fitting-the-model" id="toc-fitting-the-model" class="nav-link" data-scroll-target="#fitting-the-model">Fitting the Model</a></li>
   <li><a href="#making-predictions" id="toc-making-predictions" class="nav-link" data-scroll-target="#making-predictions">Making Predictions</a></li>
   </ul></li>
-  <li><a href="#part-3-evaluating-binary-predictions" id="toc-part-3-evaluating-binary-predictions" class="nav-link" data-scroll-target="#part-3-evaluating-binary-predictions">Part 3: Evaluating Binary Predictions</a>
+  <li><a href="#evaluating-binary-predictions" id="toc-evaluating-binary-predictions" class="nav-link" data-scroll-target="#evaluating-binary-predictions">Evaluating Binary Predictions</a>
   <ul class="collapse">
-  <li><a href="#from-probabilities-to-decisions" id="toc-from-probabilities-to-decisions" class="nav-link" data-scroll-target="#from-probabilities-to-decisions">From Probabilities to Decisions</a></li>
-  <li><a href="#the-four-outcomes" id="toc-the-four-outcomes" class="nav-link" data-scroll-target="#the-four-outcomes">The Four Outcomes</a></li>
-  <li><a href="#calculating-performance-metrics" id="toc-calculating-performance-metrics" class="nav-link" data-scroll-target="#calculating-performance-metrics">Calculating Performance Metrics</a></li>
-  <li><a href="#example-covid-testing" id="toc-example-covid-testing" class="nav-link" data-scroll-target="#example-covid-testing">Example: COVID Testing</a></li>
+  <li><a href="#the-confusion-matrix" id="toc-the-confusion-matrix" class="nav-link" data-scroll-target="#the-confusion-matrix">The Confusion Matrix</a></li>
+  <li><a href="#performance-metrics" id="toc-performance-metrics" class="nav-link" data-scroll-target="#performance-metrics">Performance Metrics</a></li>
   </ul></li>
-  <li><a href="#part-4-the-threshold-decision" id="toc-part-4-the-threshold-decision" class="nav-link" data-scroll-target="#part-4-the-threshold-decision">Part 4: The Threshold Decision</a>
+  <li><a href="#the-threshold-decision" id="toc-the-threshold-decision" class="nav-link" data-scroll-target="#the-threshold-decision">The Threshold Decision</a>
   <ul class="collapse">
   <li><a href="#why-threshold-choice-matters" id="toc-why-threshold-choice-matters" class="nav-link" data-scroll-target="#why-threshold-choice-matters">Why Threshold Choice Matters</a></li>
-  <li><a href="#the-great-sensitivity-specificity-trade-off" id="toc-the-great-sensitivity-specificity-trade-off" class="nav-link" data-scroll-target="#the-great-sensitivity-specificity-trade-off">The Great Sensitivity-Specificity Trade-off</a></li>
   <li><a href="#two-policy-scenarios" id="toc-two-policy-scenarios" class="nav-link" data-scroll-target="#two-policy-scenarios">Two Policy Scenarios</a></li>
   </ul></li>
-  <li><a href="#part-5-roc-curves" id="toc-part-5-roc-curves" class="nav-link" data-scroll-target="#part-5-roc-curves">Part 5: ROC Curves</a>
+  <li><a href="#roc-curves" id="toc-roc-curves" class="nav-link" data-scroll-target="#roc-curves">ROC Curves</a>
   <ul class="collapse">
-  <li><a href="#the-roc-curve-visualizing-all-thresholds" id="toc-the-roc-curve-visualizing-all-thresholds" class="nav-link" data-scroll-target="#the-roc-curve-visualizing-all-thresholds">The ROC Curve: Visualizing All Thresholds</a></li>
-  <li><a href="#creating-an-roc-curve" id="toc-creating-an-roc-curve" class="nav-link" data-scroll-target="#creating-an-roc-curve">Creating an ROC Curve</a></li>
+  <li><a href="#what-roc-shows" id="toc-what-roc-shows" class="nav-link" data-scroll-target="#what-roc-shows">What ROC Shows</a></li>
+  <li><a href="#creating-roc-curve" id="toc-creating-roc-curve" class="nav-link" data-scroll-target="#creating-roc-curve">Creating ROC Curve</a></li>
   <li><a href="#interpreting-auc" id="toc-interpreting-auc" class="nav-link" data-scroll-target="#interpreting-auc">Interpreting AUC</a></li>
   </ul></li>
-  <li><a href="#part-6-equity-considerations" id="toc-part-6-equity-considerations" class="nav-link" data-scroll-target="#part-6-equity-considerations">Part 6: Equity Considerations</a>
+  <li><a href="#equity-considerations" id="toc-equity-considerations" class="nav-link" data-scroll-target="#equity-considerations">Equity Considerations</a>
   <ul class="collapse">
-  <li><a href="#the-core-problem-disparate-impact" id="toc-the-core-problem-disparate-impact" class="nav-link" data-scroll-target="#the-core-problem-disparate-impact">The Core Problem: Disparate Impact</a></li>
+  <li><a href="#disparate-impact" id="toc-disparate-impact" class="nav-link" data-scroll-target="#disparate-impact">Disparate Impact</a></li>
   <li><a href="#real-world-case-compas" id="toc-real-world-case-compas" class="nav-link" data-scroll-target="#real-world-case-compas">Real-World Case: COMPAS</a></li>
   </ul></li>
-  <li><a href="#part-7-how-to-choose-a-threshold" id="toc-part-7-how-to-choose-a-threshold" class="nav-link" data-scroll-target="#part-7-how-to-choose-a-threshold">Part 7: How to Choose a Threshold</a>
+  <li><a href="#how-to-choose-a-threshold" id="toc-how-to-choose-a-threshold" class="nav-link" data-scroll-target="#how-to-choose-a-threshold">How to Choose a Threshold</a>
   <ul class="collapse">
-  <li><a href="#framework-for-threshold-selection" id="toc-framework-for-threshold-selection" class="nav-link" data-scroll-target="#framework-for-threshold-selection">Framework for Threshold Selection</a></li>
-  <li><a href="#cost-benefit-analysis-approach" id="toc-cost-benefit-analysis-approach" class="nav-link" data-scroll-target="#cost-benefit-analysis-approach">Cost-Benefit Analysis Approach</a></li>
+  <li><a href="#framework" id="toc-framework" class="nav-link" data-scroll-target="#framework">Framework</a></li>
   <li><a href="#practical-recommendations" id="toc-practical-recommendations" class="nav-link" data-scroll-target="#practical-recommendations">Practical Recommendations</a></li>
   </ul></li>
   <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">Key Takeaways</a>
@@ -321,10 +340,7 @@ window.Quarto = {
   <li><a href="#evaluation-metrics" id="toc-evaluation-metrics" class="nav-link" data-scroll-target="#evaluation-metrics">Evaluation Metrics</a></li>
   <li><a href="#critical-considerations" id="toc-critical-considerations" class="nav-link" data-scroll-target="#critical-considerations">Critical Considerations</a></li>
   <li><a href="#common-pitfalls" id="toc-common-pitfalls" class="nav-link" data-scroll-target="#common-pitfalls">Common Pitfalls</a></li>
-  <li><a href="#best-practices" id="toc-best-practices" class="nav-link" data-scroll-target="#best-practices">Best Practices</a></li>
-  <li><a href="#next-steps" id="toc-next-steps" class="nav-link" data-scroll-target="#next-steps">Next Steps</a></li>
   </ul></li>
-  <li><a href="#resources" id="toc-resources" class="nav-link" data-scroll-target="#resources">Resources</a></li>
   </ul>
 </nav>
 </nav>
@@ -383,255 +399,128 @@ Note
 </div>
 <section id="overview" class="level1">
 <h1>Overview</h1>
-<p>This week we learned about logistic regression, a method for predicting binary outcomes (yes/no, 0/1). We explored how it differs from linear regression, how to interpret coefficients, how to evaluate binary predictions using confusion matrices and ROC curves, and the critical importance of threshold selection and equity considerations.</p>
+<p>This week we learned about logistic regression for predicting binary outcomes (yes/no, 0/1). Key topics include the logistic function, interpreting odds ratios, confusion matrices, ROC curves, threshold selection, and equity considerations.</p>
 <section id="key-learning-objectives" class="level2">
 <h2 class="anchored" data-anchor-id="key-learning-objectives">Key Learning Objectives</h2>
 <ul>
-<li>Understand when and why to use logistic regression instead of linear regression</li>
-<li>Learn to fit and interpret logistic regression models</li>
-<li>Master confusion matrices and classification metrics (sensitivity, specificity, precision)</li>
+<li>Understand when to use logistic regression vs.&nbsp;linear regression</li>
+<li>Fit and interpret logistic regression models</li>
+<li>Master confusion matrices and classification metrics</li>
 <li>Understand ROC curves and AUC</li>
-<li>Learn to choose appropriate thresholds for binary classification</li>
-<li>Recognize equity considerations in binary prediction models</li>
+<li>Choose appropriate thresholds</li>
+<li>Recognize equity considerations</li>
 </ul>
 </section>
 </section>
-<section id="part-1-introduction-to-logistic-regression" class="level1">
-<h1>Part 1: Introduction to Logistic Regression</h1>
-<section id="where-weve-been" class="level2">
-<h2 class="anchored" data-anchor-id="where-weve-been">Where We’ve Been</h2>
-<p><strong>Weeks 1-7: Linear regression</strong> - Predicting <strong>continuous outcomes</strong>: home prices, income, population - Y = β₀ + β₁X₁ + β₂X₂ + … + ε - Used RMSE to evaluate predictions</p>
-<p><strong>Last week: Poisson regression</strong> - Predicting <strong>count outcomes</strong>: number of crimes - Different distribution, but still predicting quantities</p>
-<p><strong>Today: A fundamentally different question</strong> - Not “how much?” but “<strong>will it happen?</strong>” - Binary outcomes: yes/no, 0/1, success/failure - This requires a completely different approach</p>
-</section>
+<section id="introduction-to-logistic-regression" class="level1">
+<h1>Introduction to Logistic Regression</h1>
 <section id="what-makes-binary-outcomes-different" class="level2">
 <h2 class="anchored" data-anchor-id="what-makes-binary-outcomes-different">What Makes Binary Outcomes Different?</h2>
-<p><strong>The problem with linear regression for binary outcomes:</strong></p>
-<p><strong>Problems:</strong> - Predictions can be &gt; 1 or &lt; 0 (makes no sense for probability!) - Assumes constant effect across range (not realistic) - Violates regression assumptions (errors aren’t normal)</p>
-<p><strong>Example:</strong> Predicting whether a student passes (1) or fails (0) an exam based on study hours - Linear regression might predict probability &gt; 1 for high study hours - Linear regression might predict probability &lt; 0 for low study hours - Neither makes sense!</p>
+<p><strong>Problem with linear regression for binary outcomes:</strong> - Predictions can be &gt; 1 or &lt; 0 (makes no sense!) - Assumes constant effect (not realistic) - Violates regression assumptions</p>
 </section>
-<section id="enter-logistic-regression" class="level2">
-<h2 class="anchored" data-anchor-id="enter-logistic-regression">Enter: Logistic Regression</h2>
-<p><strong>The solution:</strong> Transform the problem!</p>
-<p>Instead of predicting Y directly, predict the <strong>probability</strong> that Y = 1</p>
-<p><strong>The logistic function</strong> constrains predictions between 0 and 1:</p>
+<section id="the-logistic-function" class="level2">
+<h2 class="anchored" data-anchor-id="the-logistic-function">The Logistic Function</h2>
+<p><strong>Solution:</strong> Predict probability that Y = 1</p>
 <p><span class="math display">\[p(X) = \frac{1}{1+e^{-(\beta_0 + \beta_1X_1 + ... + \beta_kX_k)}}\]</span></p>
-<p><strong>Key properties:</strong> - Always outputs values between 0 and 1 - S-shaped curve (sigmoid) - Approaches 1 but never exceeds it - Approaches 0 but never goes negative</p>
-</section>
-<section id="when-do-we-use-logistic-regression" class="level2">
-<h2 class="anchored" data-anchor-id="when-do-we-use-logistic-regression">When Do We Use Logistic Regression?</h2>
-<p><strong>Perfect for binary classification problems in policy:</strong></p>
-<p><strong>Criminal Justice:</strong> - Will someone reoffend? (recidivism) - Will someone appear for court? (flight risk)</p>
-<p><strong>Health:</strong> - Will patient develop disease? (risk assessment) - Will treatment be successful? (outcome prediction)</p>
-<p><strong>Economics:</strong> - Will loan default? (credit risk) - Will person get hired? (employment prediction)</p>
-<p><strong>Urban Planning:</strong> - Will building be demolished? (blight prediction) - Will household participate in program? (uptake prediction)</p>
+<p><strong>Key properties:</strong> - Always outputs values between 0 and 1 - S-shaped curve (sigmoid)</p>
 </section>
 <section id="the-logit-transformation" class="level2">
 <h2 class="anchored" data-anchor-id="the-logit-transformation">The Logit Transformation</h2>
-<p><strong>Behind the scenes:</strong> We work with <strong>log-odds</strong>, not probabilities directly</p>
-<p><strong>Odds:</strong> <span class="math inline">\(\text{Odds} = \frac{p}{1-p}\)</span></p>
-<p><strong>Log-Odds (Logit):</strong> <span class="math inline">\(\text{logit}(p) = \ln\left(\frac{p}{1-p}\right)\)</span></p>
-<p><strong>This creates a linear relationship:</strong> <span class="math display">\[\ln\left(\frac{p}{1-p}\right) = \beta_0 + \beta_1X_1 + \beta_2X_2 + ...\]</span></p>
-<p><strong>Why this matters:</strong> - Coefficients are log-odds (like linear regression!) - But we interpret as <strong>odds ratios</strong> when exponentiated: <span class="math inline">\(e^{\beta}\)</span> - OR &gt; 1: predictor increases odds of outcome - OR &lt; 1: predictor decreases odds of outcome</p>
+<p><strong>We work with log-odds:</strong></p>
+<p><span class="math display">\[\ln\left(\frac{p}{1-p}\right) = \beta_0 + \beta_1X_1 + ...\]</span></p>
+<p><strong>Interpretation:</strong> - Coefficients are log-odds - Exponentiate to get <strong>odds ratios</strong>: <span class="math inline">\(e^{\beta}\)</span> - OR &gt; 1: increases odds - OR &lt; 1: decreases odds</p>
 </section>
 </section>
-<section id="part-2-building-our-first-logistic-model" class="level1">
-<h1>Part 2: Building Our First Logistic Model</h1>
-<section id="example-email-spam-detection" class="level2">
-<h2 class="anchored" data-anchor-id="example-email-spam-detection">Example: Email Spam Detection</h2>
-<p><strong>Goal:</strong> Predict whether email is spam (1) or legitimate (0)</p>
-<p><strong>Predictors:</strong> - Number of exclamation marks - Contains word “free” - Email length</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create example spam detection data</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>n_emails <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>spam_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">exclamation_marks =</span> <span class="fu">c</span>(<span class="fu">rpois</span>(<span class="dv">100</span>, <span class="dv">5</span>), <span class="fu">rpois</span>(<span class="dv">900</span>, <span class="fl">0.5</span>)),  <span class="co"># Spam has more !</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">contains_free =</span> <span class="fu">c</span>(<span class="fu">rbinom</span>(<span class="dv">100</span>, <span class="dv">1</span>, <span class="fl">0.8</span>), <span class="fu">rbinom</span>(<span class="dv">900</span>, <span class="dv">1</span>, <span class="fl">0.1</span>)),  <span class="co"># Spam mentions "free"</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">length =</span> <span class="fu">c</span>(<span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="dv">200</span>, <span class="dv">50</span>), <span class="fu">rnorm</span>(<span class="dv">900</span>, <span class="dv">500</span>, <span class="dv">100</span>)),  <span class="co"># Spam is shorter</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">is_spam =</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">100</span>), <span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">900</span>))</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="fitting-the-logistic-model" class="level2">
-<h2 class="anchored" data-anchor-id="fitting-the-logistic-model">Fitting the Logistic Model</h2>
-<p><strong>In R, we use <code>glm()</code> with <code>family = "binomial"</code></strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit logistic regression</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>spam_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  is_spam <span class="sc">~</span> exclamation_marks <span class="sc">+</span> contains_free <span class="sc">+</span> length,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> spam_data,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">"binomial"</span>  <span class="co"># This specifies logistic regression</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># View results</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(spam_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="interpreting-coefficients" class="level2">
-<h2 class="anchored" data-anchor-id="interpreting-coefficients">Interpreting Coefficients</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract coefficients</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>coefs <span class="ot">&lt;-</span> <span class="fu">coef</span>(spam_model)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to odds ratios</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>odds_ratios <span class="ot">&lt;-</span> <span class="fu">exp</span>(coefs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>Interpretation:</strong> - <code>exclamation_marks</code>: Each additional ! multiplies odds of spam by the odds ratio - <code>contains_free</code>: Having “free” multiplies odds by the odds ratio - <code>length</code>: Each additional character multiplies odds by the odds ratio (shorter = more likely spam)</p>
-<p><strong>Example:</strong> - If odds ratio = 1.15: 15% increase in odds per unit - If odds ratio = 0.80: 20% decrease in odds per unit - If odds ratio = 2.00: Doubling of odds per unit</p>
+<section id="building-logistic-models" class="level1">
+<h1>Building Logistic Models</h1>
+<section id="fitting-the-model" class="level2">
+<h2 class="anchored" data-anchor-id="fitting-the-model">Fitting the Model</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use glm() with family = "binomial"</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  is_spam <span class="sc">~</span> exclamation_marks <span class="sc">+</span> contains_free <span class="sc">+</span> length,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> spam_data,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">"binomial"</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to odds ratios</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>odds_ratios <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">coef</span>(model))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Interpretation:</strong> - If OR = 1.15: 15% increase in odds per unit - If OR = 0.80: 20% decrease in odds per unit - If OR = 2.00: Doubling of odds per unit</p>
 </section>
 <section id="making-predictions" class="level2">
 <h2 class="anchored" data-anchor-id="making-predictions">Making Predictions</h2>
-<p><strong>The model outputs probabilities:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Predict probability for a new email</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>new_email <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">exclamation_marks =</span> <span class="dv">3</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">contains_free =</span> <span class="dv">1</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">length =</span> <span class="dv">150</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>predicted_prob <span class="ot">&lt;-</span> <span class="fu">predict</span>(spam_model, <span class="at">newdata =</span> new_email, <span class="at">type =</span> <span class="st">"response"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>But now what?</strong> - If probability = 0.723, is this spam or not? - We need to choose a <strong>threshold</strong> (cutoff) - Threshold = 0.5 is common default, but is it the right choice?</p>
-<p><strong>The answer depends on:</strong> - Cost of false positives (marking legitimate email as spam) - Cost of false negatives (missing actual spam) - <strong>These costs are rarely equal!</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Predict probabilities</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>predicted_prob <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> new_email, <span class="at">type =</span> <span class="st">"response"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>But:</strong> If probability = 0.723, is this spam or not? Need to choose a <strong>threshold</strong></p>
 </section>
 </section>
-<section id="part-3-evaluating-binary-predictions" class="level1">
-<h1>Part 3: Evaluating Binary Predictions</h1>
-<section id="from-probabilities-to-decisions" class="level2">
-<h2 class="anchored" data-anchor-id="from-probabilities-to-decisions">From Probabilities to Decisions</h2>
-<p><strong>We now have a model that predicts probabilities.</strong></p>
-<p>But policy decisions require binary choices: spam/not spam, approve/deny, intervene/don’t intervene.</p>
-<p><strong>This requires two steps:</strong> 1. Choose a threshold to convert probabilities → binary predictions 2. Evaluate how good those predictions are</p>
-<p><strong>The confusion matrix helps us with step 2</strong></p>
+<section id="evaluating-binary-predictions" class="level1">
+<h1>Evaluating Binary Predictions</h1>
+<section id="the-confusion-matrix" class="level2">
+<h2 class="anchored" data-anchor-id="the-confusion-matrix">The Confusion Matrix</h2>
+<p><strong>Four outcomes:</strong> - <strong>True Positive (TP):</strong> Correct positive prediction - <strong>False Positive (FP):</strong> Wrong positive (Type I error) - <strong>True Negative (TN):</strong> Correct negative prediction - <strong>False Negative (FN):</strong> Wrong negative (Type II error)</p>
 </section>
-<section id="the-four-outcomes" class="level2">
-<h2 class="anchored" data-anchor-id="the-four-outcomes">The Four Outcomes</h2>
-<p>When we make binary predictions, four things can happen:</p>
-<p><strong>Model says “Yes”:</strong> - <strong>True Positive (TP):</strong> Correct! ✓ - <strong>False Positive (FP):</strong> Wrong - Type I error</p>
-<p><strong>Model says “No”:</strong> - <strong>True Negative (TN):</strong> Correct! ✓ - <strong>False Negative (FN):</strong> Wrong - Type II error</p>
-<p><strong>Remember:</strong> The model predicts probabilities. WE choose the threshold that converts probabilities to yes/no predictions.</p>
-</section>
-<section id="calculating-performance-metrics" class="level2">
-<h2 class="anchored" data-anchor-id="calculating-performance-metrics">Calculating Performance Metrics</h2>
-<p>From the confusion matrix, we derive metrics that emphasize different trade-offs:</p>
-<p><strong>Sensitivity (Recall, True Positive Rate):</strong> <span class="math display">\[\text{Sensitivity} = \frac{TP}{TP + FN}\]</span> <em>“Of all actual positives, how many did we catch?”</em></p>
-<p><strong>Specificity (True Negative Rate):</strong> <span class="math display">\[\text{Specificity} = \frac{TN}{TN + FP}\]</span> <em>“Of all actual negatives, how many did we correctly identify?”</em></p>
-<p><strong>Precision (Positive Predictive Value):</strong> <span class="math display">\[\text{Precision} = \frac{TP}{TP + FP}\]</span> <em>“Of all our positive predictions, how many were correct?”</em></p>
-<p><strong>Accuracy:</strong> <span class="math display">\[\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}\]</span> <em>“What proportion of all predictions were correct?”</em></p>
-</section>
-<section id="example-covid-testing" class="level2">
-<h2 class="anchored" data-anchor-id="example-covid-testing">Example: COVID Testing</h2>
-<p><strong>Scenario:</strong> Testing for COVID-19</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 27%">
-<col style="width: 27%">
-<col style="width: 18%">
-<col style="width: 27%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>True Status</th>
-<th>Test Result</th>
-<th>Outcome</th>
-<th>Consequence</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Positive</td>
-<td>Positive</td>
-<td>True Positive (TP)</td>
-<td>Quarantine (correct)</td>
-</tr>
-<tr class="even">
-<td>Positive</td>
-<td>Negative</td>
-<td>False Negative (FN)</td>
-<td>Goes to work, spreads virus</td>
-</tr>
-<tr class="odd">
-<td>Negative</td>
-<td>Positive</td>
-<td>False Positive (FP)</td>
-<td>Quarantines unnecessarily</td>
-</tr>
-<tr class="even">
-<td>Negative</td>
-<td>Negative</td>
-<td>True Negative (TN)</td>
-<td>Goes to work (correct)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Which error is worse?</strong> - False Negative → Virus spreads - False Positive → Unnecessary quarantine</p>
-<p><strong>The answer depends on context!</strong> (And changes our threshold choice)</p>
+<section id="performance-metrics" class="level2">
+<h2 class="anchored" data-anchor-id="performance-metrics">Performance Metrics</h2>
+<p><strong>Sensitivity (Recall):</strong> <span class="math display">\[\text{Sensitivity} = \frac{TP}{TP + FN}\]</span> <em>“Of all actual positives, how many did we catch?”</em></p>
+<p><strong>Specificity:</strong> <span class="math display">\[\text{Specificity} = \frac{TN}{TN + FP}\]</span> <em>“Of all actual negatives, how many did we correctly identify?”</em></p>
+<p><strong>Precision:</strong> <span class="math display">\[\text{Precision} = \frac{TP}{TP + FP}\]</span> <em>“Of our positive predictions, how many were correct?”</em></p>
+<p><strong>Accuracy:</strong> <span class="math display">\[\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}\]</span></p>
 </section>
 </section>
-<section id="part-4-the-threshold-decision" class="level1">
-<h1>Part 4: The Threshold Decision</h1>
+<section id="the-threshold-decision" class="level1">
+<h1>The Threshold Decision</h1>
 <section id="why-threshold-choice-matters" class="level2">
 <h2 class="anchored" data-anchor-id="why-threshold-choice-matters">Why Threshold Choice Matters</h2>
-<p><strong>Remember:</strong> The model gives us probabilities. We decide what probability triggers action.</p>
-<p><strong>Threshold = 0.3</strong> (low bar) - More emails marked as spam - Higher sensitivity (catch more spam) - Lower specificity (more false alarms)</p>
-<p><strong>Threshold = 0.7</strong> (high bar) - Fewer emails marked as spam - Lower sensitivity (miss some spam) - Higher specificity (fewer false alarms)</p>
-<p><strong>There is no “right” answer - it depends on the costs of each type of error</strong></p>
-</section>
-<section id="the-great-sensitivity-specificity-trade-off" class="level2">
-<h2 class="anchored" data-anchor-id="the-great-sensitivity-specificity-trade-off">The Great Sensitivity-Specificity Trade-off</h2>
-<p><strong>As threshold increases:</strong> - Sensitivity decreases (we catch fewer positives) - Specificity increases (we have fewer false alarms) - Precision increases (when we do predict positive, we’re more often right)</p>
-<p><strong>As threshold decreases:</strong> - Sensitivity increases (we catch more positives) - Specificity decreases (we have more false alarms) - Precision decreases (more of our positive predictions are wrong)</p>
-<p><strong>This is a fundamental trade-off - you can’t maximize both simultaneously!</strong></p>
+<p><strong>Threshold = 0.3</strong> (low bar) - Higher sensitivity (catch more positives) - Lower specificity (more false alarms)</p>
+<p><strong>Threshold = 0.7</strong> (high bar) - Lower sensitivity (miss some positives) - Higher specificity (fewer false alarms)</p>
+<p><strong>Trade-off:</strong> Can’t maximize both simultaneously!</p>
 </section>
 <section id="two-policy-scenarios" class="level2">
 <h2 class="anchored" data-anchor-id="two-policy-scenarios">Two Policy Scenarios</h2>
-<p><strong>Scenario A: Rare, deadly disease screening</strong> - Disease is rare but fatal if untreated - Treatment is safe with minor side effects - <strong>Goal:</strong> Don’t miss any cases (high sensitivity) - <strong>Acceptable:</strong> Some false positives (low threshold)</p>
-<p><strong>Scenario B: Identifying “high-risk” individuals for intervention</strong> - Limited intervention slots - False positives waste resources - False negatives miss opportunities to help - <strong>Goal:</strong> Use resources efficiently (high precision) - <strong>Decision depends on:</strong> Cost of intervention vs.&nbsp;cost of missed case</p>
+<p><strong>Scenario A: Rare, deadly disease</strong> - Goal: Don’t miss any cases (high sensitivity) - Acceptable: Some false positives (low threshold)</p>
+<p><strong>Scenario B: Limited intervention slots</strong> - Goal: Use resources efficiently (high precision) - Decision depends on: Cost of intervention vs.&nbsp;missed case</p>
 </section>
 </section>
-<section id="part-5-roc-curves" class="level1">
-<h1>Part 5: ROC Curves</h1>
-<section id="the-roc-curve-visualizing-all-thresholds" class="level2">
-<h2 class="anchored" data-anchor-id="the-roc-curve-visualizing-all-thresholds">The ROC Curve: Visualizing All Thresholds</h2>
+<section id="roc-curves" class="level1">
+<h1>ROC Curves</h1>
+<section id="what-roc-shows" class="level2">
+<h2 class="anchored" data-anchor-id="what-roc-shows">What ROC Shows</h2>
 <p><strong>ROC = Receiver Operating Characteristic</strong></p>
-<p>(Originally developed for radar signal detection in WWII)</p>
-<p><strong>What it shows:</strong> - Every possible threshold - Trade-off between True Positive Rate (Sensitivity) and False Positive Rate (1 - Specificity) - Overall model discrimination ability</p>
-<p><strong>How to read it:</strong> - X-axis: False Positive Rate (1 - Specificity) - Y-axis: True Positive Rate (Sensitivity) - Diagonal line: Random guessing - Top-left corner: Perfect prediction</p>
+<ul>
+<li>X-axis: False Positive Rate (1 - Specificity)</li>
+<li>Y-axis: True Positive Rate (Sensitivity)</li>
+<li>Diagonal line: Random guessing</li>
+<li>Top-left corner: Perfect prediction</li>
+</ul>
 </section>
-<section id="creating-an-roc-curve" class="level2">
-<h2 class="anchored" data-anchor-id="creating-an-roc-curve">Creating an ROC Curve</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pROC)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create ROC curve</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>roc_obj <span class="ot">&lt;-</span> <span class="fu">roc</span>(actual_outcome, predicted_probability)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot it</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggroc</span>(roc_obj) <span class="sc">+</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"ROC Curve"</span>,</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"1 - Specificity (False Positive Rate)"</span>,</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Sensitivity (True Positive Rate)"</span>) <span class="sc">+</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate AUC</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>auc_value <span class="ot">&lt;-</span> <span class="fu">auc</span>(roc_obj)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="creating-roc-curve" class="level2">
+<h2 class="anchored" data-anchor-id="creating-roc-curve">Creating ROC Curve</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pROC)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>roc_obj <span class="ot">&lt;-</span> <span class="fu">roc</span>(actual_outcome, predicted_probability)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggroc</span>(roc_obj) <span class="sc">+</span> <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate AUC</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>auc_value <span class="ot">&lt;-</span> <span class="fu">auc</span>(roc_obj)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="interpreting-auc" class="level2">
 <h2 class="anchored" data-anchor-id="interpreting-auc">Interpreting AUC</h2>
-<p><strong>AUC (Area Under the Curve)</strong> summarizes overall model performance:</p>
 <ul>
 <li><strong>AUC = 1.0:</strong> Perfect classifier</li>
 <li><strong>AUC = 0.9-1.0:</strong> Excellent</li>
 <li><strong>AUC = 0.8-0.9:</strong> Good</li>
 <li><strong>AUC = 0.7-0.8:</strong> Acceptable</li>
-<li><strong>AUC = 0.6-0.7:</strong> Poor</li>
-<li><strong>AUC = 0.5:</strong> No better than random guessing</li>
-<li><strong>AUC &lt; 0.5:</strong> Worse than random (your model is backwards!)</li>
+<li><strong>AUC = 0.5:</strong> Random guessing</li>
 </ul>
-<p><strong>Important limitations:</strong> - AUC doesn’t tell us which threshold to use - AUC doesn’t account for class imbalance - AUC doesn’t show us equity implications</p>
+<p><strong>Limitations:</strong> - Doesn’t tell us which threshold to use - Doesn’t account for class imbalance - Doesn’t show equity implications</p>
 </section>
 </section>
-<section id="part-6-equity-considerations" class="level1">
-<h1>Part 6: Equity Considerations</h1>
-<section id="the-core-problem-disparate-impact" class="level2">
-<h2 class="anchored" data-anchor-id="the-core-problem-disparate-impact">The Core Problem: Disparate Impact</h2>
-<p><strong>A model can be “accurate” overall but perform very differently across groups</strong></p>
-<p><strong>Example metrics from a recidivism model:</strong></p>
+<section id="equity-considerations" class="level1">
+<h1>Equity Considerations</h1>
+<section id="disparate-impact" class="level2">
+<h2 class="anchored" data-anchor-id="disparate-impact">Disparate Impact</h2>
+<p><strong>A model can be “accurate” overall but perform differently across groups</strong></p>
+<p><strong>Example from recidivism model:</strong></p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -662,46 +551,36 @@ Note
 </tr>
 </tbody>
 </table>
-<p><strong>Group B experiences:</strong> - Lower sensitivity (more people who will reoffend are missed) - Lower specificity (more people who won’t reoffend are flagged) - Higher false positive rate (more unjust interventions)</p>
-<p><strong>This is algorithmic bias in action</strong></p>
+<p><strong>Group B experiences:</strong> Lower sensitivity, lower specificity, higher false positive rate</p>
 </section>
 <section id="real-world-case-compas" class="level2">
 <h2 class="anchored" data-anchor-id="real-world-case-compas">Real-World Case: COMPAS</h2>
-<p><strong>COMPAS:</strong> Commercial algorithm used in criminal justice to predict recidivism</p>
-<p><strong>ProPublica investigation (2016) found:</strong> - Similar overall accuracy for Black and White defendants - BUT: False positive rates differed dramatically - Black defendants: 45% false positive rate - White defendants: 23% false positive rate - Black defendants twice as likely to be incorrectly labeled “high risk”</p>
-<p><strong>Result:</strong> - Different threshold needed for different groups to achieve equity - But single-threshold systems are the norm - <strong>Key insight:</strong> Overall accuracy masks disparate impact</p>
+<p><strong>ProPublica investigation (2016):</strong> - Similar overall accuracy for Black and White defendants - BUT: False positive rates differed dramatically - Black: 45% false positive rate - White: 23% false positive rate - Black defendants twice as likely to be incorrectly labeled “high risk”</p>
+<p><strong>Key insight:</strong> Overall accuracy masks disparate impact</p>
 </section>
 </section>
-<section id="part-7-how-to-choose-a-threshold" class="level1">
-<h1>Part 7: How to Choose a Threshold</h1>
-<section id="framework-for-threshold-selection" class="level2">
-<h2 class="anchored" data-anchor-id="framework-for-threshold-selection">Framework for Threshold Selection</h2>
-<p><strong>Step 1: Understand the consequences</strong> - What happens with a false positive? - What happens with a false negative? - Are costs symmetric or asymmetric?</p>
-<p><strong>Step 2: Consider stakeholder perspectives</strong> - Who is affected by each type of error? - Do all groups experience consequences equally?</p>
-<p><strong>Step 3: Choose your metric priority</strong> - Maximize sensitivity? (catch all positives) - Maximize specificity? (minimize false alarms) - Balance precision and recall? (F1 score) - Equalize across groups?</p>
-<p><strong>Step 4: Test multiple thresholds</strong> - Evaluate performance across thresholds - Look at group-wise performance - Consider sensitivity analysis</p>
-</section>
-<section id="cost-benefit-analysis-approach" class="level2">
-<h2 class="anchored" data-anchor-id="cost-benefit-analysis-approach">Cost-Benefit Analysis Approach</h2>
-<p><strong>Assign concrete costs to errors:</strong></p>
-<p><strong>Example: Disease screening</strong> - True Positive: Treatment cost $1000, prevent $50,000 in complications - False Positive: Unnecessary treatment $1000 - True Negative: No cost - False Negative: Miss disease, $50,000 in complications later</p>
-<p><strong>Calculate expected cost at each threshold:</strong> <span class="math display">\[E[\text{Cost}] = C_{FP} \times FP + C_{FN} \times FN\]</span></p>
-<p><strong>Choose threshold that minimizes expected cost</strong></p>
-<p><em>Note: This assumes we can quantify all costs, which is often impossible for justice/equity concerns</em></p>
+<section id="how-to-choose-a-threshold" class="level1">
+<h1>How to Choose a Threshold</h1>
+<section id="framework" class="level2">
+<h2 class="anchored" data-anchor-id="framework">Framework</h2>
+<ol type="1">
+<li><strong>Understand consequences:</strong> What happens with FP vs.&nbsp;FN?</li>
+<li><strong>Consider stakeholders:</strong> Who is affected by each error?</li>
+<li><strong>Choose metric priority:</strong> Sensitivity? Specificity? Precision? Equity?</li>
+<li><strong>Test multiple thresholds:</strong> Evaluate across thresholds, check group-wise performance</li>
+</ol>
 </section>
 <section id="practical-recommendations" class="level2">
 <h2 class="anchored" data-anchor-id="practical-recommendations">Practical Recommendations</h2>
 <ol type="1">
-<li><strong>Report multiple metrics</strong> - not just accuracy</li>
-<li><strong>Show the ROC curve</strong> - demonstrates trade-offs</li>
-<li><strong>Test multiple thresholds</strong> - document your choice</li>
-<li><strong>Evaluate by sub-group</strong> - check for disparate impact</li>
-<li><strong>Document assumptions</strong> - explain why you chose your threshold</li>
-<li><strong>Consider context</strong> - what are the real-world consequences?</li>
-<li><strong>Provide uncertainty</strong> - confidence intervals, not just point estimates</li>
-<li><strong>Enable recourse</strong> - can predictions be challenged?</li>
+<li>Report multiple metrics (not just accuracy)</li>
+<li>Show the ROC curve</li>
+<li>Test multiple thresholds</li>
+<li>Evaluate by sub-group</li>
+<li>Document assumptions</li>
+<li>Consider context</li>
+<li>Be transparent about limitations</li>
 </ol>
-<p><strong>Most importantly: Be transparent about limitations and potential harms</strong></p>
 </section>
 </section>
 <section id="key-takeaways" class="level1">
@@ -709,78 +588,46 @@ Note
 <section id="logistic-regression-skills" class="level2">
 <h2 class="anchored" data-anchor-id="logistic-regression-skills">Logistic Regression Skills</h2>
 <ol type="1">
-<li><strong>When to use</strong>: Binary outcomes (yes/no, 0/1)</li>
-<li><strong>Model fitting</strong>: <code>glm()</code> with <code>family = "binomial"</code></li>
-<li><strong>Coefficient interpretation</strong>: Odds ratios (exponentiate coefficients)</li>
-<li><strong>Predictions</strong>: Probabilities between 0 and 1</li>
-<li><strong>Threshold selection</strong>: Critical decision with real consequences</li>
+<li><strong>When to use:</strong> Binary outcomes (yes/no, 0/1)</li>
+<li><strong>Model fitting:</strong> <code>glm()</code> with <code>family = "binomial"</code></li>
+<li><strong>Interpretation:</strong> Odds ratios (exponentiate coefficients)</li>
+<li><strong>Predictions:</strong> Probabilities between 0 and 1</li>
+<li><strong>Threshold selection:</strong> Critical decision with real consequences</li>
 </ol>
 </section>
 <section id="evaluation-metrics" class="level2">
 <h2 class="anchored" data-anchor-id="evaluation-metrics">Evaluation Metrics</h2>
 <ol type="1">
-<li><strong>Sensitivity (Recall)</strong>: Of all positives, how many did we catch?</li>
-<li><strong>Specificity</strong>: Of all negatives, how many did we correctly identify?</li>
-<li><strong>Precision</strong>: Of our positive predictions, how many were correct?</li>
-<li><strong>ROC Curve</strong>: Visualizes all threshold trade-offs</li>
-<li><strong>AUC</strong>: Overall discrimination ability (but has limitations)</li>
+<li><strong>Sensitivity:</strong> Of all positives, how many did we catch?</li>
+<li><strong>Specificity:</strong> Of all negatives, how many did we correctly identify?</li>
+<li><strong>Precision:</strong> Of our positive predictions, how many were correct?</li>
+<li><strong>ROC Curve:</strong> Visualizes all threshold trade-offs</li>
+<li><strong>AUC:</strong> Overall discrimination ability (but has limitations)</li>
 </ol>
 </section>
 <section id="critical-considerations" class="level2">
 <h2 class="anchored" data-anchor-id="critical-considerations">Critical Considerations</h2>
 <ol type="1">
-<li><strong>Threshold choice matters</strong>: No single “right” threshold</li>
-<li><strong>Costs are asymmetric</strong>: False positives and false negatives have different consequences</li>
-<li><strong>Equity matters</strong>: Models can perform differently across groups</li>
-<li><strong>Overall accuracy can mask bias</strong>: Always check group-wise performance</li>
-<li><strong>Transparency is essential</strong>: Document your choices and assumptions</li>
+<li><strong>Threshold choice matters:</strong> No single “right” threshold</li>
+<li><strong>Costs are asymmetric:</strong> FP and FN have different consequences</li>
+<li><strong>Equity matters:</strong> Models can perform differently across groups</li>
+<li><strong>Overall accuracy can mask bias:</strong> Always check group-wise performance</li>
+<li><strong>Transparency is essential:</strong> Document choices and assumptions</li>
 </ol>
 </section>
 <section id="common-pitfalls" class="level2">
 <h2 class="anchored" data-anchor-id="common-pitfalls">Common Pitfalls</h2>
 <ul>
-<li><strong>Using linear regression for binary outcomes</strong>: Predictions outside [0,1] range</li>
-<li><strong>Defaulting to 0.5 threshold</strong>: May not be appropriate for your context</li>
-<li><strong>Only reporting accuracy</strong>: Doesn’t show the full picture</li>
-<li><strong>Ignoring class imbalance</strong>: Can lead to misleading metrics</li>
-<li><strong>Not checking for disparate impact</strong>: Overall performance can hide group differences</li>
-<li><strong>Not considering real-world costs</strong>: Statistical metrics don’t capture all consequences</li>
-</ul>
-</section>
-<section id="best-practices" class="level2">
-<h2 class="anchored" data-anchor-id="best-practices">Best Practices</h2>
-<ul>
-<li><strong>Always visualize</strong>: ROC curves show trade-offs clearly</li>
-<li><strong>Test multiple thresholds</strong>: Don’t assume 0.5 is right</li>
-<li><strong>Evaluate by subgroup</strong>: Check for equity concerns</li>
-<li><strong>Document your choices</strong>: Explain why you chose your threshold</li>
-<li><strong>Consider context</strong>: What are the real-world consequences?</li>
-<li><strong>Be transparent</strong>: Acknowledge limitations and potential harms</li>
-</ul>
-</section>
-<section id="next-steps" class="level2">
-<h2 class="anchored" data-anchor-id="next-steps">Next Steps</h2>
-<ul>
-<li>Practice fitting logistic regression models on your own data</li>
-<li>Experiment with different thresholds and see how metrics change</li>
-<li>Learn about F1 score and other composite metrics</li>
-<li>Explore calibration plots (predicted vs.&nbsp;actual probabilities)</li>
-<li>Study real-world cases of algorithmic bias in binary classification</li>
-<li>Consider how to implement group-specific thresholds for equity</li>
-</ul>
-</section>
-</section>
-<section id="resources" class="level1">
-<h1>Resources</h1>
-<ul>
-<li><strong>Logistic regression tutorial</strong>: Understanding the logit transformation</li>
-<li><strong>ROC curves</strong>: Visualizing classification performance</li>
-<li><strong>COMPAS case study</strong>: ProPublica investigation of algorithmic bias</li>
-<li><strong>Threshold selection</strong>: Framework for choosing cutoffs</li>
-<li><strong>Equity in ML</strong>: Fairness considerations in binary classification</li>
+<li>Using linear regression for binary outcomes</li>
+<li>Defaulting to 0.5 threshold</li>
+<li>Only reporting accuracy</li>
+<li>Ignoring class imbalance</li>
+<li>Not checking for disparate impact</li>
+<li>Not considering real-world costs</li>
 </ul>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

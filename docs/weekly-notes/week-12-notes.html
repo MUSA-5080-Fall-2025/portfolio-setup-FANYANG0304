@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.24">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Fan Yang">
+<meta name="dcterms.date" content="2025-11-24">
+
+<title>MUSA 5080 Notes #12 – Fan Yang - MUSA 5080</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dc55a5b9e770e841cd82e46aadbfb9b0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-e31584831b205ffbb2d98406f31c2a5b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Fan Yang - MUSA 5080</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-weekly-notes" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Weekly Notes</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-weekly-notes">    
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-01-notes.html">
+ <span class="dropdown-text">Week 1</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-02-notes.html">
+ <span class="dropdown-text">Week 2</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-03-notes.html">
+ <span class="dropdown-text">Week 3</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-04-notes.html">
+ <span class="dropdown-text">Week 4</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-05-notes.html">
+ <span class="dropdown-text">Week 5</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-06-notes.html">
+ <span class="dropdown-text">Week 6</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-07-notes.html">
+ <span class="dropdown-text">Week 7</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-09-notes.html">
+ <span class="dropdown-text">Week 9</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-10-notes.html">
+ <span class="dropdown-text">Week 10</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-11-notes.html">
+ <span class="dropdown-text">Week 11</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../weekly-notes/week-12-notes.html">
+ <span class="dropdown-text">Week 12</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-labs" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Labs</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-labs">    
+        <li>
+    <a class="dropdown-item" href="../labs/lab_setup_instructions.html">
+ <span class="dropdown-text">Lab 1: Setup Instructions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../labs/lab_0/lab0_index.html">
+ <span class="dropdown-text">Lab 2: Getting Started with dplyr</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../labs/lab_3/week3_lab_exercise.html">
+ <span class="dropdown-text">Lab 3: Data Visualization and EDA</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../labs/lab_4/week4_inclass_practice.html">
+ <span class="dropdown-text">Lab 4: Spatial Operations with Pennsylvania Data</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-assignments" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Assignments</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-assignments">    
+        <li>
+    <a class="dropdown-item" href="../assignments/assignment_1/Fan_Yang_Assignment1.html">
+ <span class="dropdown-text">Assignment 1: Census Data Quality for Policy Decisions</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assignments/assignment_2/Fan_Yang_Assignment2.html">
+ <span class="dropdown-text">Assignment 2: Spatial Analysis and Visualization</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assignments/assignment_4/Fan_Yang_Assignment4.html">
+ <span class="dropdown-text">Assignment 4: Spatial Predictive Analysis</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../assignments/assignment_5/assignment5.html">
+ <span class="dropdown-text">Assignment 5: Space-Time Prediction of Bike Share Demand</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-final" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Final</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-final">    
+        <li>
+    <a class="dropdown-item" href="../final/slides/eviction_presentation.html">
+ <span class="dropdown-text">Final Slides</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../final/final_Zhiyuan_Fan.html">
+ <span class="dropdown-text">Technical Appendix</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../final/README_final.html">
+ <span class="dropdown-text">README</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a>
+  <ul class="collapse">
+  <li><a href="#key-learning-objectives" id="toc-key-learning-objectives" class="nav-link" data-scroll-target="#key-learning-objectives">Key Learning Objectives</a></li>
+  </ul></li>
+  <li><a href="#the-problem-with-snapshots" id="toc-the-problem-with-snapshots" class="nav-link" data-scroll-target="#the-problem-with-snapshots">The Problem with Snapshots</a>
+  <ul class="collapse">
+  <li><a href="#why-sequences-matter" id="toc-why-sequences-matter" class="nav-link" data-scroll-target="#why-sequences-matter">Why Sequences Matter</a></li>
+  <li><a href="#the-dna-metaphor" id="toc-the-dna-metaphor" class="nav-link" data-scroll-target="#the-dna-metaphor">The DNA Metaphor</a></li>
+  </ul></li>
+  <li><a href="#research-context" id="toc-research-context" class="nav-link" data-scroll-target="#research-context">Research Context</a>
+  <ul class="collapse">
+  <li><a href="#urban-theories" id="toc-urban-theories" class="nav-link" data-scroll-target="#urban-theories">Urban Theories</a></li>
+  </ul></li>
+  <li><a href="#methodological-workflow" id="toc-methodological-workflow" class="nav-link" data-scroll-target="#methodological-workflow">Methodological Workflow</a>
+  <ul class="collapse">
+  <li><a href="#main-steps" id="toc-main-steps" class="nav-link" data-scroll-target="#main-steps">5 Main Steps</a></li>
+  </ul></li>
+  <li><a href="#step-1-k-means-clustering" id="toc-step-1-k-means-clustering" class="nav-link" data-scroll-target="#step-1-k-means-clustering">Step 1: K-means Clustering</a>
+  <ul class="collapse">
+  <li><a href="#what-is-k-means" id="toc-what-is-k-means" class="nav-link" data-scroll-target="#what-is-k-means">What is K-means?</a></li>
+  <li><a href="#choosing-k" id="toc-choosing-k" class="nav-link" data-scroll-target="#choosing-k">Choosing K</a></li>
+  </ul></li>
+  <li><a href="#step-2-create-sequences" id="toc-step-2-create-sequences" class="nav-link" data-scroll-target="#step-2-create-sequences">Step 2: Create Sequences</a>
+  <ul class="collapse">
+  <li><a href="#from-clusters-to-sequences" id="toc-from-clusters-to-sequences" class="nav-link" data-scroll-target="#from-clusters-to-sequences">From Clusters to Sequences</a></li>
+  <li><a href="#creating-sequence-object" id="toc-creating-sequence-object" class="nav-link" data-scroll-target="#creating-sequence-object">Creating Sequence Object</a></li>
+  </ul></li>
+  <li><a href="#step-3-measure-sequence-dissimilarity" id="toc-step-3-measure-sequence-dissimilarity" class="nav-link" data-scroll-target="#step-3-measure-sequence-dissimilarity">Step 3: Measure Sequence Dissimilarity</a>
+  <ul class="collapse">
+  <li><a href="#why-sequence-similarity-matters" id="toc-why-sequence-similarity-matters" class="nav-link" data-scroll-target="#why-sequence-similarity-matters">Why Sequence Similarity Matters</a></li>
+  <li><a href="#omstrans-sequence-aware-matching" id="toc-omstrans-sequence-aware-matching" class="nav-link" data-scroll-target="#omstrans-sequence-aware-matching">OMstrans: Sequence-Aware Matching</a></li>
+  <li><a href="#computing-omstrans" id="toc-computing-omstrans" class="nav-link" data-scroll-target="#computing-omstrans">Computing OMstrans</a></li>
+  </ul></li>
+  <li><a href="#step-4-cluster-similar-sequences" id="toc-step-4-cluster-similar-sequences" class="nav-link" data-scroll-target="#step-4-cluster-similar-sequences">Step 4: Cluster Similar Sequences</a>
+  <ul class="collapse">
+  <li><a href="#hierarchical-clustering" id="toc-hierarchical-clustering" class="nav-link" data-scroll-target="#hierarchical-clustering">Hierarchical Clustering</a></li>
+  <li><a href="#choosing-number-of-clusters" id="toc-choosing-number-of-clusters" class="nav-link" data-scroll-target="#choosing-number-of-clusters">Choosing Number of Clusters</a></li>
+  </ul></li>
+  <li><a href="#step-5-map-results" id="toc-step-5-map-results" class="nav-link" data-scroll-target="#step-5-map-results">Step 5: Map Results</a>
+  <ul class="collapse">
+  <li><a href="#mapping-trajectory-clusters" id="toc-mapping-trajectory-clusters" class="nav-link" data-scroll-target="#mapping-trajectory-clusters">Mapping Trajectory Clusters</a></li>
+  </ul></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">Key Takeaways</a>
+  <ul class="collapse">
+  <li><a href="#sequential-analysis-skills" id="toc-sequential-analysis-skills" class="nav-link" data-scroll-target="#sequential-analysis-skills">Sequential Analysis Skills</a></li>
+  <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts">Key Concepts</a></li>
+  <li><a href="#common-pitfalls" id="toc-common-pitfalls" class="nav-link" data-scroll-target="#common-pitfalls">Common Pitfalls</a></li>
+  <li><a href="#best-practices" id="toc-best-practices" class="nav-link" data-scroll-target="#best-practices">Best Practices</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content column-page-right" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">MUSA 5080 Notes #12</h1>
+<p class="subtitle lead">Week 12: Mapping the DNA of Urban Neighborhoods</p>
+</div>
+
+
+
+<div class="quarto-title-meta column-page-right">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Fan Yang </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 24, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Week 12: Mapping the DNA of Urban Neighborhoods</strong><br>
+<strong>Date:</strong> 11/24/2025</p>
+</div>
+</div>
+<section id="overview" class="level1">
+<h1>Overview</h1>
+<p>This week we learned about sequential analysis of neighborhood change, understanding how neighborhoods evolve as complete trajectories rather than snapshots. We used k-means clustering, sequence analysis (TraMineR), optimal matching, and hierarchical clustering to identify common neighborhood pathways.</p>
+<section id="key-learning-objectives" class="level2">
+<h2 class="anchored" data-anchor-id="key-learning-objectives">Key Learning Objectives</h2>
+<ul>
+<li>Understand limitations of snapshot-based analysis</li>
+<li>Learn k-means clustering for classifying neighborhoods</li>
+<li>Create sequence objects from longitudinal data</li>
+<li>Measure sequence dissimilarity using OMstrans</li>
+<li>Cluster similar trajectories and map results</li>
+</ul>
+</section>
+</section>
+<section id="the-problem-with-snapshots" class="level1">
+<h1>The Problem with Snapshots</h1>
+<section id="why-sequences-matter" class="level2">
+<h2 class="anchored" data-anchor-id="why-sequences-matter">Why Sequences Matter</h2>
+<p><strong>Traditional approach:</strong> Compare neighborhoods at single time points (1970 vs.&nbsp;2010)</p>
+<p><strong>Problem:</strong> Missing the full longitudinal sequence of change</p>
+<p><strong>Example:</strong> Same “gentrifying” endpoint in 2010 could be: - <code>Stable → Declining → Struggling → Gentrifying</code> (Neighborhood A) - <code>Struggling → Struggling → Struggling → Gentrifying</code> (Neighborhood B)</p>
+<p><strong>Policy implications:</strong> Different histories = different policy needs</p>
+</section>
+<section id="the-dna-metaphor" class="level2">
+<h2 class="anchored" data-anchor-id="the-dna-metaphor">The DNA Metaphor</h2>
+<p>Neighborhood sequences reveal: - Patterns of change across metro areas - Where different processes occur spatially - Which neighborhoods are “stuck” vs.&nbsp;volatile - Whether Chicago School theories still apply</p>
+</section>
+</section>
+<section id="research-context" class="level1">
+<h1>Research Context</h1>
+<section id="urban-theories" class="level2">
+<h2 class="anchored" data-anchor-id="urban-theories">Urban Theories</h2>
+<p><strong>Chicago School (1920s-1960s):</strong> - Predicted: Regular spatial patterns (concentric zones)</p>
+<p><strong>Los Angeles School (1990s-2000s):</strong> - Predicted: Chaotic, fragmented patterns</p>
+<p><strong>What data shows:</strong> - Chicago: Rings persist (supports Chicago School) - Los Angeles: Fragmented patterns (supports LA School)</p>
+</section>
+</section>
+<section id="methodological-workflow" class="level1">
+<h1>Methodological Workflow</h1>
+<section id="main-steps" class="level2">
+<h2 class="anchored" data-anchor-id="main-steps">5 Main Steps</h2>
+<ol type="1">
+<li><strong>K-means clustering:</strong> Classify neighborhoods at each time point</li>
+<li><strong>Create sequences:</strong> Convert to sequence objects</li>
+<li><strong>Measure dissimilarity:</strong> Calculate distances using OMstrans</li>
+<li><strong>Cluster sequences:</strong> Group similar trajectories</li>
+<li><strong>Map results:</strong> Visualize spatial patterns</li>
+</ol>
+</section>
+</section>
+<section id="step-1-k-means-clustering" class="level1">
+<h1>Step 1: K-means Clustering</h1>
+<section id="what-is-k-means" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-k-means">What is K-means?</h2>
+<p><strong>Unsupervised</strong> algorithm that: - Groups observations into <strong>k</strong> clusters based on similarity - Assigns to nearest <strong>centroid</strong> (mean) - Iteratively updates until convergence</p>
+<p><strong>Input:</strong> Variables describing neighborhoods (all years combined) - Socioeconomic, housing, demographic variables - <strong>Standardize (z-score)</strong> for temporal consistency</p>
+</section>
+<section id="choosing-k" class="level2">
+<h2 class="anchored" data-anchor-id="choosing-k">Choosing K</h2>
+<p><strong>Mathematical optimum ≠ Substantive optimum</strong></p>
+<p><strong>Example:</strong> NYC analysis found optimal k=3, but used k=6</p>
+<p><strong>Why?</strong> - k=3: mostly White, Black, Hispanic (too simple) - k=6: mixed-race categories, more nuance</p>
+<p><strong>Approach:</strong> Test k=2 through k=10, examine fit AND interpretability</p>
+<p><strong>Metrics:</strong> - WSS (within-cluster sum of squares) - Silhouette width - Elbow method</p>
+</section>
+</section>
+<section id="step-2-create-sequences" class="level1">
+<h1>Step 2: Create Sequences</h1>
+<section id="from-clusters-to-sequences" class="level2">
+<h2 class="anchored" data-anchor-id="from-clusters-to-sequences">From Clusters to Sequences</h2>
+<p><strong>Before:</strong> Each tract has separate cluster assignments</p>
+<pre><code>Tract 123:  1980=1, 1990=1, 2000=3, 2010=3, 2020=3</code></pre>
+<p><strong>After:</strong> Each tract has one sequence</p>
+<pre><code>Tract 123:  White → White → Hispanic → Hispanic → Hispanic</code></pre>
+</section>
+<section id="creating-sequence-object" class="level2">
+<h2 class="anchored" data-anchor-id="creating-sequence-object">Creating Sequence Object</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reshape to wide format</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>census_wide <span class="ot">&lt;-</span> census_data <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(tract, year, cluster) <span class="sc">%&gt;%</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> year, <span class="at">values_from =</span> cluster)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Define sequence object with TraMineR</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>seq_data <span class="ot">&lt;-</span> <span class="fu">seqdef</span>(</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  census_wide,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">var =</span> <span class="fu">c</span>(<span class="st">"1980"</span>, <span class="st">"1990"</span>, <span class="st">"2000"</span>, <span class="st">"2010"</span>, <span class="st">"2020"</span>),</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"White"</span>, <span class="st">"Black"</span>, <span class="st">"Hispanic"</span>, <span class="st">"Asian"</span>, </span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Black/Hisp"</span>, <span class="st">"White Mixed"</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Key function:</strong> <code>seqdef()</code> from TraMineR package</p>
+</section>
+</section>
+<section id="step-3-measure-sequence-dissimilarity" class="level1">
+<h1>Step 3: Measure Sequence Dissimilarity</h1>
+<section id="why-sequence-similarity-matters" class="level2">
+<h2 class="anchored" data-anchor-id="why-sequence-similarity-matters">Why Sequence Similarity Matters</h2>
+<p><strong>Question:</strong> Which sequences are most similar?</p>
+<pre><code>A: White → White → Hispanic → Hispanic → Hispanic
+B: White → Hispanic → Hispanic → Hispanic → Hispanic  
+C: Black → Black → Black → Black → Hispanic</code></pre>
+<p><strong>Answer depends on:</strong> Timing, endpoints, or sequence order?</p>
+</section>
+<section id="omstrans-sequence-aware-matching" class="level2">
+<h2 class="anchored" data-anchor-id="omstrans-sequence-aware-matching">OMstrans: Sequence-Aware Matching</h2>
+<p><strong>Traditional OM:</strong> Counts edits to transform sequences (doesn’t emphasize ordering)</p>
+<p><strong>OMstrans:</strong> Focuses on <strong>sequences of transitions</strong> - Joins each state with previous (AB, BC, CD) - Better captures the <strong>process</strong> of change - More sensitive to <strong>order</strong> of transitions</p>
+<p><strong>Key difference:</strong> “White→Hispanic→Asian” ≠ “White→Asian→Hispanic”</p>
+</section>
+<section id="computing-omstrans" class="level2">
+<h2 class="anchored" data-anchor-id="computing-omstrans">Computing OMstrans</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate transition-based substitution costs</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>submat <span class="ot">&lt;-</span> <span class="fu">seqsubm</span>(seq_data, <span class="at">method =</span> <span class="st">"TRATE"</span>, <span class="at">transition =</span> <span class="st">"both"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute OMstrans dissimilarity</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>dist_omstrans <span class="ot">&lt;-</span> <span class="fu">seqdist</span>(</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  seq_data,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"OMstrans"</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">indel =</span> <span class="dv">1</span>,            <span class="co"># insertion/deletion cost</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">sm =</span> submat,          <span class="co"># substitution cost matrix</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">otto =</span> <span class="fl">0.1</span>            <span class="co"># origin-transition tradeoff</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Key parameters:</strong> - <code>indel = 1</code>: Cost for insert/delete operations - <code>otto = 0.1</code>: Lower values emphasize sequencing - <code>norm = TRUE</code>: Normalize by sequence length</p>
+<p><strong>Output:</strong> Dissimilarity matrix (pairwise distances)</p>
+</section>
+</section>
+<section id="step-4-cluster-similar-sequences" class="level1">
+<h1>Step 4: Cluster Similar Sequences</h1>
+<section id="hierarchical-clustering" class="level2">
+<h2 class="anchored" data-anchor-id="hierarchical-clustering">Hierarchical Clustering</h2>
+<p><strong>How it works:</strong> 1. Start with each sequence as own cluster 2. Find two most similar clusters 3. Merge them 4. Repeat until one cluster 5. <strong>Cut</strong> dendrogram at desired number</p>
+<p><strong>Ward’s method:</strong> Minimizes within-cluster variance</p>
+</section>
+<section id="choosing-number-of-clusters" class="level2">
+<h2 class="anchored" data-anchor-id="choosing-number-of-clusters">Choosing Number of Clusters</h2>
+<p><strong>Unlike k-means, no clear mathematical optimum</strong></p>
+<p><strong>Approach:</strong> - Start with many clusters (20-30) - Examine sequence plots - Merge if similar patterns - Stop when you’d group opposite trajectories</p>
+<p><strong>Example:</strong> Don’t merge “increasing White” with “increasing Hispanic”</p>
+</section>
+</section>
+<section id="step-5-map-results" class="level1">
+<h1>Step 5: Map Results</h1>
+<section id="mapping-trajectory-clusters" class="level2">
+<h2 class="anchored" data-anchor-id="mapping-trajectory-clusters">Mapping Trajectory Clusters</h2>
+<p><strong>Final step:</strong> Map clusters to see spatial patterns</p>
+<ul>
+<li>Each neighborhood colored by trajectory cluster</li>
+<li>Reveals spatial clustering of similar trajectories</li>
+<li>Tests Chicago School vs.&nbsp;LA School patterns</li>
+</ul>
+<p><strong>Key questions:</strong> - Are similar trajectories spatially clustered? - Do patterns follow concentric zones? - Or are they fragmented?</p>
+</section>
+</section>
+<section id="key-takeaways" class="level1">
+<h1>Key Takeaways</h1>
+<section id="sequential-analysis-skills" class="level2">
+<h2 class="anchored" data-anchor-id="sequential-analysis-skills">Sequential Analysis Skills</h2>
+<ol type="1">
+<li><strong>K-means:</strong> Classify neighborhoods at each time point</li>
+<li><strong>Sequences:</strong> Use <code>seqdef()</code> to create sequence objects</li>
+<li><strong>Dissimilarity:</strong> Use OMstrans to measure similarity</li>
+<li><strong>Clustering:</strong> Hierarchical clustering for trajectories</li>
+<li><strong>Mapping:</strong> Visualize spatial patterns</li>
+</ol>
+</section>
+<section id="key-concepts" class="level2">
+<h2 class="anchored" data-anchor-id="key-concepts">Key Concepts</h2>
+<ul>
+<li><strong>Sequences vs.&nbsp;snapshots:</strong> Full trajectories reveal more</li>
+<li><strong>OMstrans:</strong> Captures order and timing of transitions</li>
+<li><strong>Temporal consistency:</strong> Cluster all years together</li>
+<li><strong>Interpretability:</strong> Balance fit with meaningful clusters</li>
+</ul>
+</section>
+<section id="common-pitfalls" class="level2">
+<h2 class="anchored" data-anchor-id="common-pitfalls">Common Pitfalls</h2>
+<ul>
+<li>Choosing k too small (loses nuance) or too large (over-fragmentation)</li>
+<li>Ignoring interpretability (mathematical optimum ≠ best solution)</li>
+<li>Not mapping results (miss spatial patterns)</li>
+<li>Not considering theory (pure data-driven misses context)</li>
+</ul>
+</section>
+<section id="best-practices" class="level2">
+<h2 class="anchored" data-anchor-id="best-practices">Best Practices</h2>
+<ul>
+<li>Test multiple k values</li>
+<li>Examine cluster characteristics</li>
+<li>Visualize sequences before clustering</li>
+<li>Map results to reveal spatial patterns</li>
+<li>Connect to urban theory</li>
+</ul>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
